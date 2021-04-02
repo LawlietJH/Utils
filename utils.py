@@ -1,7 +1,7 @@
 
 # Tested in: Python 3.8.8
 # By: LawlietJH
-# Utils v1.0.2
+# Utils v1.0.3
 
 from datetime import datetime
 import pywintypes
@@ -46,7 +46,7 @@ import win32net			as WN
 
 __author__  = 'LawlietJH'	# Desarrollador
 __title__   = 'Utils'		# Nombre
-__version__ = 'v1.0.2'		# Version
+__version__ = 'v1.0.3'		# Version
 
 #=======================================================================
 #=======================================================================
@@ -101,31 +101,34 @@ class ObjectInt(int):
 		else:
 			return val
 
-class ObjectClassNames:    # Obtiene todos los nombres de las clases en los objetos de 'Utils' y la cantidad.    Detecta Clases con Formato de primer letra Mayúscula. Ejemplo: 'PrimeroSegundoTercero'
+class ObjectClassNames: #Use    # Obtiene todos los nombres de las clases en los objetos de 'Utils' y la cantidad.    Detecta Clases con Formato de primer letra Mayúscula. Ejemplo: 'PrimeroSegundoTercero'
 	
 	def __init__(self, obj):
-		self.use = '''\
-		\r Ejemplo de uso:
-		\r	utils = Utils()
-		
-		\r	# utils.classes --> str: <'list':[...], 'qty':0>
-		\r	print(utils.classes)
-		
-		\r	# utils.classes.list + list--> list
-		\r	# utils.classes.list --> list
-		\r	print('Classes list:', utils.classes.list)
-		
-		\r	# utils.classes.qty + int --> int
-		\r	# utils.classes.qty --> int
-		\r	print('Classes qty:', utils.classes.qty)
-		
-		\r	# Al sumar con string se convierte en string, sino, seguira siendo una lista.
-		\r	# utils.classes.list + str --> str
-		\r	print('Classes str(list): ' + utils.classes.list)
-		
-		\r	# Al sumar con string se convierte en string, sino, seguira siendo un entero.
-		\r	# utils.classes.qty + str --> str
-		\r	print('Classes str(qty): ' + utils.classes.qty)
+		self.use = '''
+		\r Función: ObjectClassNames(obj)
+		\r |
+		\r + Ejemplos de uso:
+		\r |
+		\r |    utils = Utils()
+		\r |
+		\r |    # utils.classes --> str: <'list':[...], 'qty':0>
+		\r |    print(utils.classes)
+		\r |
+		\r |    # utils.classes.list + list--> list
+		\r |    # utils.classes.list --> list
+		\r |    print('Classes list:', utils.classes.list)
+		\r |
+		\r |    # utils.classes.qty + int --> int
+		\r |    # utils.classes.qty --> int
+		\r |    print('Classes qty:', utils.classes.qty)
+		\r |
+		\r |    # Al sumar con string se convierte en string, sino, seguira siendo una lista.
+		\r |    # utils.classes.list + str --> str
+		\r |    print('Classes str(list): ' + utils.classes.list)
+		\r |
+		\r |    # Al sumar con string se convierte en string, sino, seguira siendo un entero.
+		\r |    # utils.classes.qty + str --> str
+		\r \    print('Classes str(qty): ' + utils.classes.qty)
 		'''
 		list_ = [
 			a for a in dir(obj) 
@@ -135,37 +138,48 @@ class ObjectClassNames:    # Obtiene todos los nombres de las clases en los obje
 		]
 		self.list = ObjectList(list_)
 		self.qty  = ObjectInt(len(list_))
+		self.cls  = obj.__class__.__name__
 	
 	def __str__(self):
-		output = '<{}: '+str(self.list) + ', {}: '+str(self.qty) + '>'
+		output = '<{}: '+repr(self.cls) + ', {}: '+str(self.list) + ', {}: '+str(self.qty) + '>'
 		return output.format(repr('list'), repr('qty'))
+	
+	@property
+	def dict(self):
+		return {
+			'class': self.cls,
+			'list': self.list,
+			'qty': self.qty
+		}
 
-class ObjectFunctionNames: # Obtiene todos los nombres de las funciones en los objetos de 'Utils' y la cantidad. Detecta funciones con Formato de primer letra minúscula. Ejemplo: 'primeroSegundoTercero'
+class ObjectFunctionNames: #Use # Obtiene todos los nombres de las funciones en los objetos de 'Utils' y la cantidad. Detecta funciones con Formato de primer letra minúscula. Ejemplo: 'primeroSegundoTercero'
 	
 	def __init__(self, obj):
-		self.use = '''\
-		\r Ejemplos de uso:
-		
-		\r	utils = Utils()
-		
-		\r	# utils.functions --> str: <'list':[...], 'qty':0>
-		\r	print(utils.functions)
-		
-		\r	# utils.functions.list + list --> list
-		\r	# utils.functions.list --> list
-		\r	print('Functions list:', utils.functions.list)
-		
-		\r	# utils.functions.qty + int --> int
-		\r	# utils.functions.qty --> int
-		\r	print('Functions qty:', utils.functions.qty)
-		
-		\r	# Al sumar con string se convierte en string, sino, seguira siendo una lista.
-		\r	# utils.functions.list + str --> str
-		\r	print('Functions str(list): ' + utils.functions.list)
-		
-		\r	# Al sumar con string se convierte en string, sino, seguira siendo un entero.
-		\r	# utils.functions.qty + str --> str
-		\r	print('Functions str(qty): ' + utils.functions.qty)
+		self.use = '''
+		\r Función: ObjectFunctionNames(obj)
+		\r |
+		\r + Ejemplos de uso:
+		\r |
+		\r |    utils = Utils()
+		\r |
+		\r |    # utils.functions --> str: <'list':[...], 'qty':0>
+		\r |    print(utils.functions)
+		\r |
+		\r |    # utils.functions.list + list --> list
+		\r |    # utils.functions.list --> list
+		\r |    print('Functions list:', utils.functions.list)
+		\r |
+		\r |    # utils.functions.qty + int --> int
+		\r |    # utils.functions.qty --> int
+		\r |    print('Functions qty:', utils.functions.qty)
+		\r |
+		\r |    # Al sumar con string se convierte en string, sino, seguira siendo una lista.
+		\r |    # utils.functions.list + str --> str
+		\r |    print('Functions str(list): ' + utils.functions.list)
+		\r |
+		\r |    # Al sumar con string se convierte en string, sino, seguira siendo un entero.
+		\r |    # utils.functions.qty + str --> str
+		\r \    print('Functions str(qty): ' + utils.functions.qty)
 		'''
 		list_ = [
 			a for a in dir(obj) 
@@ -175,10 +189,19 @@ class ObjectFunctionNames: # Obtiene todos los nombres de las funciones en los o
 		]
 		self.list = ObjectList(list_)
 		self.qty  = ObjectInt(len(list_))
+		self.cls  = obj.__class__.__name__
 	
 	def __str__(self):
-		output = '<{}: '+str(self.list) + ', {}: '+str(self.qty) + '>'
-		return output.format(repr('list'), repr('qty'))
+		output = '<{}: '+repr(self.cls) + ', {}: '+str(self.list) + ', {}: '+str(self.qty) + '>'
+		return output.format(repr('class'), repr('list'), repr('qty'))
+	
+	@property
+	def dict(self):
+		return {
+			'class': self.cls,
+			'list': self.list,
+			'qty': self.qty
+		}
 
 #=======================================================================
 #=======================================================================
@@ -202,11 +225,11 @@ class Utils:
 		
 		def __init__(self):
 			
-			self.load_uses()
 			self.classes   = ObjectClassNames(self)
 			self.functions = None
 			self.functions = ObjectFunctionNames(self)
 			
+			self.load_uses()
 			self.run_command = lambda command: os.popen(command).read()	# Ejecuta cualquier comando en consola
 			self.Clipboard = self.Clipboard()
 			self.Explorer  = self.Explorer()
@@ -227,6 +250,8 @@ class Utils:
 		class StyleOfWindowError(Exception):
 			def __init__(self, error_msg): self.error_msg = error_msg
 			def __str__(self): return repr(self.error_msg)
+		
+		#---------------------------------------------------------------
 		
 		class Clipboard:												# Manipula el clipboard (Copiar/Pegar)
 			
@@ -260,7 +285,9 @@ class Utils:
 				WCB.SetClipboardText(b'', WCB.CF_TEXT)
 				WCB.CloseClipboard()
 		
-		class Explorer:													# Permite controlar las ventanas 'Abrir', 'Seleccionar carpeta' y 'Guardar como' para obtener las rutas seleccionadas.
+		#---------------------------------------------------------------
+		
+		class Explorer: #Use											# Permite controlar las ventanas 'Abrir', 'Seleccionar carpeta' y 'Guardar como' para obtener las rutas seleccionadas.
 			
 			def __init__(self):
 				
@@ -268,22 +295,24 @@ class Utils:
 				self.functions = None
 				self.functions = ObjectFunctionNames(self)
 				
-				self.use = '''\
-					\r Ejemplo de Uso:
-					
-					\r	utils = Utils()
-					
-					\r	# Obtiene la ruta completa y el nombre del archivo para 'Abrir':
-					\r	file_name = utils.Actions.Explorer.getFileName()
-					\r	print(file_name)
-					
-					\r	# Obtiene la ruta completa de la Carpeta Seleccionada para 'Seleccionar Carpeta':
-					\r	folder_path = utils.Actions.Explorer.getFolderName()
-					\r	print(folder_path)
-					
-					\r	# Obtiene la ruta completa y el nombre de Archivo indicado para 'Guardar como':
-					\r	file_name_save = utils.Actions.Explorer.getFileNameSave()
-					\r	print(file_name_save)
+				self.use = '''
+				\r Clase: Explorer()
+				\r |
+				\r + Ejemplos de uso:
+				\r |
+				\r |    utils = Utils()
+				\r |
+				\r |    # Obtiene la ruta completa y el nombre del archivo para 'Abrir':
+				\r |    file_name = utils.Actions.Explorer.getFileName()
+				\r |    print(file_name)
+				\r |
+				\r |    # Obtiene la ruta completa de la Carpeta Seleccionada para 'Seleccionar Carpeta':
+				\r |    folder_path = utils.Actions.Explorer.getFolderName()
+				\r |    print(folder_path)
+				\r |
+				\r |    # Obtiene la ruta completa y el nombre de Archivo indicado para 'Guardar como':
+				\r |    file_name_save = utils.Actions.Explorer.getFileNameSave()
+				\r \    print(file_name_save)
 				'''
 				self.root = Tk()
 				self.root.withdraw()
@@ -332,6 +361,8 @@ class Utils:
 				if not f_name == '':
 					return f_name
 		
+		#---------------------------------------------------------------
+		
 		class VBS:														# Ejecuta Scripts VBS
 			
 			def __init__(self):
@@ -340,31 +371,44 @@ class Utils:
 				self.functions = None
 				self.functions = ObjectFunctionNames(self)
 				
+				self.load_uses()
+				
 				self.run_command = lambda command: os.popen(command).read()	# Ejecuta cualquier comando en consola
 			
-			def runScriptVBS(self, name, payload, rm, ret=False):			# Ejecuta el script VBS
+			def load_uses(self):
+				'''
+				\r Función: getWindowsProductKey(return_key=True, save_key=False, rm=True)
+				\r |
+				\r + Ejemplo de uso: 
+				\r |
+				\r |    # save_key=True Permite guardar la clave en un archivo
+				\r |    key = utils.Actions.VBS.getWindowsProductKey(save_key=True)
+				\r \    print('\nClave de Producto de Windows:', key)
+				'''
+			
+			def runScriptVBS(self, name, payload, rm, ret=False):		# Ejecuta el script VBS
 				
-				temp_path = os.getenv('TEMP') + '\\_odin_\\'				# Obtiene la ruta de la carpeta de archivos temporales en windows
-				name = temp_path + name										# Indica la ruta y nombre del archivo
+				temp_path = os.getenv('TEMP') + '\\_odin_\\'			# Obtiene la ruta de la carpeta de archivos temporales en windows
+				name = temp_path + name									# Indica la ruta y nombre del archivo
 				
-				if not os.path.isdir(temp_path):							# Crea la carpeta _odin_ en los archivos temporales si no existe
+				if not os.path.isdir(temp_path):						# Crea la carpeta _odin_ en los archivos temporales si no existe
 					os.mkdir(temp_path)
 				
-				if not os.path.isfile(name):								# Crea el archivo si no existe en la carpeta %temp%\_odin_
+				if not os.path.isfile(name):							# Crea el archivo si no existe en la carpeta %temp%\_odin_
 					with open(name,'w') as File:
-						File.write(payload)									# Añade el código dentro del archivo
+						File.write(payload)								# Añade el código dentro del archivo
 						File.close()
 				
-				output = self.run_command('cscript ' + name)				# Ejecuta el código del script
+				output = self.run_command('cscript ' + name)			# Ejecuta el código del script
 				
-				if rm: os.remove(name)										# Elimina el archivo min.vbs
+				if rm: os.remove(name)									# Elimina el archivo min.vbs
 				
-				if len(os.listdir(temp_path)) == 0:							# Elimina la carpeta _odin_ si esta vacia 
+				if len(os.listdir(temp_path)) == 0:						# Elimina la carpeta _odin_ si esta vacia 
 					os.rmdir(temp_path)
 				
-				if ret: return output
+				if ret: return output									# Si ret=True: Devuelve el texto generado por el script.
 			
-			def minimizeAll(self, rm=True):									# Minimiza todas las ventanas
+			def minimizeAll(self, rm=True):								# Minimiza todas las ventanas
 				name = 'minimizeAll.vbs'									# Indica el nombre del archivo
 				payload = '''\
 					\r ' VBS Script para Minimizar todas las ventanas.
@@ -373,8 +417,8 @@ class Utils:
 				'''
 				self.runScriptVBS(name, payload, rm)
 			
-			def ejectCDROM(self, rm=True):									# Expulsa la bandeja de disco.
-				name = 'ejectCDROM.vbs'										# Indica el nombre del archivo
+			def ejectCDROM(self, rm=True):								# Expulsa la bandeja de disco.
+				name = 'ejectCDROM.vbs'
 				payload = '''\
 					\r ' VBS Script para Expulsar la bandeja de Disco.
 					\r Set oWMP = CreateObject("WMPlayer.OCX.7")
@@ -386,16 +430,18 @@ class Utils:
 					\r End if
 				'''
 				self.runScriptVBS(name, payload, rm)
-		
-			def getWindowsProductKey(self, return_key=True, rm=True):		# Obtiene la Clave de Producto de Windows
+			
+			def getWindowsProductKey(self, save_key=False, rm=True):	# Obtiene la Clave de Producto de Windows y la muestra en pantalla.
+				# save_key: Si es True Guarda la clave en un archvio.
+				# rm:       Si es True Elimina el archivo del Script.
 				
 				name = 'gwpk.vbs'
 				payload = '''\
 					\r ' VBS Script para obtener la Clave de Producto Original de Windows.
-					
+					\r
 					\r Set WshShell = WScript.CreateObject("WScript.Shell")
 					\r KeyPath = "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\DigitalProductId"
-					
+					\r
 					\r Function ExtractKey(KeyInput)
 					\r 	Const KeyOffset = 52
 					\r 	i = 28
@@ -419,35 +465,122 @@ class Utils:
 					\r 	Loop While i >= 0
 					\r 	ExtractKey = KeyOutput
 					\r End Function
-					
-					\r Dim fso, MiArchivo
-					\r Set fso = CreateObject("Scripting.FileSystemObject")
-					\r Set MiArchivo = fso.CreateTextFile("ClaveProducto.zion", True)
-					\r MiArchivo.WriteLine(ExtractKey(WshShell.RegRead(KeyPath)))
-					\r MiArchivo.Close
-					
+					\r
+					\r ' Guardar Clave en un archivo
+					\r {0}Dim fso, my_file
+					\r {0}Set fso = CreateObject("Scripting.FileSystemObject")
+					\r {0}Set my_file = fso.CreateTextFile("WinProductKey.zion", True)
+					\r {0}my_file.WriteLine(ExtractKey(WshShell.RegRead(KeyPath)))
+					\r {0}my_file.Close
+					\r
 					\r WScript.Echo ExtractKey(WshShell.RegRead(KeyPath))
-				'''
+				'''.format('\' ' if not save_key else '')
+				
 				# Equipo\HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SoftwareProtectionPlatform --> BackupProductKeyDefault
 				# ~ powershell "(Get-WmiObject -query ‘select * from SoftwareLicensingService’).OA3xOriginalProductKey"
 				
 				key = self.runScriptVBS(name, payload, rm, ret=True)
 				key = key.split('\n')
 				
-				if return_key:
-					while '' in key: key.remove('')
-					return key[-1]
+				while '' in key: key.remove('')
+				return key[-1]
+			
+			def setVolume(self, percent=72, rm=True):
+				percent = percent//2
+				name = 'vol.vbs'
+				payload = '''
+					' VBS Script para Subir o Bajar el Volumen del Sistema Activo.
+					
+					Set WshShell = CreateObject("WScript.Shell")
+					
+					for i = 1 to 50
+						WshShell.SendKeys(chr(174))
+					next
+					
+					for i = 1 to {}
+						WshShell.SendKeys(chr(175))
+					next
+				'''.format(percent)
+				self.runScriptVBS(name, payload, rm)
+		
+		#---------------------------------------------------------------
 		
 		def load_uses(self):
-			self.messageBox_use = '''\
-			\r Ejemplo de uso:
-			
-			\r	resp = utils.Actions.messageBox(
-			\r		message = 'Esta función te resulta muy útil?',
-			\r		title = 'Es útil?',
-			\r		style = WC.MB_YESNO | WC.MB_ICONQUESTION | WC.MB_DEFAULT_DESKTOP_ONLY
-			\r	)
-			\r	print(resp)
+			self.cleanRecyclerBin_use = '''
+			\r Función: cleanRecyclerBin(tipo=0, unidad='C:')
+			\r |
+			\r + Tipos de niveles:
+			\r |  -------------------------------------------------------------
+			\r | | 0 = NORMAL              | 4 = SIN_SONIDO                    |
+			\r | | 1 = SIN_CONFIRMACION    | 5 = 4 + 1                         |
+			\r | | 2 = SIN_BARRA_PROGRESO  | 6 = 4 + 2                         |
+			\r | | 3 = 2 + 1               | 7 = 4 + 2 + 1 = TOTAL_INADVERTIDO |
+			\r |  -------------------------------------------------------------
+			\r |
+			\r + Ejemplo de uso:
+			\r |
+			\r |    utils = Utils()
+			\r |    # Vaciará la papelera en modo silencioso
+			\r |    # Totalmente inadvertido.
+			\r \    utils.Actions.cleanRecyclerBin(tipo=7)
+			'''
+			self.displaySwitch_use = '''
+			\r Función: displaySwitch(tipo=0)
+			\r |
+			\r + Tipos de cambios:
+			\r |  --------------------------------------
+			\r | | 0 = internal: Solo pantalla de PC.   |
+			\r | | 1 = clone:    Duplicado.             |
+			\r | | 2 = extend:   Ampliar.               |
+			\r | | 3 = external: Solo segunda pantalla. |
+			\r |  --------------------------------------
+			\r |
+			\r + Ejemplo de uso:
+			\r |
+			\r |    utils = Utils()
+			\r \    utils.Actions.displaySwitch(2)
+			'''
+			self.killProcess_use = '''
+			\r Función: killProcess(PID)
+			\r |
+			\r + Ejemplo de uso:
+			\r |
+			\r |    utils = Utils()
+			\r |
+			\r |    # Busca todas las coincidencias con 'notepad':
+			\r |    procs = utils.SystemInfo.enumProcess('notepad')
+			\r |    for p in procs: print(p)
+			\r |
+			\r |    # Si solo hubo una coincidencia obtenemos
+			\r |    # su ProcessID y terminamos el proceso:
+			\r |    if len(procs) == 1:
+			\r |        proc = procs.pop()
+			\r \        utils.Actions.killProcess(proc['pid'])	
+			'''
+			self.messageBox_use = '''
+			\r Función: messageBox(message, title,
+			\r |	style = WC.MB_OKCANCEL | WC.MB_ICONINFORMATION | WC.MB_DEFAULT_DESKTOP_ONLY
+			\r |    )
+			\r |
+			\r + Ejemplo de uso:
+			\r |
+			\r |    utils = Utils()
+			\r |    resp = utils.Actions.messageBox(
+			\r |        message = 'Esta función te resulta muy útil?',
+			\r |        title = 'Es útil?',
+			\r |        style = WC.MB_YESNO | WC.MB_ICONQUESTION | WC.MB_DEFAULT_DESKTOP_ONLY
+			\r |    )
+			\r \    print(resp)
+			'''
+			self.startApp_use = '''
+			\r Función: startApp(name='notepad')
+			\r |
+			\r + Ejemplo de uso:
+			\r |
+			\r |    utils = Utils()
+			\r |    utils.Actions.startApp('Notepad')
+			\r |    utils.Actions.startApp('Calc')
+			\r \    utils.Actions.startApp('Cmd')
 			'''
 		
 		def beep(self, t=5, d=0.5):
@@ -460,15 +593,7 @@ class Utils:
 		def changePasswordCurrentUser(self, oldPwd, newPwd):			# Cambia la contraseña del usuario actual.
 			WN.NetUserChangePassword(None, None, oldPwd, newPwd)
 		
-		def cleanRecyclerBin(self, tipo=0, unidad='C:'):				# int tipo, str unidad. Permite vaciar la papelera de reciclaje, incluso de forma completamente silenciosa
-			''' Tipos:
-			 -------------------------------------------------------------
-			| 0 = NORMAL			  | 4 = SIN_SONIDO					  |
-			| 1 = SIN_CONFIRMACION	  | 5 = 4 + 1						  |
-			| 2 = SIN_BARRA_PROGRESO  | 6 = 4 + 2						  |
-			| 3 = 2 + 1				  | 7 = 4 + 2 + 1 = TOTAL_INADVERTIDO |
-			 -------------------------------------------------------------
-			'''
+		def cleanRecyclerBin(self, tipo=0, unidad='C:'): #Use			# int tipo, str unidad. Permite vaciar la papelera de reciclaje, incluso de forma completamente silenciosa
 			unidad = unidad.upper()
 			if re.search('^[A-Z]{1}:$', str(unidad)) == None:
 				return False
@@ -481,13 +606,7 @@ class Utils:
 		def not_closeCMD(self):												# [X] Cierra la consola de comandos
 			WCS.FreeConsole()
 		
-		def displaySwitch(self, tipo=0):								# Cambia la pantalla Solo Primera, Pantalla Duplicada, Extendida o Solo Segunda.
-			'''
-			0 = internal: Solo pantalla de PC.
-			1 = clone:    Duplicado.
-			2 = extend:   Ampliar.
-			3 = external: Solo segunda pantalla.
-			'''
+		def displaySwitch(self, tipo=0): #Use							# Cambia la pantalla Solo Primera, Pantalla Duplicada, Extendida o Solo Segunda.
 			if not 0 <= tipo <= 3: tipo = 0
 			tipos = ['/internal', '/clone', '/extend', '/external']
 			cmd = 'displayswitch.exe ' + tipos[tipo]
@@ -561,16 +680,16 @@ class Utils:
 		def hideConsole(xD=True):										# Oculta/Desoculta la consola de comandos
 			WG.ShowWindow(WCS.GetConsoleWindow(), not xD)
 		
-		def killProcess(self, PID):										# Termina un proceso mediante su PID
+		def killProcess(self, PID): #Use								# Termina un proceso mediante su PID
 			if PID != None:
 				return (0 != WA.TerminateProcess(WA.OpenProcess(1, 0, int(PID)), 0))
 		
-		def lockWorkStation(self):
+		def lockWorkStation(self):										# Bloquea la sesión (Como Win+L)
 			#~ run_command('rundll32.exe user32.dll, LockWorkStation')
 			ctypes.windll.user32.LockWorkStation()
 		
 		def messageBox(self, message, title, style = WC.MB_OKCANCEL | WC.MB_ICONINFORMATION | WC.MB_DEFAULT_DESKTOP_ONLY
-		): # Crea una ventana de alerta personalizada y captura la interacción con esta devolviendo la respuesta.
+		): #Use # Crea una ventana de alerta personalizada y captura la interacción con esta devolviendo la respuesta.
 			'''
 			# URL Ref 1: https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-messagebox
 			# URL Ref 2: http://timgolden.me.uk/pywin32-docs/win32api__MessageBox_meth.html
@@ -638,6 +757,28 @@ class Utils:
 		def minimizeWindowCMD(self):									# Minimiza la consola de comandos
 			WG.ShowWindow(WG.GetForegroundWindow(), WC.SW_MINIMIZE)
 		
+		def screenshot(self, open_ss=False): 
+			
+			screen = mss.mss()
+			screen.shot()
+			screen_name = 'monitor-1.png'
+			
+			# Valida el nombre y ruta de guardado para la captura:
+			if not os.path.exists('Screenshots'):
+				os.mkdir('Screenshots')
+			
+			data = 0
+			scree_new_name = 'Screenshots\\Screenshot_{}.jpg'.format(str(data).zfill(3))
+			
+			if os.path.isfile(screen_name):
+				while os.path.isfile(scree_new_name):
+					print(os.path.isfile(scree_new_name))
+					data += 1
+					scree_new_name = 'Screenshots\\Screenshot_{}.jpg'.format(str(data).zfill(3))
+				os.rename(screen_name, scree_new_name)
+			else:
+				pass
+		
 		def setCursorPos(self, posX, posY):								# Posiciona el cursor en (X, Y)
 			WA.SetCursorPos((posX, posY))
 		
@@ -658,7 +799,71 @@ class Utils:
 					PyCWnd1.SetForegroundWindow()
 					PyCWnd1.SetFocus()
 					return True
-	
+		
+		def not_setDisplayRotation(self, monitor=0):						#[X] Rota la Pantalla 180 graods en el monitor seleccionado.
+			# monitor:
+			# 0 = Monitor Principal
+			# 1 = Segundo Monitor
+			display = self.display1_orientation if monitor == 0 else self.display2_orientation
+			
+			device = WA.EnumDisplayDevices(None, monitor);
+			fullName = device.DeviceString
+			name = device.DeviceName
+			dm = WA.EnumDisplaySettings(name, WC.ENUM_CURRENT_SETTINGS)
+			# WC.DMDO_DEFAULT=0, WC.DMDO_90=1, WC.DMDO_180=2, WC.DMDO_270=3
+			
+			dm.DisplayOrientation = 0 if display == 2 else 2
+			if   monitor == 0: self.display1_orientation = dm.DisplayOrientation
+			elif monitor == 1: self.display2_orientation = dm.DisplayOrientation
+			dm.PelsWidth, dm.PelsHeight = dm.PelsHeight, dm.PelsWidth
+			dm.Fields = dm.Fields & WC.DM_DISPLAYORIENTATION
+			WA.ChangeDisplaySettingsEx(name, dm)
+		
+		def not_setDisplaySettings(self, xres=None, yres=None, cdepth=32):	#[X] Cambia la resolución.
+			"""Changes the display resolution and bit depth on Windows.
+			
+			From Shane Holloway's post http://aspn.activestate.com/ASPN/Mail/Message/wxPython-users/1684800"""
+			
+			DM_BITSPERPEL		= 0x00040000
+			DM_PELSWIDTH		= 0x00080000
+			DM_PELSHEIGHT		= 0x00100000
+			CDS_UPDATEREGISTRY	= 0x00000001
+			CDS_FULLSCREEN		= 0x00000004
+			SIZEOF_DEVMODE		= 148
+			
+			DevModeData = struct.calcsize("32BHH") * '\x00'.encode()
+			DevModeData += struct.pack("H", SIZEOF_DEVMODE)
+			DevModeData += struct.calcsize("H") * '\x00'.encode()
+			dwFields = (xres and DM_PELSWIDTH or 0) | (yres and DM_PELSHEIGHT or 0) | (cdepth and DM_BITSPERPEL or 0)
+			DevModeData += struct.pack("L", dwFields)
+			DevModeData += struct.calcsize("l9h32BHL") * '\x00'.encode()
+			DevModeData += struct.pack("LLL", cdepth or 0, xres or 0, yres or 0)
+			DevModeData += struct.calcsize("8L") * '\x00'.encode()
+			result = ctypes.windll.user32.ChangeDisplaySettingsA(DevModeData, CDS_FULLSCREEN | CDS_UPDATEREGISTRY)
+			if result != 0: # success if zero, some failure otherwise
+				raise WinDesktopError("setDisplaySettings() died, call to ChangeDisplaySettingsA returned" + repr(result))
+		
+		def setPriorityPID(self, PID=None, priority=1):
+			
+			""" Setea La Prioridad de un Proceso de Windows.
+				El Valor de Prioridad se da entre 0-5 en donde 2 es la Prioridad Normal.
+				Pro Defecto se pondra la Prioridad en 1 en el Actual Proceso de Python."""
+			
+			priorityclasses = [WP.IDLE_PRIORITY_CLASS,
+							   WP.BELOW_NORMAL_PRIORITY_CLASS,
+							   WP.NORMAL_PRIORITY_CLASS,
+							   WP.ABOVE_NORMAL_PRIORITY_CLASS,
+							   WP.HIGH_PRIORITY_CLASS,
+							   WP.REALTIME_PRIORITY_CLASS]
+			
+			if PID == None: PID = WA.GetCurrentProcessId()
+			
+			handle = WA.OpenProcess(WC.PROCESS_ALL_ACCESS, True, PID)
+			WP.SetPriorityClass(handle, priorityclasses[priority])
+		
+		def startApp(self, name='notepad'): #Use						# Abre una aplicación por nombre, ejemplo Notepad (Bloc de notas), Calc (Calculadora), cmd, etc.
+			WA.WinExec(name)
+		
 	class MemoryInfo:
 		
 		def __init__(self):
@@ -742,14 +947,16 @@ class Utils:
 			self.functions = None
 			self.functions = ObjectFunctionNames(self)
 			
-			self.use = '''\
-			\r Ejemplo de uso:
-			
-			\r	utils = Utils()
-			
-			\r	for ESSID in utils.NetworkInfo.ESSIDEnum():
-			\r	    pwd = utils.NetworkInfo.ESSIDPasswd(ESSID)
-			\r	    print('\\nESSID: ' + ESSID + '\\n  Pwd: ' + pwd)
+			self.use = '''
+			\r Funciones: ESSIDEnum() y ESSIDPasswd(ESSID)
+			\r |
+			\r + Ejemplos de uso:
+			\r |
+			\r |    utils = Utils()
+			\r |
+			\r |    for ESSID in utils.NetworkInfo.ESSIDEnum():
+			\r |        pwd = utils.NetworkInfo.ESSIDPasswd(ESSID)
+			\r \        print('\\nESSID: ' + ESSID + '\\n  Pwd: ' + pwd)
 			'''
 			
 			self.run_command = lambda command: os.popen(command).read()	# Ejecuta cualquier comando en consola
@@ -757,7 +964,7 @@ class Utils:
 		
 		def __str__(self): return self.use
 		
-		class GetIP:
+		class GetIP: #Use												# Esta Clase Permite obtener la información sobre la IP Pública y Privada, versión 4 y/o versión 6.
 			
 			def __init__(self):
 				
@@ -765,31 +972,33 @@ class Utils:
 				self.functions = None
 				self.functions = ObjectFunctionNames(self)
 				
-				self.use = '''\
-				\r Ejemplos de uso:
-				
-				\r	utils = Utils()
-				
-				\r	# Sirve en el caso de no necesitar las IP públicas.
-				\r	# Evita conectarse a la API de ipify.
-				\r	# Default: utils.GetIP.only_local = True
-				
-				\r	print('\\nDatos Locales:\\n')
-				\r	print(' HOST:', utils.GetIP.hostname)
-				\r	print(' IPv4 Privada:', utils.GetIP.local_ipv4)
-				\r	print(' IPv6 Privada:', utils.GetIP.local_ipv6)
-				\r	print(' IPv4 Publica:', utils.GetIP.public_ipv4)
-				\r	print(' IPv6 Publica:', utils.GetIP.public_ipv6)
-				
-				\r	# Conecta a la API de ipify para obtener las IP públicas.
-				\r	utils.GetIP.only_local = False
-				
-				\r	print('\\nDatos Locales y Públicos:\\n')
-				\r	print(' HOST:', utils.GetIP.hostname)
-				\r	print(' IPv4 Privada:', utils.GetIP.local_ipv4)
-				\r	print(' IPv6 Privada:', utils.GetIP.local_ipv6)
-				\r	print(' IPv4 Publica:', utils.GetIP.public_ipv4)
-				\r	print(' IPv6 Publica:', utils.GetIP.public_ipv6)
+				self.use = '''
+				\r Clase: GetIP()
+				\r |
+				\r + Ejemplos de uso:
+				\r |
+				\r |    utils = Utils()
+				\r |
+				\r |    # Sirve en el caso de no necesitar las IP públicas.
+				\r |    # Evita conectarse a la API de ipify.
+				\r |    # Default: utils.GetIP.only_local = True
+				\r |
+				\r |    print('\\nDatos Locales:\\n')
+				\r |    print(' HOST:', utils.GetIP.hostname)
+				\r |    print(' IPv4 Privada:', utils.GetIP.local_ipv4)
+				\r |    print(' IPv6 Privada:', utils.GetIP.local_ipv6)
+				\r |    print(' IPv4 Publica:', utils.GetIP.public_ipv4)
+				\r |    print(' IPv6 Publica:', utils.GetIP.public_ipv6)
+				\r |
+				\r |    # Conecta a la API de ipify para obtener las IP públicas.
+				\r |    utils.GetIP.only_local = False
+				\r |
+				\r |    print('\\nDatos Locales y Públicos:\\n')
+				\r |    print(' HOST:', utils.GetIP.hostname)
+				\r |    print(' IPv4 Privada:', utils.GetIP.local_ipv4)
+				\r |    print(' IPv6 Privada:', utils.GetIP.local_ipv6)
+				\r |    print(' IPv4 Publica:', utils.GetIP.public_ipv4)
+				\r \    print(' IPv6 Publica:', utils.GetIP.public_ipv6)
 				'''
 				
 				self.only_local_ = True
@@ -819,7 +1028,7 @@ class Utils:
 					self.public_ipv4 = None
 					self.public_ipv6 = None
 		
-		def latin1_encoding(self, res):
+		def latin1_encoding(self, res):									# Remplaza los caracteres incorrectos en acentos y puntuaciones por los caracteres correctos al lenguaje español.
 			
 			# ~ res = res.decode('latin1')
 			
@@ -857,7 +1066,7 @@ class Utils:
 			
 			return res
 		
-		def ESSIDEnum(self):
+		def ESSIDEnum(self): #Use										# Enumera las redes wifi almacenadas en el sistema.
 			
 			output = self.run_command('netsh wlan show profiles')
 			output = self.latin1_encoding(output).split('\n')
@@ -872,7 +1081,7 @@ class Utils:
 			
 			return ESSIDs
 		
-		def ESSIDPasswd(self, ESSID):
+		def ESSIDPasswd(self, ESSID): #Use								# Con el nombre de una red wifi obtiene la contraseña almacenada.
 			
 			output = self.run_command('netsh wlan show profile name="{}" key=clear'.format(ESSID))
 			output = self.latin1_encoding(output).split('\n')
@@ -894,7 +1103,30 @@ class Utils:
 			self.functions = None
 			self.functions = ObjectFunctionNames(self)
 			
+			self.load_uses()
+			
 			self.run_command = lambda command: os.popen(command).read()	# Ejecuta cualquier comando en consola
+		
+		def load_uses(self):
+			self.enumProcess_use = '''
+			\r Función: enumProcess(findstr=None)
+			\r |
+			\r + Ejemplo de uso:
+			\r |
+			\r |    utils = Utils()
+			\r |
+			\r |    # Busca todas las coincidencias con 'note':
+			\r |    procs = utils.SystemInfo.enumProcess('note')
+			\r |    for p in procs: print(p)
+			\r |
+			\r |    # Busca todas las coincidencias con 'calc':
+			\r |    procs = utils.SystemInfo.enumProcess('calc')
+			\r |    for p in procs: print(p)
+			\r |
+			\r |    # Enumera todos los procesos activos:
+			\r |    procs = utils.SystemInfo.enumProcess()
+			\r \    for p in procs: print(p)
+			'''
 		
 		def not_enumWindows(self):											# [X] Muestra los hwnd de todas los programas
 			class __WindowEnumerator (object):
@@ -939,10 +1171,6 @@ class Utils:
 					raise ctypes.WinError(errcode)
 			return EnumFunc.hwnd
 		
-		@property
-		def isCapsLockActive(self):										# Devuelve True si el Bloq Mayús está activado o False si no.
-			return False if WA.GetKeyState(WC.VK_CAPITAL) == 0 else True
-		
 		def not_isProcessActive(self, process_name):						# [X] Devuelve True si el proceso esta activo.
 			
 			proc_list = self.run_command('wmic process get name').split('\n')
@@ -961,6 +1189,41 @@ class Utils:
 			
 			return False
 		
+		def enumProcess(self, findstr=None): #Use						# Enumera todos los procesos o los que coincidan con la cadena 'findstr' y los devuelve.
+			
+			output = list()
+			
+			command = 'wmic process get name, processid'
+			if findstr: command += ' | findstr "{}"'.format(findstr)
+			
+			res = self.run_command(command).split('\n\n')
+			
+			for o in res:
+				output.append({
+					'name': o[:34].strip(),
+					'pid':  o[34:].strip()
+				})
+			
+			if {'name': 'Name', 'pid': 'ProcessId'} in output: output.remove({'name':'Name', 'pid':'ProcessId'})
+			while {'name':'', 'pid':''} in output: output.remove({'name':'', 'pid':''})
+			
+			return output
+		
+		@property
+		def isCapsLockActive(self):										# Devuelve True si el Bloq Mayús está activado o False si no.
+			return False if WA.GetKeyState(WC.VK_CAPITAL) == 0 else True
+		
+		@property
+		def isLinux(self):												# Función Que Comprueba si el SO es Linux, Devuelve TRUE/FALSE
+			osver = os.popen("ver").read()
+			if osver.find("Linux") > 0: return True
+			else: return False
+		
+		@property
+		def isMouseInstalled(self):										# Devuelve verdadero si hay controlador de mouse instalado.
+			val = WA.GetSystemMetrics(WC.SM_MOUSEPRESENT)	# SM_MOUSEPRESENT = 19
+			return val == 1
+		
 		@property
 		def isSlowMachine(self):										# Es 1 si la computadora tiene un procesador de gama baja (lento)
 			val = WA.GetSystemMetrics(WC.SM_SLOWMACHINE)				# SM_SLOWMACHINE = 73
@@ -970,33 +1233,70 @@ class Utils:
 		def isUserAnAdmin(self):										# Devuelve True si el programa tiene permisos de administrador o False si no.
 			return shell.IsUserAnAdmin()
 		
-		def getComputerName(self):										# Devuelve el nombre de la Computadora
-			return WA.GetComputerName()
+		@property
+		def isWindows(self):											# Función Que Comprueba si el SO es Linux, Devuelve TRUE/FALSE
+			osver = os.popen("ver").read()
+			if osver.find("Windows") > 0: return True
+			else: return False
 		
-		def getCurrentProcess(self):									# Devuelve el ID del proceso actual
+		@property
+		def currentProcessId(self):										# Devuelve el ID del proceso actual
 			return WA.GetCurrentProcessId()
 		
-		def getCursorPos(self):
+		@property
+		def cursorPos(self):											# Devuelve la posición actual del cursor en pantalla en (X, Y) pixeles
 			return WA.GetCursorPos()
 		
-		def getDisplaySettings(self):
+		@property
+		def displaySettings(self):										# Devuelve la resolucion de pantalla y los bits de pixeles (normalmente 32 bits)
 			'''return x_resolution, y_resolution, colour_depth'''
 			xScreen = WA.GetSystemMetrics(WC.SM_CXSCREEN)	# SM_CXSCREEN = 0
 			yScreen = WA.GetSystemMetrics(WC.SM_CYSCREEN)	# SM_CYSCREEN = 1
 			bPixels = WU.GetDeviceCaps(WG.GetDC(0), WC.BITSPIXEL)
 			return [xScreen, yScreen, bPixels]
 		
-		def getNumberOfProcessors(self):
+		@property
+		def computerName(self):											# Devuelve el nombre de la Computadora
+			return WA.GetComputerName()
+		
+		@property
+		def homeDrive(self):											# Devuelve el nombre del Disco Principal, normalmente 'C:'
+			return os.environ.get('HOMEDRIVE')
+		
+		@property
+		def numberOfMonitors(self):										# Devuelve el número de monitores conectados
+			return WA.GetSystemMetrics(WC.SM_CMONITORS)	# SM_CMONITORS = 80
+		
+		@property
+		def numberOfProcessors(self):									# Devuelve el número de procesadores lógicos
+			# Alternativa: return os.environ.get('NUMBER_OF_PROCESSORS')
 			return WA.GetNativeSystemInfo()[5]
 		
-		def getNumberOfMonitors(self):
-			return WA.GetSystemMetrics(WC.SM_CMONITORS)	# SM_CMONITORS = 80
+		@property
+		def os(self):													# Devuelve el nombre del sistema operativo. Ejemplo: 'Windows_NT'
+			return os.environ.get('OS')
+		
+		@property
+		def processorArchitecture(self):								# Devuelve la aquitectura del sistema. Ejemplo 'AMD64'
+			return os.environ.get('PROCESSOR_ARCHITECTURE')
+		
+		@property
+		def processorIdentifier(self):									# Devuelve el nombre del procesador
+			return os.environ.get('PROCESSOR_IDENTIFIER')
 		
 		@property
 		def screenSize(self):											# Devuelve la resolución actual de la pantalla en forma de tupla (X, Y)
 			user32 = ctypes.windll.user32
 			screenSize = user32.GetSystemMetrics(0), user32.GetSystemMetrics(1)
 			return screenSize
+		
+		@property
+		def systemDrive(self):											# Devuelve el nombre del Disco Principal, normalmente 'C:'
+			return os.environ.get('SYSTEMDRIVE')
+		
+		@property
+		def systemRoot(self):											# Devuelve la ruta predeterminada de la raiz del sistema, normalmente 'C:\WINDOWS'
+			return os.environ.get('SYSTEMROOT')
 		
 		def systemUptime(self, raw=False):								# Devuelve el Tiempo de actividad del sistema en formato '0d 00:00:00'
 			
@@ -1015,15 +1315,54 @@ class Utils:
 			time += str(secs%60).zfill(2)
 			
 			return time
-	
+		
+		@property
+		def userName(self):												# Devuelve el nombre del Usuario
+			return os.environ.get('USERNAME')
+		
+		@property
+		def winDir(self):												# Devuelve la ruta predeterminada del Windows, normalmente 'C:\WINDOWS'
+			return os.environ.get('WINDIR')
+		
+		@property
+		def collectAll(self):
+			
+			collected = {
+				'winDir':       self.winDir,
+				'userName':     self.userName,
+				'systemUptime': self.systemUptime(),
+				'systemRoot':   self.systemRoot,
+				'systemDrive':  self.systemDrive,
+				'screenSize':   self.screenSize,
+				'processorIdentifier':   self.processorIdentifier,
+				'processorArchitecture': self.processorArchitecture,
+				'os':                 self.os,
+				'numberOfProcessors': self.numberOfProcessors,
+				'numberOfMonitors':   self.numberOfMonitors,
+				'homeDrive':        self.homeDrive,
+				'computerName':     self.computerName,
+				'displaySettings':  self.displaySettings,
+				'cursorPos':        self.cursorPos,
+				'currentProcessId': self.currentProcessId,
+				'isWindows':        self.isWindows,
+				'isUserAnAdmin':    self.isUserAnAdmin,
+				'isSlowMachine':    self.isSlowMachine,
+				'isMouseInstalled': self.isMouseInstalled,
+				'isLinux':          self.isLinux,
+				'isCapsLockActive': self.isCapsLockActive
+			}
+			
+			return collected
+		
 	class Utilities:
 		
 		def __init__(self):
 			
-			self.load_uses()
 			self.classes   = ObjectClassNames(self)
 			self.functions = None
 			self.functions = ObjectFunctionNames(self)
+			
+			self.load_uses()
 		
 		class Hash:
 			
@@ -1042,6 +1381,7 @@ class Utils:
 					error_msg  = 'El hash {} no esta disponible.\n Disponibles: '.format(repr(type_))
 					error_msg += 'sha1 (Default), sha224, sha256, sha384, sha512, md5'
 					self.HashNotAvailableError(error_msg)
+				
 				self.hash = hash_
 				self.text = text
 				self.type = type_
@@ -1094,26 +1434,28 @@ class Utils:
 			'''
 		
 		def load_uses(self):
-			self.hash_use = '''\
-			\r Ejemplo de uso:
-			
-			\r	utils = Utils()
-			
-			\r	# Available: sha1 (Default), sha224, sha256, sha384, sha512, md5.
-			
-			\r	h = utils.Utilities.hash('hello world!', 'sha256')
-			\r	print('Hash: ' + h)
-			\r	print('Type: ' + h.type)
-			\r	print('Text: ' + h.text)
-			
-			\r	h.update('sha1')
-			\r	print('\\nActualizado a sha1:')
-			\r	print('Hash: ' + h)
-			\r	print('Type: ' + h.type)
-			\r	print('Text: ' + h.text)
+			self.hash_use = '''
+			\r Función: hash(text, algo='sha1')
+			\r |
+			\r + Ejemplo de uso:
+			\r |
+			\r |    utils = Utils()
+			\r |
+			\r |    # Available: sha1 (Default), sha224, sha256, sha384, sha512, md5.
+			\r |
+			\r |    h = utils.Utilities.hash('hello world!', 'sha256')
+			\r |    print('Hash: ' + h)
+			\r |    print('Type: ' + h.type)
+			\r |    print('Text: ' + h.text)
+			\r |
+			\r |    h.update('sha1')
+			\r |    print('\\nActualizado a sha1:')
+			\r |    print('Hash: ' + h)
+			\r |    print('Type: ' + h.type)
+			\r \    print('Text: ' + h.text)
 			'''
 		
-		def hash(self, text, algo='sha1'):								# Devuelve un Hash.
+		def hash(self, text, algo='sha1'): #Use						# Devuelve el Hash del texto con el algoritmo seleccionado.
 			algo = algo.lower()
 			hash_ = text.encode()
 			if   algo == 'sha1':   hash_ = hashlib.sha1(hash_)
@@ -1145,7 +1487,14 @@ if __name__ == '__main__':
 	
 	utils = Utils()
 	
+	collected = utils.SystemInfo.collectAll
+	
+	for key, val in collected.items():
+		print(key.ljust(24), val)
+	
 	print(utils.Utilities.hash_use)
+	
+	print(utils.Actions.functions)
 	
 	key = utils.Actions.VBS.getWindowsProductKey()
 	print('\nClave de Producto de Windows:', key)
@@ -1157,7 +1506,25 @@ if __name__ == '__main__':
 		title = 'Es útil?',
 		style = WC.MB_YESNO | WC.MB_ICONQUESTION | WC.MB_DEFAULT_DESKTOP_ONLY
 	)
-	print(resp)
+	print('Respuesta: ' + resp)
+	
+	utils.Actions.screenshot()
+	utils.Actions.VBS.setVolume(72)
+	utils.Actions.startApp('Notepad')
+	utils.Actions.startApp('Calc')
+	
+	procs = utils.SystemInfo.enumProcess('notepad')
+	for p in procs: print(p)
+	
+	if len(procs) == 1:
+		proc = procs.pop()
+		resp = utils.Actions.killProcess(proc['pid'])
+		print('Proceso Terminado: '+str(proc) if resp else 'Permiso Denegado: '+str(proc))
+	
+	print(utils.Actions.cleanRecyclerBin_use)
+	print(utils.Actions.displaySwitch_use)
+	print(utils.Actions.messageBox_use)
+	print(utils.Actions.startApp_use)
 
 #=======================================================================
 
