@@ -1,7 +1,7 @@
 
 # Tested in: Python 3.8.8
 # By: LawlietJH
-# Utils v1.0.1
+# Utils v1.0.2
 
 from datetime import datetime
 import pywintypes
@@ -33,7 +33,7 @@ import ctypes
 # pip install pywin32 ==================================================
 from win32com.shell import shell
 import win32api			as WA
-import win32con			as WC
+import win32con			as WC		# All Constants
 import win32gui			as WG
 import win32console		as WCS
 import win32ui			as WU
@@ -46,7 +46,7 @@ import win32net			as WN
 
 __author__  = 'LawlietJH'	# Desarrollador
 __title__   = 'Utils'		# Nombre
-__version__ = 'v1.0.1'		# Version
+__version__ = 'v1.0.2'		# Version
 
 #=======================================================================
 #=======================================================================
@@ -104,7 +104,7 @@ class ObjectInt(int):
 class ObjectClassNames:    # Obtiene todos los nombres de las clases en los objetos de 'Utils' y la cantidad.    Detecta Clases con Formato de primer letra Mayúscula. Ejemplo: 'PrimeroSegundoTercero'
 	
 	def __init__(self, obj):
-		self.use = '''
+		self.use = '''\
 		\r Ejemplo de uso:
 		\r	utils = Utils()
 		
@@ -143,7 +143,7 @@ class ObjectClassNames:    # Obtiene todos los nombres de las clases en los obje
 class ObjectFunctionNames: # Obtiene todos los nombres de las funciones en los objetos de 'Utils' y la cantidad. Detecta funciones con Formato de primer letra minúscula. Ejemplo: 'primeroSegundoTercero'
 	
 	def __init__(self, obj):
-		self.use = '''
+		self.use = '''\
 		\r Ejemplos de uso:
 		
 		\r	utils = Utils()
@@ -202,6 +202,7 @@ class Utils:
 		
 		def __init__(self):
 			
+			self.load_uses()
 			self.classes   = ObjectClassNames(self)
 			self.functions = None
 			self.functions = ObjectFunctionNames(self)
@@ -220,6 +221,10 @@ class Utils:
 			def __str__(self): return repr(self.error_msg)
 		
 		class ExitWindowsError(Exception):
+			def __init__(self, error_msg): self.error_msg = error_msg
+			def __str__(self): return repr(self.error_msg)
+		
+		class StyleOfWindowError(Exception):
 			def __init__(self, error_msg): self.error_msg = error_msg
 			def __str__(self): return repr(self.error_msg)
 		
@@ -337,7 +342,7 @@ class Utils:
 				
 				self.run_command = lambda command: os.popen(command).read()	# Ejecuta cualquier comando en consola
 			
-			def runScriptVBS(self, name, payload, rm):						# Ejecuta el script VBS
+			def runScriptVBS(self, name, payload, rm, ret=False):			# Ejecuta el script VBS
 				
 				temp_path = os.getenv('TEMP') + '\\_odin_\\'				# Obtiene la ruta de la carpeta de archivos temporales en windows
 				name = temp_path + name										# Indica la ruta y nombre del archivo
@@ -350,12 +355,14 @@ class Utils:
 						File.write(payload)									# Añade el código dentro del archivo
 						File.close()
 				
-				self.run_command('cscript ' + name)							# Ejecuta el código del script
+				output = self.run_command('cscript ' + name)				# Ejecuta el código del script
 				
 				if rm: os.remove(name)										# Elimina el archivo min.vbs
 				
 				if len(os.listdir(temp_path)) == 0:							# Elimina la carpeta _odin_ si esta vacia 
 					os.rmdir(temp_path)
+				
+				if ret: return output
 			
 			def minimizeAll(self, rm=True):									# Minimiza todas las ventanas
 				name = 'minimizeAll.vbs'									# Indica el nombre del archivo
@@ -379,6 +386,69 @@ class Utils:
 					\r End if
 				'''
 				self.runScriptVBS(name, payload, rm)
+		
+			def getWindowsProductKey(self, return_key=True, rm=True):		# Obtiene la Clave de Producto de Windows
+				
+				name = 'gwpk.vbs'
+				payload = '''\
+					\r ' VBS Script para obtener la Clave de Producto Original de Windows.
+					
+					\r Set WshShell = WScript.CreateObject("WScript.Shell")
+					\r KeyPath = "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\DigitalProductId"
+					
+					\r Function ExtractKey(KeyInput)
+					\r 	Const KeyOffset = 52
+					\r 	i = 28
+					\r 	CharWhitelist = "BCDFGHJKMPQRTVWXY2346789"
+					\r 	Do
+					\r 		Cur = 0
+					\r 		x = 14
+					\r 		Do
+					\r 			Cur = Cur * 256
+					\r 			Cur = KeyInput(x + KeyOffset) + Cur
+					\r 			KeyInput(x + KeyOffset) = (Cur \ 24) And 255
+					\r 			Cur = Cur Mod 24
+					\r 			x = x -1
+					\r 		Loop While x >= 0
+					\r 		i = i -1
+					\r 		KeyOutput = Mid(CharWhitelist, Cur + 1, 1) & KeyOutput
+					\r 		If (((29 - i) Mod 6) = 0) And (i <> -1) Then
+					\r 			i = i -1
+					\r 			KeyOutput = "-" & KeyOutput
+					\r 		End If
+					\r 	Loop While i >= 0
+					\r 	ExtractKey = KeyOutput
+					\r End Function
+					
+					\r Dim fso, MiArchivo
+					\r Set fso = CreateObject("Scripting.FileSystemObject")
+					\r Set MiArchivo = fso.CreateTextFile("ClaveProducto.zion", True)
+					\r MiArchivo.WriteLine(ExtractKey(WshShell.RegRead(KeyPath)))
+					\r MiArchivo.Close
+					
+					\r WScript.Echo ExtractKey(WshShell.RegRead(KeyPath))
+				'''
+				# Equipo\HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SoftwareProtectionPlatform --> BackupProductKeyDefault
+				# ~ powershell "(Get-WmiObject -query ‘select * from SoftwareLicensingService’).OA3xOriginalProductKey"
+				
+				key = self.runScriptVBS(name, payload, rm, ret=True)
+				key = key.split('\n')
+				
+				if return_key:
+					while '' in key: key.remove('')
+					return key[-1]
+		
+		def load_uses(self):
+			self.messageBox_use = '''\
+			\r Ejemplo de uso:
+			
+			\r	resp = utils.Actions.messageBox(
+			\r		message = 'Esta función te resulta muy útil?',
+			\r		title = 'Es útil?',
+			\r		style = WC.MB_YESNO | WC.MB_ICONQUESTION | WC.MB_DEFAULT_DESKTOP_ONLY
+			\r	)
+			\r	print(resp)
+			'''
 		
 		def beep(self, t=5, d=0.5):
 			
@@ -491,9 +561,79 @@ class Utils:
 		def hideConsole(xD=True):										# Oculta/Desoculta la consola de comandos
 			WG.ShowWindow(WCS.GetConsoleWindow(), not xD)
 		
+		def killProcess(self, PID):										# Termina un proceso mediante su PID
+			if PID != None:
+				return (0 != WA.TerminateProcess(WA.OpenProcess(1, 0, int(PID)), 0))
+		
 		def lockWorkStation(self):
 			#~ run_command('rundll32.exe user32.dll, LockWorkStation')
 			ctypes.windll.user32.LockWorkStation()
+		
+		def messageBox(self, message, title, style = WC.MB_OKCANCEL | WC.MB_ICONINFORMATION | WC.MB_DEFAULT_DESKTOP_ONLY
+		): # Crea una ventana de alerta personalizada y captura la interacción con esta devolviendo la respuesta.
+			'''
+			# URL Ref 1: https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-messagebox
+			# URL Ref 2: http://timgolden.me.uk/pywin32-docs/win32api__MessageBox_meth.html
+			
+			# Botones en Tipo de ventana:
+			0: Aceptar								WC.MB_OK
+			1: Aceptar - Cancelar					WC.MB_OKCANCEL
+			2: Anular - Reintentar - Omitir			WC.MB_ABORTRETRYIGNORE
+			3: Sí - No - Cancelar					WC.MB_YESNOCANCEL
+			4: Sí - No								WC.MB_YESNO
+			5: Reintantar - Cancelar				WC.MB_RETRYCANCEL
+			6: Cancelar - Reintentar - Continuar	MB_CANCELTRYCONTINUE - No Definido en WC...
+			
+			0-6: None
+			16-22: Wrong (Red Circle and X)			WC.MB_ICONSTOP - MB_ICONERROR - MB_ICONHAND
+			32-28: Question (Blue Circle)			WC.MB_ICONQUESTION
+			48-54: Exclamation (Yellow Triangle)	WC.MB_ICONWARNING - WC.MB_ICONEXCLAMATION
+			64-70: Information (Blue Circle)		WC.MB_ICONINFORMATION - MB_ICONASTERISK
+			128-134: Espacied
+			
+			WC.MB_DEFBUTTON1 = 0		# Selecciona por defecto el boton 1
+			WC.MB_DEFBUTTON2 = 256		# Selecciona por defecto el boton 2
+			WC.MB_DEFBUTTON3 = 512		# Selecciona por defecto el boton 3
+			WC.MB_DEFBUTTON4 = 768		# Selecciona por defecto el boton 4
+			
+			WC.MB_APPLMODAL   = 0
+			WC.MB_SYSTEMMODAL = 4096
+			WC.MB_TASKMODAL   = 8192
+			
+			WC.MB_HELP                 = 16384	# Aceptar - Ayuda (No Funciona)
+			WC.MB_NOFOCUS              = 32768	# No selecciona la ventana.
+			
+			WC.MB_SETFOREGROUND        = 65536
+			WC.MB_DEFAULT_DESKTOP_ONLY = 131072
+			WC.MB_TOPMOST              = 262144
+			WC.MB_RIGHT                = 524288
+			WC.MB_RTLREADING           = 1048576
+			WC.MB_SERVICE_NOTIFICATION = 2097152
+			
+			WC.MB_TYPEMASK = 15
+			WC.MB_USERICON = 128
+			WC.MB_ICONMASK = 240
+			WC.MB_DEFMASK  = 3840
+			WC.MB_MODEMASK = 12288
+			WC.MB_MISCMASK = 49152
+			'''
+			
+			if not 0 <= style%16 <= 6:
+				raise self.StyleOfWindowError('Estilo de ventana fuera del rango:  0 <= style%16 <= 6')
+			
+			resp = WA.MessageBox(0, message, title, style)
+			
+			type_resp = {
+				 10: 'Reintentar', 11: 'Continuar',
+				 0: 'Error',  1: 'Aceptar',    2: 'Cancelar',
+				 3: 'Anular', 4: 'Reintentar', 5: 'Omitir',
+				 6: 'Sí', 7: 'No'
+			}
+			
+			if resp in type_resp:
+				return type_resp[resp]
+			else:
+				return resp
 		
 		def minimizeWindowCMD(self):									# Minimiza la consola de comandos
 			WG.ShowWindow(WG.GetForegroundWindow(), WC.SW_MINIMIZE)
@@ -625,7 +765,7 @@ class Utils:
 				self.functions = None
 				self.functions = ObjectFunctionNames(self)
 				
-				self.use = '''
+				self.use = '''\
 				\r Ejemplos de uso:
 				
 				\r	utils = Utils()
@@ -880,28 +1020,10 @@ class Utils:
 		
 		def __init__(self):
 			
+			self.load_uses()
 			self.classes   = ObjectClassNames(self)
 			self.functions = None
 			self.functions = ObjectFunctionNames(self)
-			
-			self.use_hash = '''
-			\r Ejemplo de uso:
-			
-			\r	utils = Utils()
-			
-			\r	# Available: sha1 (Default), sha224, sha256, sha384, sha512, md5.
-			
-			\r	h = utils.Utilities.hash('hello world!', 'sha256')
-			\r	print('Hash: ' + h)
-			\r	print('Type: ' + h.type)
-			\r	print('Text: ' + h.text)
-			
-			\r	h.update('sha1')
-			\r	print('\\nActualizado a sha1:')
-			\r	print('Hash: ' + h)
-			\r	print('Type: ' + h.type)
-			\r	print('Text: ' + h.text)
-			'''
 		
 		class Hash:
 			
@@ -971,6 +1093,26 @@ class Utils:
 			'join', 'map', 'map_async', 'terminate')): <class 'tags_file_module.PoolProxy'>}
 			'''
 		
+		def load_uses(self):
+			self.hash_use = '''\
+			\r Ejemplo de uso:
+			
+			\r	utils = Utils()
+			
+			\r	# Available: sha1 (Default), sha224, sha256, sha384, sha512, md5.
+			
+			\r	h = utils.Utilities.hash('hello world!', 'sha256')
+			\r	print('Hash: ' + h)
+			\r	print('Type: ' + h.type)
+			\r	print('Text: ' + h.text)
+			
+			\r	h.update('sha1')
+			\r	print('\\nActualizado a sha1:')
+			\r	print('Hash: ' + h)
+			\r	print('Type: ' + h.type)
+			\r	print('Text: ' + h.text)
+			'''
+		
 		def hash(self, text, algo='sha1'):								# Devuelve un Hash.
 			algo = algo.lower()
 			hash_ = text.encode()
@@ -993,7 +1135,7 @@ class Utils:
 # Ejecuta esto despues de terminar la ejecución del programa.
 @atexit.register
 def close():
-	time.sleep(3)
+	time.sleep(1)
 
 #=======================================================================
 
@@ -1003,20 +1145,19 @@ if __name__ == '__main__':
 	
 	utils = Utils()
 	
-	print(utils.Utilities.use_hash)
+	print(utils.Utilities.hash_use)
 	
-	# Available: sha1 (Default), sha224, sha256, sha384, sha512, md5.
+	key = utils.Actions.VBS.getWindowsProductKey()
+	print('\nClave de Producto de Windows:', key)
 	
-	h = utils.Utilities.hash('hello world!', 'sha256')
-	print('Hash: ' + h)
-	print('Type: ' + h.type)
-	print('Text: ' + h.text)
+	print(utils.Actions.messageBox_use)
 	
-	h.update('sha1')
-	print('\nActualizado a sha1:')
-	print('Hash: ' + h)
-	print('Type: ' + h.type)
-	print('Text: ' + h.text)
+	resp = utils.Actions.messageBox(
+		message = 'Esta función te resulta muy útil?',
+		title = 'Es útil?',
+		style = WC.MB_YESNO | WC.MB_ICONQUESTION | WC.MB_DEFAULT_DESKTOP_ONLY
+	)
+	print(resp)
 
 #=======================================================================
 
