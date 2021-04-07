@@ -1,7 +1,18 @@
 
 # Tested in: Python 3.8.8
 # By: LawlietJH
-# Utils v1.0.3
+# Utils v1.0.4
+
+# Banner:
+# ███    █▄      ███      ▄█   ▄█          ▄████████ 
+# ███    ███ ▀█████████▄ ███  ███         ███    ███ 
+# ███    ███    ▀███▀▀██ ███▌ ███         ███    █▀  
+# ███    ███     ███   ▀ ███▌ ███         ███        
+# ███    ███     ███     ███▌ ███       ▀███████████    ██    ██  ██     ██████     ██   ██
+# ███    ███     ███     ███  ███                ███    ██    ██ ███    ██  ████    ██   ██
+# ███    ███     ███     ███  ███▌    ▄    ▄█    ███    ██    ██  ██    ██ ██ ██    ███████
+# ████████▀     ▄████▀   █▀   █████▄▄██  ▄████████▀      ██  ██   ██    ████  ██         ██
+#                             ▀                           ████    ██ ██  ██████  ██      ██
 
 from datetime import datetime
 import pywintypes
@@ -10,6 +21,7 @@ import hashlib
 import atexit
 import psutil						# python -m pip install psutil
 import socket
+import string
 import json
 import math
 import time
@@ -46,7 +58,11 @@ import win32net			as WN
 
 __author__  = 'LawlietJH'	# Desarrollador
 __title__   = 'Utils'		# Nombre
-__version__ = 'v1.0.3'		# Version
+__version__ = 'v1.0.4'		# Version
+
+# Constants ============================================================
+
+WC.MB_CANCELTRYCONTINUE = 6
 
 #=======================================================================
 #=======================================================================
@@ -128,7 +144,8 @@ class ObjectClassNames: #Use    # Obtiene todos los nombres de las clases en los
 		\r |
 		\r |    # Al sumar con string se convierte en string, sino, seguira siendo un entero.
 		\r |    # utils.classes.qty + str --> str
-		\r \    print('Classes str(qty): ' + utils.classes.qty)
+		\r |    print('Classes str(qty): ' + utils.classes.qty)
+		\r \
 		'''
 		list_ = [
 			a for a in dir(obj) 
@@ -142,7 +159,7 @@ class ObjectClassNames: #Use    # Obtiene todos los nombres de las clases en los
 	
 	def __str__(self):
 		output = '<{}: '+repr(self.cls) + ', {}: '+str(self.list) + ', {}: '+str(self.qty) + '>'
-		return output.format(repr('list'), repr('qty'))
+		return output.format(repr('class'), repr('list'), repr('qty'))
 	
 	@property
 	def dict(self):
@@ -179,7 +196,8 @@ class ObjectFunctionNames: #Use # Obtiene todos los nombres de las funciones en 
 		\r |
 		\r |    # Al sumar con string se convierte en string, sino, seguira siendo un entero.
 		\r |    # utils.functions.qty + str --> str
-		\r \    print('Functions str(qty): ' + utils.functions.qty)
+		\r |    print('Functions str(qty): ' + utils.functions.qty)
+		\r \
 		'''
 		list_ = [
 			a for a in dir(obj) 
@@ -221,7 +239,7 @@ class Utils:
 		self.SystemInfo  = self.SystemInfo()
 		self.Utilities   = self.Utilities()
 	
-	class Actions:	# Interacciones con el Systema (Mayormente Windows)
+	class Actions:		# Interacciones con el Systema (Mayormente Windows)
 		
 		def __init__(self):
 			
@@ -297,6 +315,34 @@ class Utils:
 				
 				self.use = '''
 				\r Clase: Explorer()
+				\r │
+				\r │ # Default params:
+				\r │
+				\r ├─ getFileName(
+				\r │      title = 'Abrir',
+				\r │      file_types = [
+				\r │          ['Todos los Archivos','.*'],
+				\r │          ['Archivos de Texto','.txt']
+				\r │      ],
+				\r │      init_dir = os.getcwd(),
+				\r │      topmost  = True
+				\r │  )
+				\r │ 
+				\r ├─ getFolderName(
+				\r │      title = 'Seleccionar Carpeta',
+				\r │      init_dir = os.getcwd(),
+				\r │      topmost = True
+				\r │  )
+				\r │
+				\r ├─ getFileNameSave(
+				\r │      title = 'Guardar como',
+				\r │      file_types = [
+				\r │          ['Todos los Archivos','.*'],
+				\r │          ['Archivos de Texto','.txt']
+				\r │      ],
+				\r │      init_dir = os.getcwd(),
+				\r │      topmost = True
+				\r │  )
 				\r |
 				\r + Ejemplos de uso:
 				\r |
@@ -312,7 +358,8 @@ class Utils:
 				\r |
 				\r |    # Obtiene la ruta completa y el nombre de Archivo indicado para 'Guardar como':
 				\r |    file_name_save = utils.Actions.Explorer.getFileNameSave()
-				\r \    print(file_name_save)
+				\r |    print(file_name_save)
+				\r \    
 				'''
 				self.root = Tk()
 				self.root.withdraw()
@@ -320,10 +367,10 @@ class Utils:
 			def __str__(self): return self.use
 			
 			def getFileName(self, title='Abrir', file_types=[ 
-						['Archivos de Texto','.txt'], ['Todos los Archivos','.*']
-					], init_dir=os.getcwd(), encima=True):
+						['Todos los Archivos','.*'], ['Archivos de Texto','.txt']
+					], init_dir=os.getcwd(), topmost=True):
 				
-				if encima == True:
+				if topmost == True:
 					self.root.wm_attributes('-topmost', True)
 				else:
 					self.root.wm_attributes('-topmost', False)
@@ -334,9 +381,9 @@ class Utils:
 				if not f_name == None:
 					return f_name.name
 			
-			def getFolderName(self, title='Seleccionar Carpeta', init_dir=os.getcwd(), encima=True):
+			def getFolderName(self, title='Seleccionar Carpeta', init_dir=os.getcwd(), topmost=True):
 				
-				if encima == True:
+				if topmost == True:
 					self.root.wm_attributes('-topmost', True)
 				else:
 					self.root.wm_attributes('-topmost', False)
@@ -347,10 +394,10 @@ class Utils:
 					return d_path
 			
 			def getFileNameSave(self, title='Guardar como', file_types=[
-							['Archivos de Texto','.txt'], ['Todos los Archivos','.*']
-						], init_dir=os.getcwd(), encima=True):
+							['Todos los Archivos','.*'], ['Archivos de Texto','.txt']
+						], init_dir=os.getcwd(), topmost=True):
 				
-				if encima == True:
+				if topmost == True:
 					self.root.wm_attributes('-topmost', True)
 				else:
 					self.root.wm_attributes('-topmost', False)
@@ -376,14 +423,15 @@ class Utils:
 				self.run_command = lambda command: os.popen(command).read()	# Ejecuta cualquier comando en consola
 			
 			def load_uses(self):
-				'''
+				self.getWindowsProductKey_use = '''
 				\r Función: getWindowsProductKey(return_key=True, save_key=False, rm=True)
 				\r |
 				\r + Ejemplo de uso: 
 				\r |
 				\r |    # save_key=True Permite guardar la clave en un archivo
 				\r |    key = utils.Actions.VBS.getWindowsProductKey(save_key=True)
-				\r \    print('\nClave de Producto de Windows:', key)
+				\r |    print('\nClave de Producto de Windows:', key)
+				\r \
 				'''
 			
 			def runScriptVBS(self, name, payload, rm, ret=False):		# Ejecuta el script VBS
@@ -522,7 +570,8 @@ class Utils:
 			\r |    utils = Utils()
 			\r |    # Vaciará la papelera en modo silencioso
 			\r |    # Totalmente inadvertido.
-			\r \    utils.Actions.cleanRecyclerBin(tipo=7)
+			\r |    utils.Actions.cleanRecyclerBin(tipo=7)
+			\r \
 			'''
 			self.displaySwitch_use = '''
 			\r Función: displaySwitch(tipo=0)
@@ -538,7 +587,8 @@ class Utils:
 			\r + Ejemplo de uso:
 			\r |
 			\r |    utils = Utils()
-			\r \    utils.Actions.displaySwitch(2)
+			\r |    utils.Actions.displaySwitch(2)
+			\r \
 			'''
 			self.killProcess_use = '''
 			\r Función: killProcess(PID)
@@ -555,7 +605,8 @@ class Utils:
 			\r |    # su ProcessID y terminamos el proceso:
 			\r |    if len(procs) == 1:
 			\r |        proc = procs.pop()
-			\r \        utils.Actions.killProcess(proc['pid'])	
+			\r |        utils.Actions.killProcess(proc['pid'])
+			\r \
 			'''
 			self.messageBox_use = '''
 			\r Función: messageBox(message, title,
@@ -570,7 +621,64 @@ class Utils:
 			\r |        title = 'Es útil?',
 			\r |        style = WC.MB_YESNO | WC.MB_ICONQUESTION | WC.MB_DEFAULT_DESKTOP_ONLY
 			\r |    )
-			\r \    print(resp)
+			\r |    print(resp)
+			\r \
+			'''
+			self.messageBox_params_use = '''
+			\r    # URL Ref 1: https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-messagebox
+			\r    # URL Ref 2: http://timgolden.me.uk/pywin32-docs/win32api__MessageBox_meth.html
+			\r
+			\r    # Botones en Tipo de ventana:
+			\r    WC.MB_OK                = 0: Aceptar
+			\r    WC.MB_OKCANCEL          = 1: Aceptar - Cancelar
+			\r    WC.MB_ABORTRETRYIGNORE  = 2: Anular - Reintentar - Omitir		
+			\r    WC.MB_YESNOCANCEL       = 3: Sí - No - Cancelar
+			\r    WC.MB_YESNO             = 4: Sí - No
+			\r    WC.MB_RETRYCANCEL       = 5: Reintantar - Cancelar
+			\r    WC.MB_CANCELTRYCONTINUE = 6: Cancelar - Reintentar - Continuar
+			\r    # MB_CANCELTRYCONTINUE Es una constante no definida en WC de forma natural...
+			\r
+			\r    # Iconos:
+			\r    16: Wrong (Red Circle and X)
+			\r        WC.MB_ICONSTOP
+			\r        WC.MB_ICONERROR
+			\r        WC.MB_ICONHAND
+			\r    32: Question (Blue Circle)
+			\r        WC.MB_ICONQUESTION
+			\r    48: Exclamation (Yellow Triangle)
+			\r        WC.MB_ICONWARNING
+			\r        WC.MB_ICONEXCLAMATION
+			\r    64: Information (Blue Circle)
+			\r        WC.MB_ICONINFORMATION
+			\r        MB_ICONASTERISK
+			\r
+			\r    # Botón seleccionado por defecto:
+			\r    WC.MB_DEFBUTTON1 = 0			# Selecciona por defecto el boton 1
+			\r    WC.MB_DEFBUTTON2 = 256		# Selecciona por defecto el boton 2
+			\r    WC.MB_DEFBUTTON3 = 512		# Selecciona por defecto el boton 3
+			\r    WC.MB_DEFBUTTON4 = 768		# Selecciona por defecto el boton 4
+			\r
+			\r    # Estilos de ventana:
+			\r    WC.MB_APPLMODAL   = 0
+			\r    WC.MB_SYSTEMMODAL = 4096
+			\r    WC.MB_TASKMODAL   = 8192
+			\r
+			\r    WC.MB_HELP                 = 16384	# Aceptar - Ayuda (No Funciona el botón Ayuda)
+			\r    WC.MB_NOFOCUS              = 32768	# No selecciona la ventana.
+			\r
+			\r    WC.MB_SETFOREGROUND        = 65536
+			\r    WC.MB_DEFAULT_DESKTOP_ONLY = 131072
+			\r    WC.MB_TOPMOST              = 262144
+			\r    WC.MB_RIGHT                = 524288
+			\r    WC.MB_RTLREADING           = 1048576
+			\r    WC.MB_SERVICE_NOTIFICATION = 2097152
+			\r
+			\r    WC.MB_TYPEMASK = 15
+			\r    WC.MB_USERICON = 128
+			\r    WC.MB_ICONMASK = 240
+			\r    WC.MB_DEFMASK  = 3840
+			\r    WC.MB_MODEMASK = 12288
+			\r    WC.MB_MISCMASK = 49152
 			'''
 			self.startApp_use = '''
 			\r Función: startApp(name='notepad')
@@ -580,7 +688,8 @@ class Utils:
 			\r |    utils = Utils()
 			\r |    utils.Actions.startApp('Notepad')
 			\r |    utils.Actions.startApp('Calc')
-			\r \    utils.Actions.startApp('Cmd')
+			\r |    utils.Actions.startApp('Cmd')
+			\r \
 			'''
 		
 		def beep(self, t=5, d=0.5):
@@ -680,6 +789,45 @@ class Utils:
 		def hideConsole(xD=True):										# Oculta/Desoculta la consola de comandos
 			WG.ShowWindow(WCS.GetConsoleWindow(), not xD)
 		
+		def hideCursor(visible=False):									# Oculta/Desoculta el cursor en pantalla.
+			
+			linux_hide_cursor = '\033[?25l'
+			linux_show_cursor = '\033[?25h'
+			
+			if os.name == 'nt':
+				import msvcrt
+				import ctypes
+
+				class _CursorInfo(ctypes.Structure):
+					_fields_ = [("size", ctypes.c_int),
+								("visible", ctypes.c_byte)]
+			
+			def hide_cursor():
+				if os.name == 'nt':
+					ci = _CursorInfo()
+					handle = ctypes.windll.kernel32.GetStdHandle(-11)
+					ctypes.windll.kernel32.GetConsoleCursorInfo(handle, ctypes.byref(ci))
+					ci.visible = False
+					ctypes.windll.kernel32.SetConsoleCursorInfo(handle, ctypes.byref(ci))
+				elif os.name == 'posix':
+					sys.stdout.write(linux_hide_cursor)
+					sys.stdout.flush()
+
+			def show_cursor():
+				if os.name == 'nt':
+					ci = _CursorInfo()
+					handle = ctypes.windll.kernel32.GetStdHandle(-11)
+					ctypes.windll.kernel32.GetConsoleCursorInfo(handle, ctypes.byref(ci))
+					ci.visible = True
+					ctypes.windll.kernel32.SetConsoleCursorInfo(handle, ctypes.byref(ci))
+				elif os.name == 'posix':
+					sys.stdout.write(linux_show_cursor)
+					sys.stdout.flush()
+			
+				
+			if visible: hide_cursor()
+			else: show_cursor()
+		
 		def killProcess(self, PID): #Use								# Termina un proceso mediante su PID
 			if PID != None:
 				return (0 != WA.TerminateProcess(WA.OpenProcess(1, 0, int(PID)), 0))
@@ -690,52 +838,6 @@ class Utils:
 		
 		def messageBox(self, message, title, style = WC.MB_OKCANCEL | WC.MB_ICONINFORMATION | WC.MB_DEFAULT_DESKTOP_ONLY
 		): #Use # Crea una ventana de alerta personalizada y captura la interacción con esta devolviendo la respuesta.
-			'''
-			# URL Ref 1: https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-messagebox
-			# URL Ref 2: http://timgolden.me.uk/pywin32-docs/win32api__MessageBox_meth.html
-			
-			# Botones en Tipo de ventana:
-			0: Aceptar								WC.MB_OK
-			1: Aceptar - Cancelar					WC.MB_OKCANCEL
-			2: Anular - Reintentar - Omitir			WC.MB_ABORTRETRYIGNORE
-			3: Sí - No - Cancelar					WC.MB_YESNOCANCEL
-			4: Sí - No								WC.MB_YESNO
-			5: Reintantar - Cancelar				WC.MB_RETRYCANCEL
-			6: Cancelar - Reintentar - Continuar	MB_CANCELTRYCONTINUE - No Definido en WC...
-			
-			0-6: None
-			16-22: Wrong (Red Circle and X)			WC.MB_ICONSTOP - MB_ICONERROR - MB_ICONHAND
-			32-28: Question (Blue Circle)			WC.MB_ICONQUESTION
-			48-54: Exclamation (Yellow Triangle)	WC.MB_ICONWARNING - WC.MB_ICONEXCLAMATION
-			64-70: Information (Blue Circle)		WC.MB_ICONINFORMATION - MB_ICONASTERISK
-			128-134: Espacied
-			
-			WC.MB_DEFBUTTON1 = 0		# Selecciona por defecto el boton 1
-			WC.MB_DEFBUTTON2 = 256		# Selecciona por defecto el boton 2
-			WC.MB_DEFBUTTON3 = 512		# Selecciona por defecto el boton 3
-			WC.MB_DEFBUTTON4 = 768		# Selecciona por defecto el boton 4
-			
-			WC.MB_APPLMODAL   = 0
-			WC.MB_SYSTEMMODAL = 4096
-			WC.MB_TASKMODAL   = 8192
-			
-			WC.MB_HELP                 = 16384	# Aceptar - Ayuda (No Funciona)
-			WC.MB_NOFOCUS              = 32768	# No selecciona la ventana.
-			
-			WC.MB_SETFOREGROUND        = 65536
-			WC.MB_DEFAULT_DESKTOP_ONLY = 131072
-			WC.MB_TOPMOST              = 262144
-			WC.MB_RIGHT                = 524288
-			WC.MB_RTLREADING           = 1048576
-			WC.MB_SERVICE_NOTIFICATION = 2097152
-			
-			WC.MB_TYPEMASK = 15
-			WC.MB_USERICON = 128
-			WC.MB_ICONMASK = 240
-			WC.MB_DEFMASK  = 3840
-			WC.MB_MODEMASK = 12288
-			WC.MB_MISCMASK = 49152
-			'''
 			
 			if not 0 <= style%16 <= 6:
 				raise self.StyleOfWindowError('Estilo de ventana fuera del rango:  0 <= style%16 <= 6')
@@ -864,7 +966,7 @@ class Utils:
 		def startApp(self, name='notepad'): #Use						# Abre una aplicación por nombre, ejemplo Notepad (Bloc de notas), Calc (Calculadora), cmd, etc.
 			WA.WinExec(name)
 		
-	class MemoryInfo:
+	class MemoryInfo:	# Información relacionadas a espacio en disco y demás.
 		
 		def __init__(self):
 			
@@ -939,7 +1041,7 @@ class Utils:
 			B = shell.SHQueryRecycleBin()[0]
 			return self.bytesToString(B, raw)
 	
-	class NetworkInfo:
+	class NetworkInfo:	# Información general sobre la red, wifi, conexión, etc
 		
 		def __init__(self):
 			
@@ -956,7 +1058,8 @@ class Utils:
 			\r |
 			\r |    for ESSID in utils.NetworkInfo.ESSIDEnum():
 			\r |        pwd = utils.NetworkInfo.ESSIDPasswd(ESSID)
-			\r \        print('\\nESSID: ' + ESSID + '\\n  Pwd: ' + pwd)
+			\r |        print('\\nESSID: ' + ESSID + '\\n  Pwd: ' + pwd)
+			\r \
 			'''
 			
 			self.run_command = lambda command: os.popen(command).read()	# Ejecuta cualquier comando en consola
@@ -998,7 +1101,8 @@ class Utils:
 				\r |    print(' IPv4 Privada:', utils.GetIP.local_ipv4)
 				\r |    print(' IPv6 Privada:', utils.GetIP.local_ipv6)
 				\r |    print(' IPv4 Publica:', utils.GetIP.public_ipv4)
-				\r \    print(' IPv6 Publica:', utils.GetIP.public_ipv6)
+				\r |    print(' IPv6 Publica:', utils.GetIP.public_ipv6)
+				\r \
 				'''
 				
 				self.only_local_ = True
@@ -1095,7 +1199,7 @@ class Utils:
 			
 			return Passwd
 	
-	class SystemInfo:
+	class SystemInfo:	# Información general sobre la PC
 		
 		def __init__(self):
 			
@@ -1125,7 +1229,8 @@ class Utils:
 			\r |
 			\r |    # Enumera todos los procesos activos:
 			\r |    procs = utils.SystemInfo.enumProcess()
-			\r \    for p in procs: print(p)
+			\r |    for p in procs: print(p)
+			\r \
 			'''
 		
 		def not_enumWindows(self):											# [X] Muestra los hwnd de todas los programas
@@ -1354,7 +1459,7 @@ class Utils:
 			
 			return collected
 		
-	class Utilities:
+	class Utilities:	# Funciones de utilidad para cosas generales.
 		
 		def __init__(self):
 			
@@ -1363,8 +1468,666 @@ class Utils:
 			self.functions = ObjectFunctionNames(self)
 			
 			self.load_uses()
+			
+			self.AsciiFont = self.AsciiFont()
 		
-		class Hash:
+		class AsciiFont:	# Clase que permite convertir un texto a un tipo de ASCII FONT
+			
+			class NotSupportedError(Exception):
+				def __init__(self, error_msg): self.error_msg = error_msg
+				def __str__(self): return repr(self.error_msg)
+			
+			class TypeError(Exception):
+				def __init__(self, error_msg): self.error_msg = error_msg
+				def __str__(self): return repr(self.error_msg)
+			
+			def __init__(self):
+				
+				self.functions = ObjectFunctionNames(self)
+				self.classes   = ObjectClassNames(self)
+				
+				self.textToAscii = self.not_textToAscii
+				
+				self.extra = ' '
+				self.ascii_lowercase = string.ascii_lowercase+self.extra
+				self.ascii_uppercase = string.ascii_uppercase+self.extra
+				self.ascii_letters   = string.ascii_letters + self.extra
+				
+				self.use = '''
+				\r Clase: AsciiFont
+				\r |
+				\r + Ejemplo de uso: 
+				\r |    
+				\r |    utils = Utils()
+				\r |    
+				\r |    # Para ver todas las fuentes ascii disponibles:
+				\r |    print(utils.Utilities.AsciiFont.functions.list)
+				\r |    
+				\r |    text = 'By LawlietJH'
+				\r |    
+				\r |    cal = utils.Utilities.AsciiFont.calvinS(text)
+				\r |    ans = utils.Utilities.AsciiFont.ansiShadow(text)
+				\r |    reg = utils.Utilities.AsciiFont.ansiRegular(text)
+				\r |    
+				\r |    print(cal + '\\n' + ans + '\\n' + reg)
+				\r \
+				'''
+			
+			def not_textToAscii(self, text, c, rules, width, plus=''):
+				
+				if c.__class__.__name__ == 'dict':
+					height = len(c['l'])
+					letters = {
+						'lc': {l:None for l in self.ascii_lowercase+plus},
+						'uc': {l:None for l in self.ascii_uppercase+plus}
+					}
+				elif c.__class__.__name__ == 'list':
+					height = len(c)
+					letters = {l:None for l in self.ascii_uppercase+plus}
+				else:
+					error_msg = 'must be list or dict, not {}'.format(c.__class__.__name__)
+					raise self.NotSupportedError(error_msg) 
+				
+				for type_ in letters:
+					
+					start = 0
+					end = width
+					
+					for x in range(len(self.ascii_uppercase+plus)):
+						
+						if c.__class__.__name__ == 'dict':
+							ascii_ = (self.ascii_lowercase+plus)[x] if type_ == 'lc' else (self.ascii_uppercase+plus)[x]
+							if ascii_ in self.extra:
+								letters[type_][ascii_] = tuple(
+									ascii_*(width//2) for i in range(height)
+								)
+								continue
+						elif c.__class__.__name__ == 'list':
+							ascii_ = (self.ascii_uppercase+plus)[x]
+							if ascii_ in self.extra:
+								letters[ascii_] = tuple(
+									ascii_*(width//2) for i in range(height)
+								)
+								continue
+						
+						for r in rules:
+							if ascii_ in r[1]:
+								end += r[0]
+						
+						if c.__class__.__name__ == 'dict':
+							letters[type_][ascii_] = tuple(
+								c['l'][i][start:end]
+								if type_ == 'lc'
+								else c['u'][i][start:end]
+								for i in range(height)
+							)
+						elif c.__class__.__name__ == 'list':
+							letters[ascii_] = tuple( c[i][start:end] for i in range(height) )
+						
+						xD = True
+						for r in rules:
+							if ascii_ in r[1]:
+								start += width + r[0]
+								xD = False
+						
+						if xD: start += width
+						
+						end += width
+				
+				output = ''
+				lets = []
+				
+				if c.__class__.__name__ == 'dict':
+					lets = [letters['lc'][t] if t.islower() else letters['uc'][t] for t in text]
+				elif c.__class__.__name__ == 'list':
+					lets = [letters[t] for t in text.upper()]
+				
+				for x in range(height):
+					for l in lets:
+						output += l[x]
+					output += '\n'
+				
+				return output
+			
+			def ansiShadow(self, text):
+				
+				plus = '1234567890.,:;-_[]()!?*^<>@#/&%$'
+				
+				for t in text:
+					if not t in self.ascii_letters+plus:
+						error_msg = repr(text) + ' --> ' + t
+						raise self.NotSupportedError(error_msg) 
+				
+				# URL: http://patorjk.com/software/taag/#p=display&f=ANSI%20Shadow
+				
+				cn = [
+					' ██╗██████╗ ██████╗ ██╗  ██╗███████╗ ██████╗ ███████╗ █████╗  █████╗  ██████╗ ',
+					'███║╚════██╗╚════██╗██║  ██║██╔════╝██╔════╝ ╚════██║██╔══██╗██╔══██╗██╔═████╗',
+					'╚██║ █████╔╝ █████╔╝███████║███████╗███████╗     ██╔╝╚█████╔╝╚██████║██║██╔██║',
+					' ██║██╔═══╝  ╚═══██╗╚════██║╚════██║██╔═══██╗   ██╔╝ ██╔══██╗ ╚═══██║████╔╝██║',
+					' ██║███████╗██████╔╝     ██║███████║╚██████╔╝   ██║  ╚█████╔╝ █████╔╝╚██████╔╝',
+					' ╚═╝╚══════╝╚═════╝      ╚═╝╚══════╝ ╚═════╝    ╚═╝   ╚════╝  ╚════╝  ╚═════╝ '
+				]
+				
+				ce = [
+					cn[0] + '                          ███╗███╗ ██╗██╗ ██╗██████╗        ███╗   ██╗██╗   ██████╗  ██╗ ██╗     ██╗  ██╗  ██╗ ██╗▄▄███▄▄·',
+					cn[1] + '      ██╗██╗              ██╔╝╚██║██╔╝╚██╗██║╚════██╗▄ ██╗▄██╔██╗ ██╔╝╚██╗ ██╔═══██╗████████╗   ██╔╝  ██║  ╚═╝██╔╝██╔════╝',
+					cn[2] + '      ╚═╝╚═╝█████╗        ██║  ██║██║  ██║██║  ▄███╔╝ ████╗╚═╝╚═╝██╔╝  ╚██╗██║██╗██║╚██╔═██╔╝  ██╔╝████████╗ ██╔╝ ███████╗',
+					cn[3] + '      ██╗▄█╗╚════╝        ██║  ██║██║  ██║╚═╝  ▀▀══╝ ▀╚██╔▀      ╚██╗  ██╔╝██║██║██║████████╗ ██╔╝ ██╔═██╔═╝██╔╝  ╚════██║',
+					cn[4] + '██╗▄█╗╚═╝▀═╝      ███████╗███╗███║╚██╗██╔╝██╗  ██╗     ╚═╝        ╚██╗██╔╝ ╚█║████╔╝╚██╔═██╔╝██╔╝  ██████║ ██╔╝██╗███████║',
+					cn[5] + '╚═╝╚═╝            ╚══════╝╚══╝╚══╝ ╚═╝╚═╝ ╚═╝  ╚═╝                 ╚═╝╚═╝   ╚╝╚═══╝  ╚═╝ ╚═╝ ╚═╝   ╚═════╝ ╚═╝ ╚═╝╚═▀▀▀══╝'
+				]
+				
+				c =  [
+					' █████╗ ██████╗  ██████╗██████╗ ███████╗███████╗ ██████╗ ██╗  ██╗██╗     ██╗██╗  ██╗██╗     ███╗   ███╗███╗   ██╗ ██████╗ ██████╗  ██████╗ ██████╗ ███████╗████████╗██╗   ██╗██╗   ██╗██╗    ██╗██╗  ██╗██╗   ██╗███████╗' + ce[0],
+					'██╔══██╗██╔══██╗██╔════╝██╔══██╗██╔════╝██╔════╝██╔════╝ ██║  ██║██║     ██║██║ ██╔╝██║     ████╗ ████║████╗  ██║██╔═══██╗██╔══██╗██╔═══██╗██╔══██╗██╔════╝╚══██╔══╝██║   ██║██║   ██║██║    ██║╚██╗██╔╝╚██╗ ██╔╝╚══███╔╝' + ce[1],
+					'███████║██████╔╝██║     ██║  ██║█████╗  █████╗  ██║  ███╗███████║██║     ██║█████╔╝ ██║     ██╔████╔██║██╔██╗ ██║██║   ██║██████╔╝██║   ██║██████╔╝███████╗   ██║   ██║   ██║██║   ██║██║ █╗ ██║ ╚███╔╝  ╚████╔╝   ███╔╝ ' + ce[2],
+					'██╔══██║██╔══██╗██║     ██║  ██║██╔══╝  ██╔══╝  ██║   ██║██╔══██║██║██   ██║██╔═██╗ ██║     ██║╚██╔╝██║██║╚██╗██║██║   ██║██╔═══╝ ██║▄▄ ██║██╔══██╗╚════██║   ██║   ██║   ██║╚██╗ ██╔╝██║███╗██║ ██╔██╗   ╚██╔╝   ███╔╝  ' + ce[3],
+					'██║  ██║██████╔╝╚██████╗██████╔╝███████╗██║     ╚██████╔╝██║  ██║██║╚█████╔╝██║  ██╗███████╗██║ ╚═╝ ██║██║ ╚████║╚██████╔╝██║     ╚██████╔╝██║  ██║███████║   ██║   ╚██████╔╝ ╚████╔╝ ╚███╔███╔╝██╔╝ ██╗   ██║   ███████╗' + ce[4],
+					'╚═╝  ╚═╝╚═════╝  ╚═════╝╚═════╝ ╚══════╝╚═╝      ╚═════╝ ╚═╝  ╚═╝╚═╝ ╚════╝ ╚═╝  ╚═╝╚══════╝╚═╝     ╚═╝╚═╝  ╚═══╝ ╚═════╝ ╚═╝      ╚══▀▀═╝ ╚═╝  ╚═╝╚══════╝   ╚═╝    ╚═════╝   ╚═══╝   ╚══╝╚══╝ ╚═╝  ╚═╝   ╚═╝   ╚══════╝' + ce[5]
+				]
+				
+				# Reglas de desplazamiento para letras que no tienen el ancho por defecto
+				rules = [
+					(-5, ['i','I','.',',',':',';','!']),
+					(-4, ['1','[',']','(',')']),
+					(-2, ['-']),
+					( 1, ['g','o','q','t','u','v','y','G','O','Q','T','U','V','Y','6','0']),
+					( 2, ['n','w','N','W']),
+					( 3, ['m','M'])
+				]
+				
+				return self.textToAscii(text, c, rules, width=8, plus=plus)
+			
+			def ansiRegular(self, text):
+				
+				plus = '1234567890.,:;-_[]()!?*^<>@#/&%$'
+				
+				for t in text:
+					if not t in self.ascii_letters+plus:
+						error_msg = repr(text) + ' --> ' + t
+						raise self.NotSupportedError(error_msg) 
+				
+				# URL: http://patorjk.com/software/taag/#p=display&f=ANSI%20Regular
+				cn = [
+					' ██ ██████  ██████  ██   ██ ███████  ██████  ███████  █████   █████   ██████  ',
+					'███      ██      ██ ██   ██ ██      ██            ██ ██   ██ ██   ██ ██  ████ ',
+					' ██  █████   █████  ███████ ███████ ███████      ██   █████   ██████ ██ ██ ██ ',
+					' ██ ██           ██      ██      ██ ██    ██    ██   ██   ██      ██ ████  ██ ',
+					' ██ ███████ ██████       ██ ███████  ██████     ██    █████   █████   ██████  ',
+					'                                                                              '
+				]
+				
+				ce = [
+					cn[0] + '                          ███ ███  ██ ██  ██ ██████          ███    ██ ██    ██████   ██  ██      ██   ██   ██  ██ ▄▄███▄▄·',
+					cn[1] + '      ██ ██               ██   ██ ██   ██ ██      ██ ▄ ██ ▄ ██ ██  ██   ██  ██    ██ ████████    ██    ██      ██  ██      ',
+					cn[2] + '            █████         ██   ██ ██   ██ ██   ▄███   ████        ██     ██ ██ ██ ██  ██  ██    ██  ████████  ██   ███████ ',
+					cn[3] + '      ██ ▄█               ██   ██ ██   ██      ▀▀    ▀ ██ ▀        ██   ██  ██ ██ ██ ████████  ██   ██  ██   ██         ██ ',
+					cn[4] + '██ ▄█    ▀        ███████ ███ ███  ██ ██  ██   ██                   ██ ██    █ ████   ██  ██  ██    ██████  ██  ██ ███████ ',
+					cn[5] + '                                                                                                               ▀▀▀         '
+				]
+				
+				c =  [
+					' █████  ██████   ██████ ██████  ███████ ███████  ██████  ██   ██ ██      ██ ██   ██ ██      ███    ███ ███    ██  ██████  ██████   ██████  ██████  ███████ ████████ ██    ██ ██    ██ ██     ██ ██   ██ ██    ██ ███████ ' + ce[0],
+					'██   ██ ██   ██ ██      ██   ██ ██      ██      ██       ██   ██ ██      ██ ██  ██  ██      ████  ████ ████   ██ ██    ██ ██   ██ ██    ██ ██   ██ ██         ██    ██    ██ ██    ██ ██     ██  ██ ██   ██  ██     ███  ' + ce[1],
+					'███████ ██████  ██      ██   ██ █████   █████   ██   ███ ███████ ██      ██ █████   ██      ██ ████ ██ ██ ██  ██ ██    ██ ██████  ██    ██ ██████  ███████    ██    ██    ██ ██    ██ ██  █  ██   ███     ████     ███   ' + ce[2],
+					'██   ██ ██   ██ ██      ██   ██ ██      ██      ██    ██ ██   ██ ██ ██   ██ ██  ██  ██      ██  ██  ██ ██  ██ ██ ██    ██ ██      ██ ▄▄ ██ ██   ██      ██    ██    ██    ██  ██  ██  ██ ███ ██  ██ ██     ██     ███    ' + ce[3],
+					'██   ██ ██████   ██████ ██████  ███████ ██       ██████  ██   ██ ██  █████  ██   ██ ███████ ██      ██ ██   ████  ██████  ██       ██████  ██   ██ ███████    ██     ██████    ████    ███ ███  ██   ██    ██    ███████ ' + ce[4],
+					'                                                                                                                                      ▀▀                                                                                 ' + ce[5]
+				]
+				
+				# Reglas de desplazamiento para letras que no tienen el ancho por defecto
+				
+				rules = [
+					(-5, ['i','I','.',',',':',';','!']),
+					(-4, ['1','[',']','(',')']),
+					(-2, ['-']),
+					( 1, ['g','o','q','t','u','v','y','G','O','Q','T','U','V','Y','6','0']),
+					( 2, ['n','w','N','W']),
+					( 3, ['m','M'])
+				]
+				
+				return self.textToAscii(text, c, rules, width=8, plus=plus)
+			
+			def calvinS(self, text):
+				
+				plus = '.,-_[]!?*^@#&%$'
+				
+				for t in text:
+					if not t in self.ascii_letters+plus:
+						error_msg = repr(text) + ' --> ' + t
+						raise self.NotSupportedError(error_msg) 
+				
+				# URL: http://patorjk.com/software/taag/#p=display&f=Calvin%20S
+				ce = [
+					'         ┌──┐┬┌─┐\│//\┌─┐─┼─┼─ ┬ O┬┌┼┐',
+					'  ───    │  ││ ┌┘─ ─  │└┘─┼─┼─┌┼─┌┘└┼┐',
+					'o┘   ────└──┘o o /│\  └──     └┘ ┴O└┼┘',
+				]
+				
+				c = {
+					'l': [
+						'┌─┐┌┐ ┌─┐┌┬┐┌─┐┌─┐┌─┐┬ ┬┬ ┬┬┌─┬  ┌┬┐┌┐┌┌─┐┌─┐┌─┐ ┬─┐┌─┐┌┬┐┬ ┬┬  ┬┬ ┬─┐ ┬┬ ┬┌─┐' + ce[0],
+						'├─┤├┴┐│   ││├┤ ├┤ │ ┬├─┤│ │├┴┐│  │││││││ │├─┘│─┼┐├┬┘└─┐ │ │ │└┐┌┘│││┌┴┬┘└┬┘┌─┘' + ce[1],
+						'┴ ┴└─┘└─┘─┴┘└─┘└  └─┘┴ ┴┴└┘┴ ┴┴─┘┴ ┴┘└┘└─┘┴  └─┘└┴└─└─┘ ┴ └─┘ └┘ └┴┘┴ └─ ┴ └─┘' + ce[2]
+					],
+					'u': [
+						'╔═╗╔╗ ╔═╗╔╦╗╔═╗╔═╗╔═╗╦ ╦╦ ╦╦╔═╦  ╔╦╗╔╗╔╔═╗╔═╗╔═╗ ╦═╗╔═╗╔╦╗╦ ╦╦  ╦╦ ╦═╗ ╦╦ ╦╔═╗' + ce[0],
+						'╠═╣╠╩╗║   ║║║╣ ╠╣ ║ ╦╠═╣║ ║╠╩╗║  ║║║║║║║ ║╠═╝║═╬╗╠╦╝╚═╗ ║ ║ ║╚╗╔╝║║║╔╩╦╝╚╦╝╔═╝' + ce[1],
+						'╩ ╩╚═╝╚═╝═╩╝╚═╝╚  ╚═╝╩ ╩╩╚╝╩ ╩╩═╝╩ ╩╝╚╝╚═╝╩  ╚═╝╚╩╚═╚═╝ ╩ ╚═╝ ╚╝ ╚╩╝╩ ╚═ ╩ ╚═╝' + ce[2]
+					]
+				}
+				
+				# Reglas de desplazamiento para letras que no tienen el ancho por defecto
+				rules = [
+					(-2, ['i','I','.',',','!']),
+					(-1, ['j','J','[',']','^','%']),
+					( 1, ['q','v','x','Q','V','X','_']),
+					( 2, ['#'])
+				]
+				
+				return self.textToAscii(text, c, rules, width=3, plus=plus)
+			
+			def deltaCorpsPriest(self, text):
+				
+				for t in text:
+					if not t in self.ascii_letters:
+						error_msg = repr(text) + ' --> ' + t
+						raise self.NotSupportedError(error_msg) 
+				
+				# URL: http://patorjk.com/software/taag/#p=display&f=Delta%20Corps%20Priest%201
+				c = [
+					'   ▄████████ ▀█████████▄   ▄████████ ████████▄     ▄████████    ▄████████    ▄██████▄     ▄█    █▄     ▄█       ▄█    ▄█   ▄█▄  ▄█         ▄▄▄▄███▄▄▄▄   ███▄▄▄▄    ▄██████▄     ▄███████▄ ████████▄      ▄████████    ▄████████     ███     ███    █▄   ▄█    █▄   ▄█     █▄  ▀████    ▐████▀ ▄██   ▄    ▄███████▄  ',
+					'  ███    ███   ███    ███ ███    ███ ███   ▀███   ███    ███   ███    ███   ███    ███   ███    ███   ███      ███   ███ ▄███▀ ███       ▄██▀▀▀███▀▀▀██▄ ███▀▀▀██▄ ███    ███   ███    ███ ███    ███    ███    ███   ███    ███ ▀█████████▄ ███    ███ ███    ███ ███     ███   ███▌   ████▀  ███   ██▄ ██▀     ▄██ ',
+					'  ███    ███   ███    ███ ███    █▀  ███    ███   ███    █▀    ███    █▀    ███    █▀    ███    ███   ███▌     ███   ███▐██▀   ███       ███   ███   ███ ███   ███ ███    ███   ███    ███ ███    ███    ███    ███   ███    █▀     ▀███▀▀██ ███    ███ ███    ███ ███     ███    ███  ▐███    ███▄▄▄███       ▄███▀ ',
+					'  ███    ███  ▄███▄▄▄██▀  ███        ███    ███  ▄███▄▄▄      ▄███▄▄▄      ▄███         ▄███▄▄▄▄███▄▄ ███▌     ███  ▄█████▀    ███       ███   ███   ███ ███   ███ ███    ███   ███    ███ ███    ███   ▄███▄▄▄▄██▀   ███            ███   ▀ ███    ███ ███    ███ ███     ███    ▀███▄███▀    ▀▀▀▀▀▀███  ▀█▀▄███▀▄▄ ',
+					'▀███████████ ▀▀███▀▀▀██▄  ███        ███    ███ ▀▀███▀▀▀     ▀▀███▀▀▀     ▀▀███ ████▄  ▀▀███▀▀▀▀███▀  ███▌     ███ ▀▀█████▄    ███       ███   ███   ███ ███   ███ ███    ███ ▀█████████▀  ███    ███  ▀▀███▀▀▀▀▀   ▀███████████     ███     ███    ███ ███    ███ ███     ███    ████▀██▄     ▄██   ███   ▄███▀   ▀ ',
+					'  ███    ███   ███    ██▄ ███    █▄  ███    ███   ███    █▄    ███          ███    ███   ███    ███   ███      ███   ███▐██▄   ███       ███   ███   ███ ███   ███ ███    ███   ███        ███    ███  ▀███████████          ███     ███     ███    ███ ███    ███ ███     ███   ▐███  ▀███    ███   ███ ▄███▀       ',
+					'  ███    ███   ███    ███ ███    ███ ███   ▄███   ███    ███   ███          ███    ███   ███    ███   ███      ███   ███ ▀███▄ ███▌    ▄ ███   ███   ███ ███   ███ ███    ███   ███        ███  ▀ ███    ███    ███    ▄█    ███     ███     ███    ███ ███    ███ ███ ▄█▄ ███  ▄███     ███▄  ███   ███ ███▄     ▄█ ',
+					'  ███    █▀  ▄█████████▀  ████████▀  ████████▀    ██████████   ███          ████████▀    ███    █▀    █▀   █▄ ▄███   ███   ▀█▀ █████▄▄██  ▀█   ███   █▀   ▀█   █▀   ▀██████▀   ▄████▀       ▀██████▀▄█   ███    ███  ▄████████▀     ▄████▀   ████████▀   ▀██████▀   ▀███▀███▀  ████       ███▄  ▀█████▀   ▀████████▀ ',
+					'                                                                                                           ▀▀▀▀▀▀    ▀         ▀                                                                         ███    ███                                                                                                  '
+				]
+				
+				# Reglas de desplazamiento para letras que no tienen el ancho por defecto
+				rules = [
+					(-8, ['I']),
+					(-5, ['J']),
+					(-3, ['L','N','Y']),
+					(-2, ['C','D','O','U','V']),
+					(-1, ['K','Q','T','W','Z']),
+					( 2, ['H']),
+					( 3, ['M','X'])
+				]
+				
+				return self.textToAscii(text, c, rules, width=13)
+			
+			def block(self, text):
+				
+				plus  = '1234567890'
+				plus += '.,:;-_[](){}¡!¿?ç'
+				plus += '+*^"\'<>@#/\\|&%$ºª~¬'
+				plus += 'äëïöüâêîôûáéíóúàèìòù'
+				plus += 'ÄËÏÖÜÂÊÎÔÛÁÉÍÓÚÀÈÌÒÙ'
+				
+				for t in text:
+					if not t in self.ascii_letters+plus:
+						error_msg = repr(text) + ' --> ' + t
+						raise self.NotSupportedError(error_msg) 
+				
+				cn = [
+					'                                                                                                ',
+					'   _|    _|_|    _|_|_|    _|  _|    _|_|_|_|    _|_|_|  _|_|_|_|_|    _|_|      _|_|      _|   ',
+					' _|_|  _|    _|        _|  _|  _|    _|        _|                _|  _|    _|  _|    _|  _|  _| ',
+					'   _|      _|      _|_|    _|_|_|_|  _|_|_|    _|_|_|          _|      _|_|      _|_|_|  _|  _| ',
+					'   _|    _|            _|      _|          _|  _|    _|      _|      _|    _|        _|  _|  _| ',
+					'   _|  _|_|_|_|  _|_|_|        _|    _|_|_|      _|_|      _|          _|_|    _|_|_|      _|   ',
+					'                                                                                                ',
+					'                                                                                                '
+				]
+				
+				ce = [
+					cn[0] + '                                             _|_|  _|_|    _|  _|        _|  _|                                                                  _|    _| _|    _|                      _|_|_|_|_|                                        _|                                                                           ',
+					cn[1] + '                                             _|      _|  _|      _|    _|      _|    _|  _|      _|  _|_|      _|_|_|      _|      _|  _|  _|  _|  _|  _| _|  _|        _|  _|        _|          _|    _|  _|            _|  _|          _|    _|        _|_|    _|    _|      _|_|      _|_|_|                       ',
+					cn[2] + '           _|    _|                          _|      _|  _|      _|    _|      _|        _|              _|  _|            _|        _|_|_|                           _|      _|    _|    _|_|_|  _|  _|_|_|_|_|        _|      _|        _|  _|  _|      _|_|  _|    _|_|_|  _|    _|  _|    _|    _|  _|             ',
+					cn[3] + '                     _|_|_|_|_|              _|      _|  _|      _|  _|          _|  _|  _|    _|_|  _|_|    _|        _|_|_|_|_|  _|_|_|_|_|                       _|          _|  _|  _|    _|  _|    _|  _|        _|          _|      _|    _|_|  _|      _|      _|_|      _|_|      _|_|_|  _|  _|    _|_|_|_|_| ',
+					cn[4] + '                                             _|      _|  _|      _|    _|      _|    _|      _|                _|_|_|      _|        _|_|_|                           _|      _|    _|    _|_|_|_|    _|_|_|_|_|    _|              _|    _|  _|    _|      _|  _|_|    _|_|                                        _| ',
+					cn[5] + ' _|    _|  _|    _|                          _|      _|  _|      _|    _|      _|    _|  _|    _|_|  _|          _|        _|      _|  _|  _|                           _|  _|        _|                _|  _|    _|                  _|  _|    _|_|  _|  _|    _|_|  _|_|_|  _|_|_|_|  _|_|_|_|                       ',
+					cn[6] + '     _|        _|                _|_|_|_|_|  _|_|  _|_|    _|  _|        _|  _|                                _|_|                                                                     _|_|_|_|_|_|                                      _|                            _|                                             ',
+					cn[7] + '                                                                                                                                                                                                                                                                                                                       '
+				]
+				
+				cel = [
+					ce[0] + ' _|    _|  _|    _|  _|  _|  _|    _|  _|    _|      _|      _|_|      _|      _|_|      _|_|          _|        _|    _|     _|          _|    _|        _|      _|      _|        _|     ',
+					ce[1] + '                                                   _|  _|  _|    _|  _|  _|  _|    _|  _|    _|      _|        _|    _|     _|          _|        _|        _|      _|      _|        _|   ',
+					ce[2] + '   _|_|_|    _|_|      _|      _|_|    _|    _|              _|_|                                            _|_|                                         _|_|                             ',
+					ce[3] + ' _|    _|  _|_|_|_|    _|    _|    _|  _|    _|    _|_|_|  _|_|_|_|    _|      _|_|    _|    _|    _|_|_|  _|_|_|_|  _|     _|_|    _|    _|    _|_|_|  _|_|_|_|    _|    _|_|    _|    _| ',
+					ce[4] + ' _|    _|  _|          _|    _|    _|  _|    _|  _|    _|  _|          _|    _|    _|  _|    _|  _|    _|  _|        _|   _|    _|  _|    _|  _|    _|  _|          _|  _|    _|  _|    _| ',
+					ce[5] + '   _|_|_|    _|_|_|    _|      _|_|      _|_|_|    _|_|_|    _|_|_|    _|      _|_|      _|_|_|    _|_|_|    _|_|_|  _|     _|_|      _|_|_|    _|_|_|    _|_|_|    _|    _|_|      _|_|_| ',
+					ce[6] + '                                                                                                                                                                                           ',
+					ce[7] + '                                                                                                                                                                                           '
+				]
+				
+				ceu = [
+					cel[0] + ' _|    _|  _|    _|  _|  _|  _|    _|  _|    _|    _|_|      _|_|      _|      _|_|      _|_|        _|        _|        _|      _|        _|      _|        _|      _|        _|        _|     ',
+					cel[1] + '                                                 _|    _|  _|    _|  _|  _|  _|    _|  _|    _|    _|        _|        _|      _|        _|          _|        _|      _|        _|        _|   ',
+					cel[2] + '   _|_|    _|_|_|_|  _|_|_|    _|_|    _|    _|            _|_|_|_|  _|_|_|    _|_|                _|_|    _|_|_|_|  _|_|_|    _|_|                _|_|    _|_|_|_|  _|_|_|    _|_|             ',
+					cel[3] + ' _|    _|  _|_|_|      _|    _|    _|  _|    _|    _|_|    _|_|_|      _|    _|    _|  _|    _|  _|    _|  _|_|_|      _|    _|    _|  _|    _|  _|    _|  _|_|_|      _|    _|    _|  _|    _| ',
+					cel[4] + ' _|_|_|_|  _|          _|    _|    _|  _|    _|  _|_|_|_|  _|          _|    _|    _|  _|    _|  _|_|_|_|  _|          _|    _|    _|  _|    _|  _|_|_|_|  _|          _|    _|    _|  _|    _| ',
+					cel[5] + ' _|    _|  _|_|_|_|  _|_|_|    _|_|      _|_|    _|    _|  _|_|_|_|  _|_|_|    _|_|      _|_|    _|    _|  _|_|_|_|  _|_|_|    _|_|      _|_|    _|    _|  _|_|_|_|  _|_|_|    _|_|      _|_|   ',
+					cel[6] + '                                                                                                                                                                                                ',
+					cel[7] + '                                                                                                                                                                                                '
+				]
+				
+				# URL: http://patorjk.com/software/taag/#p=display&f=Block
+				c = {
+					'l': [
+						'                                                                                                                                                                                                                                                                     ' + ceu[0],
+						'           _|                        _|                _|_|            _|        _|   _|  _|        _|                                                                                _|                                                                             ' + ceu[1],
+						'   _|_|_|  _|_|_|      _|_|_|    _|_|_|    _|_|      _|        _|_|_|  _|_|_|             _|  _|    _|  _|_|_|  _|_|    _|_|_|      _|_|    _|_|_|      _|_|_|  _|  _|_|    _|_|_|  _|_|_|_|  _|    _|  _|      _|  _|      _|      _|  _|    _|  _|    _|  _|_|_|_| ' + ceu[2],
+						' _|    _|  _|    _|  _|        _|    _|  _|_|_|_|  _|_|_|_|  _|    _|  _|    _|  _|   _|  _|_|      _|  _|    _|    _|  _|    _|  _|    _|  _|    _|  _|    _|  _|_|      _|_|        _|      _|    _|  _|      _|  _|      _|      _|    _|_|    _|    _|      _|   ' + ceu[3],
+						' _|    _|  _|    _|  _|        _|    _|  _|          _|      _|    _|  _|    _|  _|   _|  _|  _|    _|  _|    _|    _|  _|    _|  _|    _|  _|    _|  _|    _|  _|            _|_|    _|      _|    _|    _|  _|      _|  _|  _|  _|    _|    _|  _|    _|    _|     ' + ceu[4],
+						'   _|_|_|  _|_|_|      _|_|_|    _|_|_|    _|_|_|    _|        _|_|_|  _|    _|  _|   _|  _|    _|  _|  _|    _|    _|  _|    _|    _|_|    _|_|_|      _|_|_|  _|        _|_|_|        _|_|    _|_|_|      _|          _|      _|      _|    _|    _|_|_|  _|_|_|_| ' + ceu[5],
+						'                                                                   _|                 _|                                                    _|              _|                                                                                          _|           ' + ceu[6],
+						'                                                               _|_|                 _|                                                      _|              _|                                                                                      _|_|             ' + ceu[7]
+					],
+					'u': [
+						'                                                                                                                                                                                                                                                                                        ' + ceu[0],
+						'   _|_|    _|_|_|      _|_|_|  _|_|_|    _|_|_|_|  _|_|_|_|    _|_|_|  _|    _|  _|_|_|        _|  _|    _|  _|        _|      _|  _|      _|    _|_|    _|_|_|      _|_|      _|_|_|      _|_|_|  _|_|_|_|_|  _|    _|  _|      _|  _|          _|  _|      _|  _|      _|  _|_|_|_|_| ' + ceu[1],
+						' _|    _|  _|    _|  _|        _|    _|  _|        _|        _|        _|    _|    _|          _|  _|  _|    _|        _|_|  _|_|  _|_|    _|  _|    _|  _|    _|  _|    _|    _|    _|  _|            _|      _|    _|  _|      _|  _|          _|    _|  _|      _|  _|          _|   ' + ceu[2],
+						' _|_|_|_|  _|_|_|    _|        _|    _|  _|_|_|    _|_|_|    _|  _|_|  _|_|_|_|    _|          _|  _|_|      _|        _|  _|  _|  _|  _|  _|  _|    _|  _|_|_|    _|  _|_|    _|_|_|      _|_|        _|      _|    _|  _|      _|  _|    _|    _|      _|          _|          _|     ' + ceu[3],
+						' _|    _|  _|    _|  _|        _|    _|  _|        _|        _|    _|  _|    _|    _|    _|    _|  _|  _|    _|        _|      _|  _|    _|_|  _|    _|  _|        _|    _|    _|    _|        _|      _|      _|    _|    _|  _|      _|  _|  _|      _|  _|        _|        _|       ' + ceu[4],
+						' _|    _|  _|_|_|      _|_|_|  _|_|_|    _|_|_|_|  _|          _|_|_|  _|    _|  _|_|_|    _|_|    _|    _|  _|_|_|_|  _|      _|  _|      _|    _|_|    _|          _|_|  _|  _|    _|  _|_|_|        _|        _|_|        _|          _|  _|      _|      _|      _|      _|_|_|_|_| ' + ceu[5],
+						'                                                                                                                                                                                                                                                                                        ' + ceu[6],
+						'                                                                                                                                                                                                                                                                                        ' + ceu[7]
+					]
+				}
+				
+				# Reglas de desplazamiento para letras que no tienen el ancho por defecto
+				rules = [
+					(-6, ['i','l','.',':','¡','!','|']),
+					(-5, ['j','í']),
+					(-4, [',',';','[',']','(',')','\'','1','ì']),
+					(-3, ['"']),
+					(-2, ['I','{','}','¿','?','^','<','>','$','0','ï','î','Ï','Î','Í','Ì']),
+					( 2, ['v','M','N','Q','T','V','X','Y','Z','-','_','+','*','#','/','\\','&','%','¬','7']),
+					( 6, ['m','W']),
+					( 8, ['@']),
+					(10, ['w'])
+				]
+				
+				return self.textToAscii(text, c, rules, width=10, plus=plus)
+			
+			def alligator(self, text):
+				
+				plus  = '1234567890'
+				plus += '.,:;-_[](){}!?'
+				plus += '+*^"\'<>@#/\\|&%$~'
+				
+				for t in text:
+					if not t in self.ascii_letters+plus:
+						error_msg = repr(text) + ' --> ' + t
+						raise self.NotSupportedError(error_msg) 
+				
+				# URL: http://patorjk.com/software/taag/#p=display&f=Alligator2
+				cn = [
+					'  :::    ::::::::   ::::::::      :::     ::::::::::  ::::::::  :::::::::::  ::::::::   ::::::::   :::::::  ',
+					':+:+:   :+:    :+: :+:    :+:    :+:      :+:    :+: :+:    :+: :+:     :+: :+:    :+: :+:    :+: :+:   :+: ',
+					'  +:+         +:+         +:+   +:+ +:+   +:+        +:+               +:+  +:+    +:+ +:+    +:+ +:+  :+:+ ',
+					'  +#+       +#+        +#++:   +#+  +:+   +#++:++#+  +#++:++#+        +#+    +#++:++#   +#++:++#+ +#+ + +:+ ',
+					'  +#+     +#+             +#+ +#+#+#+#+#+        +#+ +#+    +#+      +#+    +#+    +#+        +#+ +#+#  +#+ ',
+					'  #+#    #+#       #+#    #+#       #+#   #+#    #+# #+#    #+#     #+#     #+#    #+# #+#    #+# #+#   #+# ',
+					'####### ##########  ########        ###    ########   ########      ###      ########   ########   #######  '
+				]
+				
+				ce = [
+					cn[0] + '                                         :::::: ::::::   ::: :::      :::: ::::    :::  :::::::::  ',
+					cn[1] + '        :+: :+:                          :+:       :+:  :+:   :+:    :+:     :+:   :+: :+:     :+: ',
+					cn[2] + '                                         +:+       +:+ +:+     +:+   +:+     +:+   +:+        +:+  ',
+					cn[3] + '                +#++:++#++:++            +#+       +#+ +#+     +#+ +#+         +#+ +#+       +#+   ',
+					cn[4] + '                                         +#+       +#+ +#+     +#+   +#+     +#+   +#+     +#+     ',
+					cn[5] + '#+# #+# #+# #+#                          #+#       #+#  #+#   #+#    #+#     #+#                   ',
+					cn[6] + '### ##      ##                ########## ###### ######   ### ###      #### ####    ###     ###     '
+				]
+				
+				ce2 = [
+					ce[0] + '                                :::     :: :: :::    ::: :::       :::::::::::       :::   :::          ::: :::       :::  :::::::     :::   :::      :::                   ',
+					ce[1] + '     :+:       :+:     :+:    :+: :+:   :+ +: :+    :+:   :+:    :+: :+:+:+:+:+:     :+:   :+:         :+:   :+:      :+: :+:   :+:    :+:  :+:    :+:+:+:+:                ',
+					ce[2] + '     +:+         +:+ +:+    +:+     +:+            +:+     +:+  +:+ +:+   +:+ +:+ +:+:+:+:+:+:+:+     +:+     +:+     +:+  +:+ +:+         +:+   +:+  +:+       :::::   ::: ',
+					ce[3] + '+#++:++#++:++ +#++:++#++:++                       +#+       +#+ +#+ +:+   +#+ +:+    +#+   +:+       +#+       +#+    +#+   +#++:  ++#    +#+      +#++:++#+  :+:   :+:+:   ',
+					ce[4] + '     +#+         +#+ +#+                           +#+     +#+  +#+ +#+   +#+ +#+ +#+#+#+#+#+#+#+   +#+         +#+   +#+  +#+ +#+#+#    +#+          +#+ +#+               ',
+					ce[5] + '     #+#       #+#     #+#                          #+#   #+#    #+# #+#+#+#+#+      #+#   #+#     #+#           #+#  #+# #+#   #+#+    #+#  #+#   #+#+#+#+#                ',
+					ce[6] + '                                                     ### ###       #####             ###   ###    ###             ### ###  ##########  ###   ###      ###                   '
+				]
+				
+				c = [
+					'    :::     :::::::::   ::::::::  :::::::::  :::::::::: ::::::::::  ::::::::  :::    ::: ::::::::::: :::::::::: :::    ::: :::        ::::     :::: ::::    :::  ::::::::  :::::::::   ::::::::   :::::::::   ::::::::  ::::::::::: :::    ::: :::     ::: :::       ::: :::    ::: :::   ::: ::::::::: ' + ce2[0],
+					'  :+: :+:   :+:    :+: :+:    :+: :+:    :+: :+:        :+:        :+:    :+: :+:    :+:     :+:         :+:    :+:   :+:  :+:        +:+:+: :+:+:+ :+:+:   :+: :+:    :+: :+:    :+: :+:    :+:  :+:    :+: :+:    :+:     :+:     :+:    :+: :+:     :+: :+:       :+: :+:    :+: :+:   :+:      :+:  ' + ce2[1],
+					' +:+   +:+  +:+    +:+ +:+        +:+    +:+ +:+        +:+        +:+        +:+    +:+     +:+         +:+    +:+  +:+   +:+        +:+ +:+:+ +:+ :+:+:+  +:+ +:+    +:+ +:+    +:+ +:+    +:+  +:+    +:+ +:+            +:+     +:+    +:+ +:+     +:+ +:+       +:+  +:+  +:+   +:+ +:+      +:+   ' + ce2[2],
+					'+#++:++#++: +#++:++#+  +#+        +#+    +:+ +#++:++#   :#::+::#   :#:        +#++:++#++     +#+         +#+    +#++:++    +#+        +#+  +:+  +#+ +#+ +:+ +#+ +#+    +:+ +#++:++#+  +#+    +:+  +#++:++#:  +#++:++#++     +#+     +#+    +:+ +#+     +:+ +#+  +:+  +#+   +#++:+     +#++:      +#+    ' + ce2[3],
+					'+#+     +#+ +#+    +#+ +#+        +#+    +#+ +#+        +#+        +#+   +#+# +#+    +#+     +#+         +#+    +#+  +#+   +#+        +#+       +#+ +#+  +#+#+# +#+    +#+ +#+        +#+  # +#+  +#+    +#+        +#+     +#+     +#+    +#+  +#+   +#+  +#+ +#+#+ +#+  +#+  +#+     +#+      +#+     ' + ce2[4],
+					'#+#     #+# #+#    #+# #+#    #+# #+#    #+# #+#        #+#        #+#    #+# #+#    #+#     #+#     #+# #+#    #+#   #+#  #+#        #+#       #+# #+#   #+#+# #+#    #+# #+#        #+#   +#+   #+#    #+# #+#    #+#     #+#     #+#    #+#   #+#+#+#    #+#+# #+#+#  #+#    #+#    #+#     #+#      ' + ce2[5],
+					'###     ### #########   ########  #########  ########## ###         ########  ###    ### ###########  #####     ###    ### ########## ###       ### ###    ####  ########  ###         ###### ### ###    ###  ########      ###      ########      ###       ###   ###   ###    ###    ###    ######### ' + ce2[6]
+				]
+				
+				# 12 11 11 11 11 11 11 11 12 11 11 11 14
+				#  A  B  C  D  E  F  G  H  I  J  K  L  M
+				# 12 11 11 12 11 11 12 11 12 14 11 10 10
+				#  N  O  P  Q  R  S  T  U  V  W  X  Y  Z
+				
+				# Reglas de desplazamiento para letras que no tienen el ancho por defecto
+				rules = [
+					(-7, ['.',',',':',';','!','\'','|']),
+					(-5, ['(',')','"']),
+					(-4, ['[',']','<','>']),
+					(-3, ['1','{','}']),
+					(-1, ['y','z','Y','Z','0','/','\\','%']),
+					( 1, ['a','i','n','q','t','v','A','I','N','Q','T','V','4','7','?','^']),
+					( 2, ['&','$']),
+					( 3, ['m','w','M','W','-','+','*','~']),
+					( 5, ['#']),
+					( 7, ['@'])
+				]
+				
+				return self.textToAscii(text, c, rules, width=11, plus=plus)
+			
+			def cybermedium(self, text):
+				
+				plus  = '.,:;-_!?"\'/\\|'
+				
+				for t in text:
+					if not t in self.ascii_letters+plus:
+						error_msg = repr(text) + ' --> ' + t
+						raise self.NotSupportedError(error_msg) 
+				
+				ce = [
+					'            | __....   / \\   | ',
+					"   ..__     |  _]'''  /   \\  | ",
+					'.. .,   ___ .  .     /     \\ | ',
+					" '                           | "
+				]
+				
+				# URL: http://patorjk.com/software/taag/#p=display&f=Cybermedium
+				c = [
+					'____ ___  ____ ___  ____ ____ ____ _  _ _  _ _  _ _    _  _ _  _ ____ ___  ____ ____ ____ ___ _  _ _  _ _ _ _ _  _ _   _ ___  ' + ce[0],
+					'|__| |__] |    |  \ |___ |___ | __ |__| |  | |_/  |    |\/| |\ | |  | |__] |  | |__/ [__   |  |  | |  | | | |  \/   \_/    /  ' + ce[1],
+					'|  | |__] |___ |__/ |___ |    |__] |  | | _| | \_ |___ |  | | \| |__| |    |_\| |  \ ___]  |  |__|  \/  |_|_| _/\_   |    /__ ' + ce[2],
+					'                                                                                                                              ' + ce[3]
+				]
+				
+				# Reglas de desplazamiento para letras que no tienen el ancho por defecto
+				rules = [
+					(-4, ['.',':',';']),
+					(-3, ['i','I',',','!','"','\'','|']),
+					(-2, ['j','J','-','?']),
+					(-1, ['t','T','_','/','\\']),
+					( 1, ['w','y','W','Y'])
+				]
+				
+				return self.textToAscii(text, c, rules, width=5, plus=plus)
+			
+			def dobleShorts(self, text):
+				
+				plus = '.,()!?"\'#%'
+				
+				for t in text:
+					if not t in self.ascii_letters+plus:
+						error_msg = repr(text) + ' --> ' + t
+						raise self.NotSupportedError(error_msg) 
+				
+				ce = [
+					'       _   _  __ ____    //  __ __     _  ',
+					"      ((   )) || '_// //    =||=||= O //  ",
+					'|| //  \\\\ //  ..  ||         || ||   // O '
+				]
+				
+				# URL: http://patorjk.com/software/taag/#p=display&f=Double%20Shorts
+				c = [
+					' ___  ____   ____ _____  _____ _____  ____  __  __ __    __ __ __ __    ___  __ __  __  _____  _____  _____  _____   __ ____ __ __ __ __ __    __ _  _ _  _ ____  ' + ce[0],
+					'||=|| ||=)  ((    ||  )) ||==  ||==  (( ___ ||==|| ||    || ||<<  ||    || \\/ | ||\\\\|| ((   )) ||_// ((   )) ||_//  ((   ||  || || \\\\ // \\\\ /\\ // \\\\// \\\\//   //  ' + ce[1],
+					'|| || ||_))  \\\\__ ||_//  ||___ ||     \\\\_|| ||  || || |__|| || \\\\ ||__| ||    | || \\||  \\\\_//  ||     \\\\_/X| || \\\\ \\_))  ||  \\\\_//  \\V/   \\V/\\V/  //\\\\  //   //__ ' + ce[2]
+				]
+				
+				# Reglas de desplazamiento para letras que no tienen el ancho por defecto
+				rules = [
+					(-3, ['i','I','.',',','!','"','\'']),
+					(-2, ['(',')']),
+					(-1, ['s','t','x','y','S','T','X','Y','?']),
+					( 1, ['d','g','h','n','D','G','H','N']),
+					( 2, ['m','o','q','M','O','Q','#']),
+					( 3, ['w','W'])
+				]
+				
+				return self.textToAscii(text, c, rules, width=6, plus=plus)
+			
+			def doble(self, text):
+				
+				plus = '.,()!?"\'#%'
+				
+				for t in text:
+					if not t in self.ascii_letters+plus:
+						error_msg = repr(text) + ' --> ' + t
+						raise self.NotSupportedError(error_msg) 
+				
+				ce = [
+					'        _ _   __ ____   _ //  __ __     _ ',
+					'       // \\\\  || |  \\\\ //     || ||  O // ',
+					'      ((   )) ||   _//       =||=||=  //  ',
+					'|| //  \\\\ //  ..   ||         || ||  // O ',
+					'                                          '
+				]
+				
+				# URL: http://patorjk.com/software/taag/#p=display&f=Double
+				c = [
+					'  ___  ____    ___ ____    ____  ____   ___  __  __ __    __ __ __ __    ___  ___ __  __   ___   ____    ___   ____   __  ______ __ __ __ __ __    __ _   _ _  _ ____ ' + ce[0],
+					' // \\\\ || ))  //   || \\\\  ||    ||     // \\\\ ||  || ||    || || // ||    ||\\\\//|| ||\\ ||  // \\\\  || \\\\  // \\\\  || \\\\ (( \\ | || | || || || || ||    || \\\\ // \\\\//   // ' + ce[1],
+					' ||=|| ||=)  ((    ||  )) ||==  ||==  (( ___ ||==|| ||    || ||<<  ||    || \\/ || ||\\\\|| ((   )) ||_// ((   )) ||_//  \\\\    ||   || || \\\\ // \\\\ /\\ //  )X(   )/   //  ' + ce[2],
+					' || || ||_))  \\\\__ ||_//  ||___ ||     \\\\_|| ||  || || |__|| || \\\\ ||__| ||    || || \\||  \\\\_//  ||     \\\\_/X| || \\\\ \\_))   ||   \\\\_//  \\V/   \\V/\\V/  // \\\\ //   //__ ' + ce[3],
+					'                                                                                                                                                                     ' + ce[4]
+				]
+				
+				# Reglas de desplazamiento para letras que no tienen el ancho por defecto
+				rules = [
+					(-3, ['i','I','.',',','!','"','\'']),
+					(-2, ['(',')']),
+					(-1, ['s','y','z','S','Y','Z','%']),
+					( 1, ['a','d','g','h','n','t','A','D','G','H','N','T']),
+					( 2, ['o','q','O','Q','#']),
+					( 3, ['m','w','M','W'])
+				]
+				
+				return self.textToAscii(text, c, rules, width=6, plus=plus)
+			
+			def not_lean(self, text):
+				
+				plus = '.,()!?"\'#%'
+				
+				for t in text:
+					if not t in self.ascii_letters+plus:
+						error_msg = repr(text) + ' --> ' + t
+						raise self.NotSupportedError(error_msg) 
+				
+				ce = [
+					'        _ _   __ ____   _ //  __ __     _ ',
+					'       // \\\\  || |  \\\\ //     || ||  O // ',
+					'      ((   )) ||   _//       =||=||=  //  ',
+					'|| //  \\\\ //  ..   ||         || ||  // O ',
+					'                                          '
+				]
+				
+				# URL: http://patorjk.com/software/taag/#p=display&f=Double
+				c = {
+					'l': [
+						'                                                                                                                                                                                                                                                                       ',
+						'             _/                        _/                _/_/            _/        _/  _/  _/        _/                                                                                _/                                                                              ',
+						'    _/_/_/  _/_/_/      _/_/_/    _/_/_/    _/_/      _/        _/_/_/  _/_/_/            _/  _/    _/  _/_/_/  _/_/    _/_/_/      _/_/    _/_/_/      _/_/_/  _/  _/_/    _/_/_/  _/_/_/_/  _/    _/  _/      _/  _/      _/      _/  _/    _/  _/    _/  _/_/_/_/   ',
+						' _/    _/  _/    _/  _/        _/    _/  _/_/_/_/  _/_/_/_/  _/    _/  _/    _/  _/  _/  _/_/      _/  _/    _/    _/  _/    _/  _/    _/  _/    _/  _/    _/  _/_/      _/_/        _/      _/    _/  _/      _/  _/      _/      _/    _/_/    _/    _/      _/      ',
+						'_/    _/  _/    _/  _/        _/    _/  _/          _/      _/    _/  _/    _/  _/  _/  _/  _/    _/  _/    _/    _/  _/    _/  _/    _/  _/    _/  _/    _/  _/            _/_/    _/      _/    _/    _/  _/      _/  _/  _/  _/    _/    _/  _/    _/    _/         ',
+						' _/_/_/  _/_/_/      _/_/_/    _/_/_/    _/_/_/    _/        _/_/_/  _/    _/  _/  _/  _/    _/  _/  _/    _/    _/  _/    _/    _/_/    _/_/_/      _/_/_/  _/        _/_/_/        _/_/    _/_/_/      _/          _/      _/      _/    _/    _/_/_/  _/_/_/_/      ',
+						'                                                                _/                _/                                                    _/              _/                                                                                          _/                 ',
+						'                                                           _/_/                _/                                                      _/              _/                                                                                      _/_/                    '
+					],
+					'u': [
+						'                                                                                                                                                                                                                                                                                             ',
+						'      _/_/    _/_/_/      _/_/_/  _/_/_/    _/_/_/_/  _/_/_/_/    _/_/_/  _/    _/  _/_/_/        _/  _/    _/  _/        _/      _/  _/      _/    _/_/    _/_/_/      _/_/      _/_/_/      _/_/_/  _/_/_/_/_/  _/    _/  _/      _/  _/          _/  _/      _/  _/      _/  _/_/_/_/_/   ',
+						'   _/    _/  _/    _/  _/        _/    _/  _/        _/        _/        _/    _/    _/          _/  _/  _/    _/        _/_/  _/_/  _/_/    _/  _/    _/  _/    _/  _/    _/    _/    _/  _/            _/      _/    _/  _/      _/  _/          _/    _/  _/      _/  _/          _/      ',
+						'  _/_/_/_/  _/_/_/    _/        _/    _/  _/_/_/    _/_/_/    _/  _/_/  _/_/_/_/    _/          _/  _/_/      _/        _/  _/  _/  _/  _/  _/  _/    _/  _/_/_/    _/  _/_/    _/_/_/      _/_/        _/      _/    _/  _/      _/  _/    _/    _/      _/          _/          _/         ',
+						' _/    _/  _/    _/  _/        _/    _/  _/        _/        _/    _/  _/    _/    _/    _/    _/  _/  _/    _/        _/      _/  _/    _/_/  _/    _/  _/        _/    _/    _/    _/        _/      _/      _/    _/    _/  _/      _/  _/  _/      _/  _/        _/        _/            ',
+						'_/    _/  _/_/_/      _/_/_/  _/_/_/    _/_/_/_/  _/          _/_/_/  _/    _/  _/_/_/    _/_/    _/    _/  _/_/_/_/  _/      _/  _/      _/    _/_/    _/          _/_/  _/  _/    _/  _/_/_/        _/        _/_/        _/          _/  _/      _/      _/      _/      _/_/_/_/_/       ',
+						'                                                                                                                                                                                                                                                                                             ',
+						'                                                                                                                                                                                                                                                                                             '
+					]
+				}
+				
+				# Reglas de desplazamiento para letras que no tienen el ancho por defecto
+				rules = [
+					
+				]
+			
+			def morse(self, text): pass
+			
+			def rammstein(self, text):
+				
+				for t in text:
+					if not t in self.ascii_letters:
+						error_msg = repr(text) + ' --> ' + t
+						raise self.NotSupportedError(error_msg) 
+				
+				# URL: http://patorjk.com/software/taag/#p=display&f=Rammstein
+				c = {
+					'l': [
+						'                                                                                                                                                                                                                    ',
+						' ____    ______  ______  _____   ______  ______  ______  __   _  ____    ____  __  __  ____    ____    __  ____   _  _____  _____  _____   _____   ______    __    __   _  __    _ __  __  __  __ __ __    _ ______ ',
+						'|    \  |      >|   ___||     \ |   ___||   ___||   ___||  |_| ||    |  |    ||  |/ / |    |  |    \  /  ||    \ | |/     \|     |/     \ |     | |   ___| _|  |_ |  | | |\  \  //|  \/  \|  | \ ` / \ \  //|___   |',
+						'|     \ |     < |   |__ |      \|   ___||   ___||   |  ||   _  ||    | _|    ||     \ |    |_ |     \/   ||     \| ||     ||    _||     | |     \  `-.`-. |_    _||  |_| | \  \// |     /\   | /   \  \ \//  .-`.-` ',
+						'|__|\__\|______>|______||______/|______||___|   |______||__| |_||____||______||__|\__\|______||__/\__/|__||__/\____|\_____/|___|  \___/\_\|__|\__\|______|  |__|  |______|  \__/  |____/  \__|/__/\_\ /__/  |______|',
+						'                                                                                                                                                                                                                    ',
+						'                                                                                                                                                                                                                    '
+					],
+					'u': [
+						'    _____        _____        _____        _____        _____        _____        _____        _____        _____          _____        _____        _____         _____         _____        _____        _____        _____        _____        _____         _____        _____        _____         _____        _____        _____        _____    ',
+						' __|_    |__  __|___  |__  __|___  |__  __|__   |__  __|___  |__  __|___  |__  __|___  |__  __|  _  |__  __|_    |__    __|_    |__  __| __  |__  __|_    |__  ___|    _|__  ___|   _ |__  __|__   |__  __|__   |__  __|__   |__  __|__   |__  __|___  |__  ___|__   |__  __|  _  |__  __|   _ |__  ___|__  _|__  __|__   |__ ___|  _  |__  __|___  |__ ',
+						'|    \      ||      >    ||   ___|    ||     \     ||   ___|    ||   ___|    ||   ___|    ||  |_| |    ||    |      |  |    |      ||  |/ /     ||    |      ||    \  /  | ||    \ | |   |/     \     ||     |     |/     \     ||     |     ||   ___|    ||_    _|     ||  | | |    |\  \  //    ||  \/  \|  | | \ ` /      |\ \  //     ||___   |    |',
+						'|     \     ||     <     ||   |__     ||      \    ||   ___|    ||   ___|    ||   |  |    ||   _  |    ||    |      | _|    |      ||     \     ||    |_     ||     \/   | ||     \| |   ||     |     ||    _|     ||     |     ||     \     | `-.`-.     | |    |      ||  |_| |    ||\  \//     ||     /\   | | /   \      ||\ \//      | .-`.-`     |',
+						'|__|\__\  __||______>  __||______|  __||______/  __||______|  __||___|     __||______|  __||__| |_|  __||____|    __||______|    __||__|\__\  __||______|  __||__/\__/|__|_||__/\____| __|\_____/   __||___|     __|\___/\_\  __||__|\__\  __||______|  __| |____|    __||______|  __||_\__/    __||____/  \__|_|/__/\_\   __||/__/     __||______|  __|',
+						'   |_____|      |_____|      |_____|      |_____|      |_____|      |_____|      |_____|      |_____|      |_____|        |_____|      |_____|      |_____|       |_____|       |_____|      |_____|      |_____|      |_____|      |_____|      |_____|       |_____|      |_____|      |_____|       |_____|      |_____|      |_____|      |_____|   ',
+						'                                                                                                                                                                                                                                                                                                                                                        '
+					]
+				}
+				
+				# Reglas de desplazamiento para letras que no tienen el ancho por defecto
+				rules = [
+					(-2, ['i']),
+					(-1, ['o','p','x','y']),
+					( 2, ['n']),
+					( 4, ['m','w']),
+					( 5, ['A','B','C','D','E','F','G','H','I','K','L','O','P','Q','R','S','U','V','X','Y','Z']),
+					( 6, ['M','N','T','W']),
+					( 7, ['J'])
+				]
+				
+				return self.textToAscii(text, c, rules, width=8)
+			
+		class Hash:			# Convierte un texto a algun tipo de hash seleccionado.
 			
 			class HashNotAvailableError(Exception):
 				def __init__(self, error_msg): self.error_msg = error_msg
@@ -1433,7 +2196,7 @@ class Utils:
 			'join', 'map', 'map_async', 'terminate')): <class 'tags_file_module.PoolProxy'>}
 			'''
 		
-		def load_uses(self):
+		def load_uses(self):	# Función que carga todos los 'use'.
 			self.hash_use = '''
 			\r Función: hash(text, algo='sha1')
 			\r |
@@ -1452,7 +2215,8 @@ class Utils:
 			\r |    print('\\nActualizado a sha1:')
 			\r |    print('Hash: ' + h)
 			\r |    print('Type: ' + h.type)
-			\r \    print('Text: ' + h.text)
+			\r |    print('Text: ' + h.text)
+			\r \
 			'''
 		
 		def hash(self, text, algo='sha1'): #Use						# Devuelve el Hash del texto con el algoritmo seleccionado.
@@ -1487,44 +2251,72 @@ if __name__ == '__main__':
 	
 	utils = Utils()
 	
-	collected = utils.SystemInfo.collectAll
+	print('\n\n Ascii Font functions availables: ' + utils.Utilities.AsciiFont.functions.list)
 	
-	for key, val in collected.items():
-		print(key.ljust(24), val)
+	text = 'v1.0.4'
 	
-	print(utils.Utilities.hash_use)
+	# ~ cal = utils.Utilities.AsciiFont.calvinS(text)
+	# ~ sha = utils.Utilities.AsciiFont.ansiShadow(text)
+	reg = utils.Utilities.AsciiFont.ansiRegular(text)
+	# ~ dcp = utils.Utilities.AsciiFont.deltaCorpsPriest(text)
+	# ~ blo = utils.Utilities.AsciiFont.block(text)
+	# ~ alg = utils.Utilities.AsciiFont.alligator(text)
+	# ~ cyb = utils.Utilities.AsciiFont.cybermedium(text)
+	# ~ dsh = utils.Utilities.AsciiFont.dobleShorts(text)
+	# ~ dob = utils.Utilities.AsciiFont.doble(text)
+	# ~ ram = utils.Utilities.AsciiFont.rammstein(text)
 	
-	print(utils.Actions.functions)
+	# ~ print('calvinS:\n'          + cal)
+	# ~ print('ansiShadow:\n'       + sha)
+	print('ansiRegular:\n'      + reg)
+	# ~ print('deltaCorpsPriest:\n' + dcp)
+	# ~ print('block:\n'            + blo)
+	# ~ print('alligator:\n'        + alg)
+	# ~ print('cybermedium:\n'      + cyb)
+	# ~ print('dobleShorts:\n'      + dsh)
+	# ~ print('doble:\n'            + dob)
+	# ~ print('rammstein:\n'        + ram)
 	
-	key = utils.Actions.VBS.getWindowsProductKey()
-	print('\nClave de Producto de Windows:', key)
 	
-	print(utils.Actions.messageBox_use)
 	
-	resp = utils.Actions.messageBox(
-		message = 'Esta función te resulta muy útil?',
-		title = 'Es útil?',
-		style = WC.MB_YESNO | WC.MB_ICONQUESTION | WC.MB_DEFAULT_DESKTOP_ONLY
-	)
-	print('Respuesta: ' + resp)
+	# ~ collected = utils.SystemInfo.collectAll
 	
-	utils.Actions.screenshot()
-	utils.Actions.VBS.setVolume(72)
-	utils.Actions.startApp('Notepad')
-	utils.Actions.startApp('Calc')
+	# ~ for key, val in collected.items():
+		# ~ print(key.ljust(24), val)
 	
-	procs = utils.SystemInfo.enumProcess('notepad')
-	for p in procs: print(p)
+	# ~ print(utils.Utilities.hash_use)
 	
-	if len(procs) == 1:
-		proc = procs.pop()
-		resp = utils.Actions.killProcess(proc['pid'])
-		print('Proceso Terminado: '+str(proc) if resp else 'Permiso Denegado: '+str(proc))
+	# ~ print(utils.Actions.functions)
 	
-	print(utils.Actions.cleanRecyclerBin_use)
-	print(utils.Actions.displaySwitch_use)
-	print(utils.Actions.messageBox_use)
-	print(utils.Actions.startApp_use)
+	# ~ key = utils.Actions.VBS.getWindowsProductKey()
+	# ~ print('\nClave de Producto de Windows:', key)
+	
+	# ~ print(utils.Actions.messageBox_use)
+	
+	# ~ resp = utils.Actions.messageBox(
+		# ~ message = 'Esta función te resulta muy útil?',
+		# ~ title = 'Es útil?',
+		# ~ style = WC.MB_YESNO | WC.MB_ICONQUESTION | WC.MB_DEFAULT_DESKTOP_ONLY
+	# ~ )
+	# ~ print('Respuesta: ' + resp)
+	
+	# ~ utils.Actions.screenshot()
+	# ~ utils.Actions.VBS.setVolume(72)
+	# ~ utils.Actions.startApp('Notepad')
+	# ~ utils.Actions.startApp('Calc')
+	
+	# ~ procs = utils.SystemInfo.enumProcess('notepad')
+	# ~ for p in procs: print(p)
+	
+	# ~ if len(procs) == 1:
+		# ~ proc = procs.pop()
+		# ~ resp = utils.Actions.killProcess(proc['pid'])
+		# ~ print('Proceso Terminado: '+str(proc) if resp else 'Permiso Denegado: '+str(proc))
+	
+	# ~ print(utils.Actions.cleanRecyclerBin_use)
+	# ~ print(utils.Actions.displaySwitch_use)
+	# ~ print(utils.Actions.messageBox_use)
+	# ~ print(utils.Actions.startApp_use)
 
 #=======================================================================
 
