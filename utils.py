@@ -1,18 +1,18 @@
 
-# Tested in: Python 3.8.8
+# Tested in: Python 3.8.8 - Windows
 # By: LawlietJH
-# Utils v1.0.4
+# Utils v1.0.5
 
 # Banner:
 # ███    █▄      ███      ▄█   ▄█          ▄████████ 
 # ███    ███ ▀█████████▄ ███  ███         ███    ███ 
 # ███    ███    ▀███▀▀██ ███▌ ███         ███    █▀  
 # ███    ███     ███   ▀ ███▌ ███         ███        
-# ███    ███     ███     ███▌ ███       ▀███████████    ██    ██  ██     ██████     ██   ██
-# ███    ███     ███     ███  ███                ███    ██    ██ ███    ██  ████    ██   ██
+# ███    ███     ███     ███▌ ███       ▀███████████    ██    ██  ██     ██████     ███████
+# ███    ███     ███     ███  ███                ███    ██    ██ ███    ██  ████    ██
 # ███    ███     ███     ███  ███▌    ▄    ▄█    ███    ██    ██  ██    ██ ██ ██    ███████
 # ████████▀     ▄████▀   █▀   █████▄▄██  ▄████████▀      ██  ██   ██    ████  ██         ██
-#                             ▀                           ████    ██ ██  ██████  ██      ██
+#                             ▀                           ████    ██ ██  ██████  ██ ███████
 
 from datetime import datetime
 import pywintypes
@@ -37,13 +37,14 @@ try:
 except:
 	from tkinter import Tk
 	from tkinter import filedialog
+#=======================================================================
 
 # Manipulacion de DLLs de Windows ======================================
 import ctypes
 #=======================================================================
 
 # pip install pywin32 ==================================================
-from win32com.shell import shell
+from win32com.shell import shell, shellcon
 import win32api			as WA
 import win32con			as WC		# All Constants
 import win32gui			as WG
@@ -58,7 +59,7 @@ import win32net			as WN
 
 __author__  = 'LawlietJH'	# Desarrollador
 __title__   = 'Utils'		# Nombre
-__version__ = 'v1.0.4'		# Version
+__version__ = 'v1.0.5'		# Version
 
 # Constants ============================================================
 
@@ -145,7 +146,7 @@ class ObjectClassNames: #Use    # Obtiene todos los nombres de las clases en los
 		\r |    # Al sumar con string se convierte en string, sino, seguira siendo un entero.
 		\r |    # utils.classes.qty + str --> str
 		\r |    print('Classes str(qty): ' + utils.classes.qty)
-		\r \
+		\r \\
 		'''
 		list_ = [
 			a for a in dir(obj) 
@@ -197,7 +198,7 @@ class ObjectFunctionNames: #Use # Obtiene todos los nombres de las funciones en 
 		\r |    # Al sumar con string se convierte en string, sino, seguira siendo un entero.
 		\r |    # utils.functions.qty + str --> str
 		\r |    print('Functions str(qty): ' + utils.functions.qty)
-		\r \
+		\r \\
 		'''
 		list_ = [
 			a for a in dir(obj) 
@@ -233,7 +234,7 @@ class Utils:
 		self.functions = None
 		self.functions = ObjectFunctionNames(self)
 		
-		self.Actions     = self.Actions()
+		self.Actions     = self.Actions(self)
 		self.MemoryInfo  = self.MemoryInfo()
 		self.NetworkInfo = self.NetworkInfo()
 		self.SystemInfo  = self.SystemInfo()
@@ -241,7 +242,7 @@ class Utils:
 	
 	class Actions:		# Interacciones con el Systema (Mayormente Windows)
 		
-		def __init__(self):
+		def __init__(self, utils):
 			
 			self.classes   = ObjectClassNames(self)
 			self.functions = None
@@ -252,6 +253,9 @@ class Utils:
 			self.Clipboard = self.Clipboard()
 			self.Explorer  = self.Explorer()
 			self.VBS       = self.VBS()
+			
+			# Conexiones a Clases hermanas:
+			self.SystemInfo = utils.SystemInfo()
 		
 		class BeepError(Exception):
 			def __init__(self, error_msg): self.error_msg = error_msg
@@ -278,21 +282,42 @@ class Utils:
 				self.classes   = ObjectClassNames(self)
 				self.functions = None
 				self.functions = ObjectFunctionNames(self)
+				
+				self.use = '''\
+				\r Clase: Clipboard
+				\r |
+				\r + Ejemplo de uso: 
+				\r |    
+				\r |    utils = Utils()
+				\r |    
+				\r |    # Pegar: Devuelve el contenido que se haya copiado.
+				\r |    print(utils.Actions.Clipboard.text)
+				\r |    
+				\r |    # Copiar: Remplaza el contenido para poder Pegarlo.
+				\r |    utils.Actions.Clipboard.text = 'Texto'
+				\r |    
+				\r |    # Vaciar: Vacia el Clipboard.
+				\r |    del utils.Actions.Clipboard.text
+				\r \\\
+				'''
 			
 			# print(Clipboard.text)										# Pegar: Devuelve el contenido que se haya copiado.
 			@property
 			def text(self):
 				WCB.OpenClipboard()
-				text = WCB.GetClipboardData()
-				WCB.CloseClipboard()
-				return text
+				try:
+					text = WCB.GetClipboardData()
+					WCB.CloseClipboard()
+					return text
+				except TypeError:
+					return ''
 			
 			# Clipboard.text = 'Texto'									# Copiar: Remplaza el contenido para poder Pegarlo.
 			@text.setter
 			def text(self, text):
 				WCB.OpenClipboard()
 				WCB.EmptyClipboard()
-				WCB.SetClipboardText(text.encode(), WCB.CF_TEXT)
+				WCB.SetClipboardText(text, WCB.CF_TEXT)
 				WCB.CloseClipboard()
 			
 			# del Clipboard.text										# Vaciar: Vacia el Clipboard.
@@ -359,7 +384,7 @@ class Utils:
 				\r |    # Obtiene la ruta completa y el nombre de Archivo indicado para 'Guardar como':
 				\r |    file_name_save = utils.Actions.Explorer.getFileNameSave()
 				\r |    print(file_name_save)
-				\r \    
+				\r \\    
 				'''
 				self.root = Tk()
 				self.root.withdraw()
@@ -422,17 +447,103 @@ class Utils:
 				
 				self.run_command = lambda command: os.popen(command).read()	# Ejecuta cualquier comando en consola
 			
-			def load_uses(self):
-				self.getWindowsProductKey_use = '''
-				\r Función: getWindowsProductKey(return_key=True, save_key=False, rm=True)
+			@property
+			def use(self):
+				self.load_uses(1)
+				use = '''\
+				\r Clase: VBS
 				\r |
-				\r + Ejemplo de uso: 
-				\r |
-				\r |    # save_key=True Permite guardar la clave en un archivo
-				\r |    key = utils.Actions.VBS.getWindowsProductKey(save_key=True)
-				\r |    print('\nClave de Producto de Windows:', key)
-				\r \
-				'''
+				\r + Lista de usos:
+				\r |  
+				\r |  utils = Utils()
+				\r |  
+				\r |  print(utils.Actions.VBS.minimizeAll_use)
+				\r |  
+				\r {0}
+				\r |  
+				\r |  print(utils.Actions.VBS.ejectCDROM_use)
+				\r |  
+				\r {1}
+				\r |  
+				\r |  print(utils.Actions.VBS.getWindowsProductKey_use)
+				\r |  
+				\r {2}
+				\r |  
+				\r |  print(utils.Actions.VBS.setVolume_use)
+				\r |  
+				\r {3}
+				\r |  
+				\r \\\
+				'''.format(
+					self.minimizeAll_use,
+					self.ejectCDROM_use,
+					self.getWindowsProductKey_use,
+					self.setVolume_use
+				)
+				self.load_uses()
+				return use
+			
+			def load_uses(self, indent=0):
+				pipe = '|    '*indent
+				self.minimizeAll_use = '''\
+				\r {0}Función: ejectCDROM(rm=True)
+				\r {0}|
+				\r {0}| Minimiza todas las ventas que esten activas en pantalla.
+				\r {0}|
+				\r {0}+ Ejemplo de uso: 
+				\r {0}|
+				\r {0}|    # El parametro rm (remove) indica si el archivo generado
+				\r {0}|    # en la carpeta temporal será removido o no.
+				\r {0}|    # Por defecto siempre será removido, rm=True.
+				\r {0}|    
+				\r {0}|    utils.Actions.VBS.minimizeAll()
+				\r {0}\\\
+				'''.format(pipe)
+				self.ejectCDROM_use = '''\
+				\r {0}Función: ejectCDROM(rm=True)
+				\r {0}|
+				\r {0}| Expulsa las bandejas de disco disponibles en el sistema.
+				\r {0}|
+				\r {0}+ Ejemplo de uso: 
+				\r {0}|
+				\r {0}|    # El parametro rm (remove) indica si el archivo generado
+				\r {0}|    # en la carpeta temporal será removido o no.
+				\r {0}|    # Por defecto siempre será removido, rm=True.
+				\r {0}|    
+				\r {0}|    utils.Actions.VBS.ejectCDROM()
+				\r {0}\\\
+				'''.format(pipe)
+				self.getWindowsProductKey_use = '''\
+				\r {0}Función: getWindowsProductKey(return_key=True, save_key=False, rm=True)
+				\r {0}|
+				\r {0}| Obtiene la clave de producto de windows.
+				\r {0}|
+				\r {0}+ Ejemplo de uso: 
+				\r {0}|
+				\r {0}|    # El parametro rm (remove) indica si el archivo generado
+				\r {0}|    # en la carpeta temporal será removido o no.
+				\r {0}|    # Por defecto siempre será removido, rm=True.
+				\r {0}|    
+				\r {0}|    # save_key=True Permite guardar la clave en un archivo
+				\r {0}|    key = utils.Actions.VBS.getWindowsProductKey(save_key=True)
+				\r {0}|    print('\\nClave de Producto de Windows:', key)
+				\r {0}\\\
+				'''.format(pipe)
+				self.setVolume_use = '''\
+				\r {0}Función: setVolume(percent=72, rm=True)
+				\r {0}|
+				\r {0}| Permite cambiar el volumen del sistema.
+				\r {0}|
+				\r {0}+ Ejemplo de uso: 
+				\r {0}|    
+				\r {0}|    # El parametro rm (remove) indica si el archivo generado
+				\r {0}|    # en la carpeta temporal será removido o no.
+				\r {0}|    # Por defecto siempre será removido, rm=True.
+				\r {0}|    
+				\r {0}|    # percent permite ajustar el volumen entre 0 y 100
+				\r {0}|    utils.Actions.VBS.setVolume(percent=50)
+				\r {0}\\\
+				'''.format(pipe)
 			
 			def runScriptVBS(self, name, payload, rm, ret=False):		# Ejecuta el script VBS
 				
@@ -479,7 +590,7 @@ class Utils:
 				'''
 				self.runScriptVBS(name, payload, rm)
 			
-			def getWindowsProductKey(self, save_key=False, rm=True):	# Obtiene la Clave de Producto de Windows y la muestra en pantalla.
+			def getWindowsProductKey(self, save_key=False, rm=True): # use	# Obtiene la Clave de Producto de Windows y la muestra en pantalla.
 				# save_key: Si es True Guarda la clave en un archvio.
 				# rm:       Si es True Elimina el archivo del Script.
 				
@@ -533,7 +644,8 @@ class Utils:
 				while '' in key: key.remove('')
 				return key[-1]
 			
-			def setVolume(self, percent=72, rm=True):
+			def setVolume(self, percent=72, rm=True): # use				# Permite ajustar el volumen del sistema.
+				if not 0 <= percent <= 100: return
 				percent = percent//2
 				name = 'vol.vbs'
 				payload = '''
@@ -553,77 +665,210 @@ class Utils:
 		
 		#---------------------------------------------------------------
 		
-		def load_uses(self):
-			self.cleanRecyclerBin_use = '''
-			\r Función: cleanRecyclerBin(tipo=0, unidad='C:')
+		@property
+		def use(self):
+			self.load_uses(1)	# Indenta para mostrar en el use general
+			use = '''\
+			\r Clase: Actions
 			\r |
-			\r + Tipos de niveles:
-			\r |  -------------------------------------------------------------
-			\r | | 0 = NORMAL              | 4 = SIN_SONIDO                    |
-			\r | | 1 = SIN_CONFIRMACION    | 5 = 4 + 1                         |
-			\r | | 2 = SIN_BARRA_PROGRESO  | 6 = 4 + 2                         |
-			\r | | 3 = 2 + 1               | 7 = 4 + 2 + 1 = TOTAL_INADVERTIDO |
-			\r |  -------------------------------------------------------------
-			\r |
-			\r + Ejemplo de uso:
-			\r |
-			\r |    utils = Utils()
-			\r |    # Vaciará la papelera en modo silencioso
-			\r |    # Totalmente inadvertido.
-			\r |    utils.Actions.cleanRecyclerBin(tipo=7)
-			\r \
-			'''
-			self.displaySwitch_use = '''
-			\r Función: displaySwitch(tipo=0)
-			\r |
-			\r + Tipos de cambios:
-			\r |  --------------------------------------
-			\r | | 0 = internal: Solo pantalla de PC.   |
-			\r | | 1 = clone:    Duplicado.             |
-			\r | | 2 = extend:   Ampliar.               |
-			\r | | 3 = external: Solo segunda pantalla. |
-			\r |  --------------------------------------
-			\r |
-			\r + Ejemplo de uso:
-			\r |
-			\r |    utils = Utils()
-			\r |    utils.Actions.displaySwitch(2)
-			\r \
-			'''
-			self.killProcess_use = '''
-			\r Función: killProcess(PID)
-			\r |
-			\r + Ejemplo de uso:
-			\r |
-			\r |    utils = Utils()
-			\r |
-			\r |    # Busca todas las coincidencias con 'notepad':
-			\r |    procs = utils.SystemInfo.enumProcess('notepad')
-			\r |    for p in procs: print(p)
-			\r |
-			\r |    # Si solo hubo una coincidencia obtenemos
-			\r |    # su ProcessID y terminamos el proceso:
-			\r |    if len(procs) == 1:
-			\r |        proc = procs.pop()
-			\r |        utils.Actions.killProcess(proc['pid'])
-			\r \
-			'''
-			self.messageBox_use = '''
-			\r Función: messageBox(message, title,
-			\r |	style = WC.MB_OKCANCEL | WC.MB_ICONINFORMATION | WC.MB_DEFAULT_DESKTOP_ONLY
-			\r |    )
-			\r |
-			\r + Ejemplo de uso:
-			\r |
-			\r |    utils = Utils()
-			\r |    resp = utils.Actions.messageBox(
-			\r |        message = 'Esta función te resulta muy útil?',
-			\r |        title = 'Es útil?',
-			\r |        style = WC.MB_YESNO | WC.MB_ICONQUESTION | WC.MB_DEFAULT_DESKTOP_ONLY
-			\r |    )
-			\r |    print(resp)
-			\r \
-			'''
+			\r + Lista de usos:
+			\r |  
+			\r |  utils = Utils()
+			\r |  
+			\r |  print(utils.Actions.Clipboard.use)
+			\r |  ...
+			\r |  
+			\r |  print(utils.Actions.Explorer.use)
+			\r |  ...
+			\r |  
+			\r |  print(utils.Actions.VBS.use)
+			\r |  ...
+			\r |  
+			\r |  print(utils.Actions.beep_use)
+			\r |  
+			\r {0}
+			\r |  
+			\r |  print(utils.Actions.changePasswordCurrentUser_use)
+			\r |  
+			\r ... #Pendiente
+			\r |  
+			\r |  print(utils.Actions.cleanRecyclerBin_use)
+			\r |  
+			\r {1}
+			\r |  
+			\r |  print(utils.Actions.displaySwitch_use)
+			\r |  
+			\r {2}
+			\r |  
+			\r |  print(utils.Actions.exitWindows_use)
+			\r |  
+			\r ... #Pendiente
+			\r |  
+			\r |  print(utils.Actions.getPrivileges_use)
+			\r |  
+			\r ... #Pendiente
+			\r |  
+			\r |  print(utils.Actions.getProcessPrivileges_use)
+			\r |  
+			\r ... #Pendiente
+			\r |  
+			\r |  print(utils.Actions.hideConsole_use)
+			\r |  
+			\r ... #Pendiente
+			\r |  
+			\r |  print(utils.Actions.hideCursor_use)
+			\r |  
+			\r ... #Pendiente
+			\r |  
+			\r |  print(utils.Actions.killProcess_use)
+			\r |  
+			\r {3}
+			\r |  
+			\r |  print(utils.Actions.lockWorkStation_use)
+			\r |  
+			\r ... #Pendiente
+			\r |  
+			\r |  print(utils.Actions.messageBox_use)
+			\r |  
+			\r {4}
+			\r |     # For more details use: print(utils.Actions.messageBox_params_use)
+			\r |  
+			\r |  print(utils.Actions.minimizeWindowCMD_use)
+			\r |  
+			\r ... #Pendiente
+			\r |  
+			\r |  print(utils.Actions.screenshot_use)
+			\r |  
+			\r ... #Pendiente
+			\r |  
+			\r |  print(utils.Actions.setCursorPos_use)
+			\r |  
+			\r ... #Pendiente
+			\r |  
+			\r |  print(utils.Actions.setTopWindow_use)
+			\r |  
+			\r ... #Pendiente
+			\r |  
+			\r |  print(utils.Actions.setPriorityPID_use)
+			\r |  
+			\r ... #Pendiente
+			\r |  
+			\r |  print(utils.Actions.startApp_use)
+			\r |  
+			\r {5}
+			\r |  
+			\r \\\
+			'''.format(
+				self.beep_use,
+				self.cleanRecyclerBin_use,
+				self.displaySwitch_use,
+				self.killProcess_use,
+				self.messageBox_use,
+				self.startApp_use
+			)
+			self.load_uses()	# Vuelve a la normalidad
+			return use
+		
+		def load_uses(self, indent=0):
+			pipe = '|    '*indent
+			self.beep_use = '''\
+			\r {0}Función: beep(tone=5, time=0.5)
+			\r {0}|
+			\r {0}| Permite generar un sonido de 'beep' por tono y tiempo.
+			\r {0}| Nota: Es recomendable NO usar con volumen demasiado alto,
+			\r {0}|       podría lastimar los oidos con tonos de 7+.
+			\r {0}|
+			\r {0}+ Ejemplo de uso:
+			\r {0}|    
+			\r {0}|    utils = Utils()
+			\r {0}|    utils.Actions.VBS.setVolume(32) # Recomendable bajar el volumen.
+			\r {0}|    utils.Actions.beep(  6, .5)
+			\r {0}|    utils.Actions.beep(5.5, .5)
+			\r {0}|    utils.Actions.beep(  6, .5)
+			\r {0}|    utils.Actions.beep(5.5, .5)
+			\r {0}|    utils.Actions.beep(  5, .5)
+			\r {0}\\\
+			'''.format(pipe)
+			self.cleanRecyclerBin_use = '''\
+			\r {0}Función: cleanRecyclerBin(tipo=0, unidad='C:')
+			\r {0}|
+			\r {0}| Vacia la papelera de reciclaje.
+			\r {0}|
+			\r {0}+ Tipos de niveles:
+			\r {0}|  -------------------------------------------------------------
+			\r {0}| | 0 = NORMAL              | 4 = SIN_SONIDO                    |
+			\r {0}| | 1 = SIN_CONFIRMACION    | 5 = 4 + 1                         |
+			\r {0}| | 2 = SIN_BARRA_PROGRESO  | 6 = 4 + 2                         |
+			\r {0}| | 3 = 2 + 1               | 7 = 4 + 2 + 1 = TOTAL_INADVERTIDO |
+			\r {0}|  -------------------------------------------------------------
+			\r {0}|
+			\r {0}+ Ejemplo de uso:
+			\r {0}|
+			\r {0}|    utils = Utils()
+			\r {0}|    # Vaciará la papelera en modo silencioso
+			\r {0}|    # Totalmente inadvertido.
+			\r {0}|    utils.Actions.cleanRecyclerBin(tipo=7)
+			\r {0}\\\
+			'''.format(pipe)
+			self.displaySwitch_use = '''\
+			\r {0}Función: displaySwitch(tipo=0)
+			\r {0}|
+			\r {0}| Cambia el estilo de pantalla.
+			\r {0}|
+			\r {0}+ Tipos de cambios:
+			\r {0}|  --------------------------------------
+			\r {0}| | 0 = internal: Solo pantalla de PC.   |
+			\r {0}| | 1 = clone:    Duplicado.             |
+			\r {0}| | 2 = extend:   Ampliar.               |
+			\r {0}| | 3 = external: Solo segunda pantalla. |
+			\r {0}|  --------------------------------------
+			\r {0}|
+			\r {0}+ Ejemplo de uso:
+			\r {0}|
+			\r {0}|    utils = Utils()
+			\r {0}|    utils.Actions.displaySwitch(2)
+			\r {0}\\\
+			'''.format(pipe)
+			self.killProcess_use = '''\
+			\r {0}Función: killProcess(PID)
+			\r {0}|
+			\r {0}| Termina un proceso utilizando su Process ID.
+			\r {0}|
+			\r {0}+ Ejemplo de uso:
+			\r {0}|
+			\r {0}|    utils = Utils()
+			\r {0}|
+			\r {0}|    # Busca todas las coincidencias con 'notepad':
+			\r {0}|    procs = utils.SystemInfo.enumProcess('notepad')
+			\r {0}|    for p in procs: print(p)
+			\r {0}|
+			\r {0}|    # Si solo hubo una coincidencia obtenemos
+			\r {0}|    # su ProcessID y terminamos el proceso:
+			\r {0}|    if len(procs) == 1:
+			\r {0}|        proc = procs.pop()
+			\r {0}|        utils.Actions.killProcess(proc['pid'])
+			\r {0}\\\
+			'''.format(pipe)
+			self.messageBox_use = '''\
+			\r {0}Función: messageBox(message, title,
+			\r {0}|	style = WC.MB_OKCANCEL | WC.MB_ICONINFORMATION | WC.MB_DEFAULT_DESKTOP_ONLY
+			\r {0}|    )
+			\r {0}|
+			\r {0}| Muestra una pequeña ventana con un mensaje.
+			\r {0}|
+			\r {0}+ Ejemplo de uso:
+			\r {0}|    
+			\r {0}|    utils = Utils()
+			\r {0}|    resp = utils.Actions.messageBox(
+			\r {0}|        message = 'Esta función te resulta muy útil?',
+			\r {0}|        title = 'Es útil?',
+			\r {0}|        style = WC.MB_YESNO | WC.MB_ICONQUESTION
+			\r {0}|                | WC.MB_DEFAULT_DESKTOP_ONLY
+			\r {0}|                | WC.MB_CANCELTRYCONTINUE
+			\r {0}|    )
+			\r {0}|    print(resp)
+			\r {0}\\\
+			'''.format(pipe)
 			self.messageBox_params_use = '''
 			\r    # URL Ref 1: https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-messagebox
 			\r    # URL Ref 2: http://timgolden.me.uk/pywin32-docs/win32api__MessageBox_meth.html
@@ -680,24 +925,27 @@ class Utils:
 			\r    WC.MB_MODEMASK = 12288
 			\r    WC.MB_MISCMASK = 49152
 			'''
-			self.startApp_use = '''
-			\r Función: startApp(name='notepad')
-			\r |
-			\r + Ejemplo de uso:
-			\r |
-			\r |    utils = Utils()
-			\r |    utils.Actions.startApp('Notepad')
-			\r |    utils.Actions.startApp('Calc')
-			\r |    utils.Actions.startApp('Cmd')
-			\r \
-			'''
+			self.startApp_use = '''\
+			\r {0}Función: startApp(name='notepad')
+			\r {0}|
+			\r {0}| Inicia una aplicación.
+			\r {0}| Consultar lista de aplicaciones en el sistema:
+			\r {0}| Lista: función pendiente... #Pendiente
+			\r {0}|
+			\r {0}+ Ejemplo de uso:
+			\r {0}|    
+			\r {0}|    utils = Utils()
+			\r {0}|    utils.Actions.startApp('Notepad')
+			\r {0}|    utils.Actions.startApp('Calc')
+			\r {0}|    utils.Actions.startApp('Cmd')
+			\r {0}\\\
+			'''.format(pipe)
 		
-		def beep(self, t=5, d=0.5):
-			
-			if t >= 1 and t <= 10:
-				if d >= .1 and d <= 10: WA.Beep(int(t*100), int(d*1000))
-				else: raise self.BeepError('\n\n\t Duración Seleccionada: {} segundos\n\n\t Rango Valido de Duración: 0.3 a 10 segundos'.format(d))
-			else: raise self.BeepError('\n\n\t Tonalidad Seleccionada: {}\n\n\t Rango Valido de Tono: 3 a 10'.format(t))
+		def beep(self, tone=5, time=0.5):
+			if 1 <= tone <= 10:
+				if .1 <= time <= 10: WA.Beep(int(tone*100), int(time*1000))
+				else: raise self.BeepError('\n\n\t Duración Seleccionada: {} segundos\n\n\t Rango Valido de Duración: 0.1 a 10 segundos'.format(time))
+			else: raise self.BeepError('\n\n\t Tonalidad Seleccionada: {}\n\n\t Rango Valido de Tono: 1 a 10'.format(tone))
 		
 		def changePasswordCurrentUser(self, oldPwd, newPwd):			# Cambia la contraseña del usuario actual.
 			WN.NetUserChangePassword(None, None, oldPwd, newPwd)
@@ -740,6 +988,7 @@ class Utils:
 		
 		def getPrivileges(self): # IMPORTANTE: Ver el ejemplo de uso.	# Corre de nuevo el programa pero obteniendo permisos de administrador.
 			'''
+			# if not utils.SystemInfo.isUserAnAdmin: ...
 			# Sin esto, el código caera en un bucle de iniciar ventanas
 			# con privilegios, ya que se abre a si mismo.
 			
@@ -786,10 +1035,10 @@ class Utils:
 			
 			return privlist
 		
-		def hideConsole(xD=True):										# Oculta/Desoculta la consola de comandos
+		def hideConsole(self, xD=True):									# Oculta/Desoculta la consola de comandos
 			WG.ShowWindow(WCS.GetConsoleWindow(), not xD)
 		
-		def hideCursor(visible=False):									# Oculta/Desoculta el cursor en pantalla.
+		def hideCursor(self, visible=False):							# Oculta/Desoculta el cursor en pantalla.
 			
 			linux_hide_cursor = '\033[?25l'
 			linux_show_cursor = '\033[?25h'
@@ -836,8 +1085,13 @@ class Utils:
 			#~ run_command('rundll32.exe user32.dll, LockWorkStation')
 			ctypes.windll.user32.LockWorkStation()
 		
-		def messageBox(self, message, title, style = WC.MB_OKCANCEL | WC.MB_ICONINFORMATION | WC.MB_DEFAULT_DESKTOP_ONLY
-		): #Use # Crea una ventana de alerta personalizada y captura la interacción con esta devolviendo la respuesta.
+		def messageBox(
+				self, message, title,
+				style = WC.MB_OKCANCEL
+					| WC.MB_ICONINFORMATION
+					| WC.MB_DEFAULT_DESKTOP_ONLY
+			):
+			#Use # Crea una ventana de alerta personalizada y captura la interacción con esta devolviendo la respuesta.
 			
 			if not 0 <= style%16 <= 6:
 				raise self.StyleOfWindowError('Estilo de ventana fuera del rango:  0 <= style%16 <= 6')
@@ -859,7 +1113,54 @@ class Utils:
 		def minimizeWindowCMD(self):									# Minimiza la consola de comandos
 			WG.ShowWindow(WG.GetForegroundWindow(), WC.SW_MINIMIZE)
 		
-		def screenshot(self, open_ss=False): 
+		def runAsAdmin(self, show=True, cmd_line=None):					# Abre Una Nueva Ventana Con Permisos De Administrador.
+			import traceback, types
+			if self.SystemInfo.isUserAnAdmin == False:
+				# http://pt.stackoverflow.com/questions/6929/como-rodar-um-subprocess-com-permiss%C3%A3o-de-administrador
+				if not self.SystemInfo.isWindows:
+					return False
+				if cmd_line is None:
+					cmd_line = [sys.executable] + sys.argv
+				elif cmd_line.__class__.__name__ not in ['list', 'tuple']:
+					return False
+				#================================================================================================================================
+				# Método 1: Abrirá Una Ventana Con Permisos De Administrador
+				#           y La Ventana Anterior Continuará La Ejecución Normal Sin Detenerse.
+				# Ventana Con Permisos De Admin.
+				#procHandle = WA.ShellExecute(
+				#	0, 'runas',
+				#	'"{}"'.format(cmd_line[0],),							# file
+				#	' '.join(['"{}"'.format(x,) for x in cmd_line[1:]]),	# params
+				#	'',														# cmd_dir
+				#	WC.SW_SHOWNORMAL if show else WC.SW_HIDE
+				#)
+				#================================================================================================================================
+				# ShellExecute() no parece que nos permita obtener el PID o manejar el proceso,
+				# por lo que no podemos obtener nada útil de él. Por lo tanto,
+				# el más complejo ShellExecuteEx() debe ser utilizado.
+				#================================================================================================================================
+				# Método 2: Abrira Una Ventana Con Permisos De Administrador
+				#           y Pausará La Ventana Anterior Hasta Que Se Cierre La Ventana
+				#           Nueva Que Tiene Ya Permisos De Administrador.
+				# Ventana Con Permisos De Admin.
+				procInfo = shell.ShellExecuteEx(
+					nShow  = WC.SW_SHOWNORMAL if show else WC.SW_HIDE,
+					fMask  = shellcon.SEE_MASK_NOCLOSEPROCESS,
+					lpVerb = 'runas',
+					lpFile = '"{}"'.format(cmd_line[0],),
+					lpParameters = ' '.join(['"{}"'.format(x,) for x in cmd_line[1:]])
+				)
+				#================================================================================================================================
+				return False
+			else: return True
+		
+		def runProgram(self, program=''):								# Abre Una Nueva Ventana Para Ejecutar Otro Script.
+			# http://pt.stackoverflow.com/questions/6929/como-rodar-um-subprocess-com-permiss%C3%A3o-de-administrador
+			import traceback, types
+			#procInfo = shell.ShellExecuteEx(nShow=WC.SW_SHOWNORMAL, fMask=shellcon.SEE_MASK_NOCLOSEPROCESS, lpVerb='', lpFile=program, lpParameters='')
+			procHandle = WA.ShellExecute(0, '', program, '', '', WC.SW_SHOWNORMAL)
+		
+		def screenshot(self, open_ss=False):							# Toma una captura de pantalla.
 			
 			screen = mss.mss()
 			screen.shot()
@@ -880,6 +1181,9 @@ class Utils:
 				os.rename(screen_name, scree_new_name)
 			else:
 				pass
+		
+		def setConsoleSize(self, chars=82, lines=55):					# Cambia el tamaño de la consola de comandos por cantidad de caracteres por ancho y cantidad de lineas por alto
+			os.system("mode con: cols={} lines={}".format(chars, lines))
 		
 		def setCursorPos(self, posX, posY):								# Posiciona el cursor en (X, Y)
 			WA.SetCursorPos((posX, posY))
@@ -1059,7 +1363,7 @@ class Utils:
 			\r |    for ESSID in utils.NetworkInfo.ESSIDEnum():
 			\r |        pwd = utils.NetworkInfo.ESSIDPasswd(ESSID)
 			\r |        print('\\nESSID: ' + ESSID + '\\n  Pwd: ' + pwd)
-			\r \
+			\r \\
 			'''
 			
 			self.run_command = lambda command: os.popen(command).read()	# Ejecuta cualquier comando en consola
@@ -1102,7 +1406,7 @@ class Utils:
 				\r |    print(' IPv6 Privada:', utils.GetIP.local_ipv6)
 				\r |    print(' IPv4 Publica:', utils.GetIP.public_ipv4)
 				\r |    print(' IPv6 Publica:', utils.GetIP.public_ipv6)
-				\r \
+				\r \\
 				'''
 				
 				self.only_local_ = True
@@ -1230,7 +1534,7 @@ class Utils:
 			\r |    # Enumera todos los procesos activos:
 			\r |    procs = utils.SystemInfo.enumProcess()
 			\r |    for p in procs: print(p)
-			\r \
+			\r \\
 			'''
 		
 		def not_enumWindows(self):											# [X] Muestra los hwnd de todas los programas
@@ -1330,6 +1634,14 @@ class Utils:
 			return val == 1
 		
 		@property
+		def isPythonV2(self):											# Devuelve verdadero si versión de python que corre es 2.X.
+			return sys.version[0] == '2'
+		
+		@property
+		def isPythonV3(self):											# Devuelve verdadero si versión de python que corre es 3.X.
+			return sys.version[0] == '3'
+		
+		@property
 		def isSlowMachine(self):										# Es 1 si la computadora tiene un procesador de gama baja (lento)
 			val = WA.GetSystemMetrics(WC.SM_SLOWMACHINE)				# SM_SLOWMACHINE = 73
 			return val == 1
@@ -1337,6 +1649,40 @@ class Utils:
 		@property
 		def isUserAnAdmin(self):										# Devuelve True si el programa tiene permisos de administrador o False si no.
 			return shell.IsUserAnAdmin()
+		
+		
+		def isUserPasswordValid(self, userName, passwd):				# Verifica si la contraseña dada es la correcta del usuario.
+			'''
+			# Aplicanda en un for puede comprobar cientos de palabras en segundos
+			# y devuelve True si la contraseña es la correcta.
+			# Ejemplo de uso:
+			
+			utils = Utils()
+			
+			palabras = ['palabra1','palabra2',...]
+			user = 'prueba'
+			
+			for x in palabras:
+				resp = utils.SystemInfo.isUserPasswordValid(user, x)
+				if resp:
+					print('\n User:', user)
+					print('\n Passwd:', x)
+					break
+
+			if not resp:
+				print('Password Not Found...')
+			'''
+			try:
+				WS.LogonUser(
+					userName,
+					None,
+					passwd,
+					WC.LOGON32_LOGON_INTERACTIVE,
+					WC.LOGON32_PROVIDER_DEFAULT
+				)
+				return True
+			except:
+				return False
 		
 		@property
 		def isWindows(self):											# Función Que Comprueba si el SO es Linux, Devuelve TRUE/FALSE
@@ -1402,6 +1748,7 @@ class Utils:
 		@property
 		def systemRoot(self):											# Devuelve la ruta predeterminada de la raiz del sistema, normalmente 'C:\WINDOWS'
 			return os.environ.get('SYSTEMROOT')
+		
 		
 		def systemUptime(self, raw=False):								# Devuelve el Tiempo de actividad del sistema en formato '0d 00:00:00'
 			
@@ -1510,7 +1857,7 @@ class Utils:
 				\r |    reg = utils.Utilities.AsciiFont.ansiRegular(text)
 				\r |    
 				\r |    print(cal + '\\n' + ans + '\\n' + reg)
-				\r \
+				\r \\
 				'''
 			
 			def not_textToAscii(self, text, c, rules, width, plus=''):
@@ -2167,7 +2514,7 @@ class Utils:
 			def __rmul__(self, val):	# Permite multiplicar el hash: 2 * hash
 				return val * self.hash
 			
-			def update(self, type_hash):	# Permite cambiar el hash a otro typo
+			def update(self, type_hash):	# Permite cambiar el hash a otro tipo
 				if not type_hash in self.types_avail:
 					error_msg  = 'El hash {} no esta disponible.\n Disponibles: '.format(repr(type_))
 					error_msg += 'sha1 (Default), sha224, sha256, sha384, sha512, md5'
@@ -2196,7 +2543,7 @@ class Utils:
 			'join', 'map', 'map_async', 'terminate')): <class 'tags_file_module.PoolProxy'>}
 			'''
 		
-		def load_uses(self):	# Función que carga todos los 'use'.
+		def load_uses(self):											# Función que carga todos los 'use'.
 			self.hash_use = '''
 			\r Función: hash(text, algo='sha1')
 			\r |
@@ -2216,10 +2563,10 @@ class Utils:
 			\r |    print('Hash: ' + h)
 			\r |    print('Type: ' + h.type)
 			\r |    print('Text: ' + h.text)
-			\r \
+			\r \\
 			'''
 		
-		def hash(self, text, algo='sha1'): #Use						# Devuelve el Hash del texto con el algoritmo seleccionado.
+		def hash(self, text, algo='sha1'): #Use							# Devuelve el Hash del texto con el algoritmo seleccionado.
 			algo = algo.lower()
 			hash_ = text.encode()
 			if   algo == 'sha1':   hash_ = hashlib.sha1(hash_)
@@ -2231,17 +2578,167 @@ class Utils:
 			else: return None
 			hash_ = hash_.hexdigest()
 			return self.Hash(hash_, text, algo)
+		
+		def getLastError(self) -> int:									# DWORD WINAPI GetLastError(void);
+			DWORD = ctypes.c_uint32
+			_GetLastError = ctypes.windll.kernel32.GetLastError
+			_GetLastError.argtypes = []
+			_GetLastError.restype = DWORD
+			return _GetLastError()
+		
+		def writeHiddenText(self, text_to_print):						# Muestra el text_to_print en pantalla y pide capturar texto, el texto capturado no se mostraá pero será devuelto por la función.
+			'''
+				passwd = utils.Utilities.writeHiddenText('Password: ')
+				print(f'La contraseña escrita fue: {passwd}')
+			'''
+			from getpass import getpass
+			return getpass(text_to_print)
+		
+		def flushBuffer(self):											# Vacia el Buffer (Flush)
+			# Limpia el Buffer (Flush) para que los input aparescan vacios.
+			# Si se escribe a la 'Nada' antes de un input, todo lo escrito aparecera en el input.
+			try:
+				import msvcrt
+				while msvcrt.kbhit(): msvcrt.getch()
+			except ImportError:
+				import sys, termios
+				termios.tcflush(sys.stdin, termios.TCIOFLUSH)
 
 #=======================================================================
 #=======================================================================
 #=======================================================================
+
+struct = '''
+   ┌───┬───┐   ╔═══╦═══╗   ▄▄▄▄▄▄▄▄▄
+   │   │   │   ║   ║   ║   █   █   █
+   ├───┼───┤   ╠═══╬═══╣   █■■■█■■■█
+   │   │   │   ║   ║   ║   █   █   █
+   └───┴───┘   ╚═══╩═══╝   ▀▀▀▀▀▀▀▀▀
+   
+■■■ Class Utils
+    ║
+    ║ - Main Classes:
+    ╠══ Class Actions
+    ║   ║
+    ║   ║ - Error Classes: ───────────────────
+    ║   ╠══ Class BeepError
+    ║   ╠══ Class EmptyingTheTrashError
+    ║   ╠══ Class ExitWindowsError
+    ║   ╠══ Class StyleOfWindowError
+    ║   ║
+    ║   ║ - Classes: ─────────────────────────
+    ║   ╠══ Class Clipboard
+    ║   ╠══ Class Explorer
+    ║   ╠══ Class VBS
+    ║   │
+    ║   │ - Functions: ───────────────────────
+    ║   ├── function beep
+    ║   ├── function changePasswordCurrentUser
+    ║   ├── function cleanRecyclerBin
+    ║   ├── function displaySwitch
+    ║   ├── function exitWindows
+    ║   ├── function getPrivileges
+    ║   ├── function getProcessPrivileges
+    ║   ├── function hideConsole
+    ║   ├── function hideCursor
+    ║   ├── function killProcess
+    ║   ├── function lockWorkStation
+    ║   ├── function messageBox
+    ║   ├── function minimizeWindowCMD
+    ║   ├── function screenshot
+    ║   ├── function setCursorPos
+    ║   ├── function setTopWindow
+    ║   ├── function setPriorityPID
+    ║   └── function startApp
+    ║
+    ╠═ Class MemoryInfo
+    ║   │
+    ║   │ - Functions: ───────────────────────
+    ║   ├── function bytesToString
+    ║   ├── function memoryStatusUpdate
+    ║   ├── function totalFilesInRecyclerBin
+    ║   └── function totalSizeInRecyclerBin
+    ║
+    ╠═ Class NetworkInfo
+    ║   ║
+    ║   ║ - Classes: ─────────────────────────
+    ║   ╠══ Class GetIP
+    ║   │
+    ║   │ - Functions: ───────────────────────
+    ║   ├── function latin1_encoding
+    ║   ├── function ESSIDEnum
+    ║   └── function ESSIDPasswd
+    ║
+    ╠═ Class SystemInfo
+    ║   │
+    ║   │ - Functions: ───────────────────────
+    ║   ├── function enumProcess
+    ║   ├── function isCapsLockActive
+    ║   ├── function isLinux
+    ║   ├── function isMouseInstalled
+    ║   ├── function isPythonV2
+    ║   ├── function isPythonV3
+    ║   ├── function isSlowMachine
+    ║   ├── function isUserAnAdmin
+    ║   ├── function isUserPasswordValid
+    ║   ├── function isWindows
+    ║   ├── function currentProcessId
+    ║   ├── function cursorPos
+    ║   ├── function displaySettings
+    ║   ├── function computerName
+    ║   ├── function homeDrive
+    ║   ├── function numberOfMonitors
+    ║   ├── function numberOfProcessors
+    ║   ├── function os
+    ║   ├── function processorArchitecture
+    ║   ├── function processorIdentifier
+    ║   ├── function screenSize
+    ║   ├── function systemDrive
+    ║   ├── function systemRoot
+    ║   ├── function systemUptime
+    ║   ├── function userName
+    ║   ├── function winDir
+    ║   └── function collectAll
+    ║
+    ╚═ Class Utilities
+        ║
+        ║ - Classes: ─────────────────────────
+        ╠══ Class AsciiFont
+        ║    ║
+        ║    ║ - Error Classes: ───────────────────
+        ║    ╠══ Class NotSupportedError
+        ║    ╠══ Class TypeError
+        ║    │
+        ║    │ - Functions: ───────────────────────
+        ║    ├── function ansiShadow
+        ║    ├── function ansiRegular
+        ║    ├── function calvinS
+        ║    ├── function deltaCorpsPriest
+        ║    ├── function block
+        ║    ├── function alligator
+        ║    ├── function cybermedium
+        ║    ├── function dobleShorts
+        ║    ├── function doble
+        ║    └── function rammstein
+        ║
+        ╠══ Class Hash
+        │
+        │ - Functions: ───────────────────────
+        ├── function hash
+        ├── function getLastError
+        ├── function writeHiddenText
+        └── function flushBuffer
+
+ All Classes Have a 'use', 'classes' and 'functions' variables.
+
+'''
 
 
 
 # Ejecuta esto despues de terminar la ejecución del programa.
 @atexit.register
 def close():
-	time.sleep(1)
+	time.sleep(.1)
 
 #=======================================================================
 
@@ -2251,13 +2748,43 @@ if __name__ == '__main__':
 	
 	utils = Utils()
 	
-	print('\n\n Ascii Font functions availables: ' + utils.Utilities.AsciiFont.functions.list)
+	#-------------------------------------------------------------------
+	# Buscando la contraseña de usuario 'prueba'.
+	# Contraseña de prueba propuesta: 'xD'.
+	palabras = [
+		'ab',    'cd',    'ef',    'fg',    'hi',
+		'jk',    'lasd',  'lasd1', 'lasd3', 'lasd2',
+		'lasd4', 'lasd5', 'lasd6', 'xD',    'XDD',
+		'xD3',   'xD4',   'lasx1', 'laxd3', 'xasd2'
+	]
 	
-	text = 'v1.0.4'
+	user = 'prueba'
+	
+	for x in palabras:
+		resp = utils.SystemInfo.isUserPasswordValid(user, x)
+		if resp:
+			print('\n User:', user)
+			print('\n Passwd:', x)
+			break
+
+	if not resp:
+		print('Password Not Found...')
+	#-------------------------------------------------------------------
+	
+	# ~ if utils.Actions.runAsAdmin():
+		# ~ print(True)
+		# ~ time.sleep(10)
+	
+	# ~ passwd = utils.Utilities.writeHiddenText('Password: ')
+	# ~ print(f'La contraseña escrita fue: {passwd}')
+	
+	# ~ print('\n\n Ascii Font functions availables: '+utils.Utilities.AsciiFont.functions.list)
+	
+	# ~ text = 'By LawlietJH'
 	
 	# ~ cal = utils.Utilities.AsciiFont.calvinS(text)
 	# ~ sha = utils.Utilities.AsciiFont.ansiShadow(text)
-	reg = utils.Utilities.AsciiFont.ansiRegular(text)
+	# ~ reg = utils.Utilities.AsciiFont.ansiRegular(text)
 	# ~ dcp = utils.Utilities.AsciiFont.deltaCorpsPriest(text)
 	# ~ blo = utils.Utilities.AsciiFont.block(text)
 	# ~ alg = utils.Utilities.AsciiFont.alligator(text)
@@ -2268,7 +2795,7 @@ if __name__ == '__main__':
 	
 	# ~ print('calvinS:\n'          + cal)
 	# ~ print('ansiShadow:\n'       + sha)
-	print('ansiRegular:\n'      + reg)
+	# ~ print('ansiRegular:\n'      + reg)
 	# ~ print('deltaCorpsPriest:\n' + dcp)
 	# ~ print('block:\n'            + blo)
 	# ~ print('alligator:\n'        + alg)
@@ -2276,8 +2803,6 @@ if __name__ == '__main__':
 	# ~ print('dobleShorts:\n'      + dsh)
 	# ~ print('doble:\n'            + dob)
 	# ~ print('rammstein:\n'        + ram)
-	
-	
 	
 	# ~ collected = utils.SystemInfo.collectAll
 	
@@ -2296,7 +2821,9 @@ if __name__ == '__main__':
 	# ~ resp = utils.Actions.messageBox(
 		# ~ message = 'Esta función te resulta muy útil?',
 		# ~ title = 'Es útil?',
-		# ~ style = WC.MB_YESNO | WC.MB_ICONQUESTION | WC.MB_DEFAULT_DESKTOP_ONLY
+		# ~ style = WC.MB_YESNO | WC.MB_ICONQUESTION
+				# ~ | WC.MB_DEFAULT_DESKTOP_ONLY
+				# ~ | WC.MB_CANCELTRYCONTINUE
 	# ~ )
 	# ~ print('Respuesta: ' + resp)
 	
@@ -2312,6 +2839,13 @@ if __name__ == '__main__':
 		# ~ proc = procs.pop()
 		# ~ resp = utils.Actions.killProcess(proc['pid'])
 		# ~ print('Proceso Terminado: '+str(proc) if resp else 'Permiso Denegado: '+str(proc))
+	
+	# ~ print(utils.Actions.use)
+	# ~ print(utils.Actions.Clipboard.use)
+	# ~ print(utils.Actions.Explorer.use)
+	# ~ print(utils.Actions.VBS.use)
+	# ~ print(utils.Actions.VBS.getWindowsProductKey_use)
+	# ~ print(utils.Actions.VBS.getWindowsProductKey_use)
 	
 	# ~ print(utils.Actions.cleanRecyclerBin_use)
 	# ~ print(utils.Actions.displaySwitch_use)
