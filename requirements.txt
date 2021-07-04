@@ -2,3 +2,4 @@ mss==6.1.0
 psutil==5.8.0
 pywin32==300
 requests==2.25.1
+WMI==1.5.1
