@@ -1,21 +1,22 @@
 
 # Tested in: Python 3.8.8 - Windows
 # By: LawlietJH
-# Utils v1.0.5
+# Utils v1.0.6
 
 # Banner:
 # ███    █▄      ███      ▄█   ▄█          ▄████████ 
 # ███    ███ ▀█████████▄ ███  ███         ███    ███ 
 # ███    ███    ▀███▀▀██ ███▌ ███         ███    █▀  
 # ███    ███     ███   ▀ ███▌ ███         ███        
-# ███    ███     ███     ███▌ ███       ▀███████████    ██    ██  ██     ██████     ███████
+# ███    ███     ███     ███▌ ███       ▀███████████    ██    ██  ██     ██████      ██████
 # ███    ███     ███     ███  ███                ███    ██    ██ ███    ██  ████    ██
 # ███    ███     ███     ███  ███▌    ▄    ▄█    ███    ██    ██  ██    ██ ██ ██    ███████
-# ████████▀     ▄████▀   █▀   █████▄▄██  ▄████████▀      ██  ██   ██    ████  ██         ██
-#                             ▀                           ████    ██ ██  ██████  ██ ███████
+# ████████▀     ▄████▀   █▀   █████▄▄██  ▄████████▀      ██  ██   ██    ████  ██    ██    ██
+#                             ▀                           ████    ██ ██  ██████  ██  ██████
 
 from datetime import datetime
 import pywintypes
+import binascii
 import requests						# python -m pip install requests
 import hashlib
 import atexit
@@ -25,11 +26,15 @@ import string
 import json
 import math
 import time
+import bz2
 import mss							# python -m pip install mss
 import sys
+import wmi							# python -m pip install wmi
 import re
 import os
 
+#=======================================================================
+#=======================================================================
 # Interfaz en Utils.Actions.Explorer ===================================
 try:
 	from Tkinter import Tk
@@ -53,14 +58,17 @@ import win32ui			as WU
 import win32security	as WS
 import win32clipboard	as WCB
 import win32net			as WN
+import winreg			as WR
 # ~ import win32com			as WCM
 # ~ import win32process		as WP
 #=======================================================================
-
+#=======================================================================
+#=======================================================================
 __author__  = 'LawlietJH'	# Desarrollador
 __title__   = 'Utils'		# Nombre
-__version__ = 'v1.0.5'		# Version
-
+__version__ = 'v1.0.6'		# Version
+#=======================================================================
+#=======================================================================
 # Constants ============================================================
 
 WC.MB_CANCELTRYCONTINUE = 6
@@ -234,28 +242,14 @@ class Utils:
 		self.functions = None
 		self.functions = ObjectFunctionNames(self)
 		
-		self.Actions     = self.Actions(self)
-		self.MemoryInfo  = self.MemoryInfo()
-		self.NetworkInfo = self.NetworkInfo()
-		self.SystemInfo  = self.SystemInfo()
-		self.Utilities   = self.Utilities()
+		self.Actions      = self.Actions(self)
+		self.EditRegistry = self.EditRegistry()
+		self.MemoryInfo   = self.MemoryInfo()
+		self.NetworkInfo  = self.NetworkInfo()
+		self.SystemInfo   = self.SystemInfo()
+		self.Utilities    = self.Utilities()
 	
 	class Actions:		# Interacciones con el Systema (Mayormente Windows)
-		
-		def __init__(self, utils):
-			
-			self.classes   = ObjectClassNames(self)
-			self.functions = None
-			self.functions = ObjectFunctionNames(self)
-			
-			self.load_uses()
-			self.run_command = lambda command: os.popen(command).read()	# Ejecuta cualquier comando en consola
-			self.Clipboard = self.Clipboard()
-			self.Explorer  = self.Explorer()
-			self.VBS       = self.VBS()
-			
-			# Conexiones a Clases hermanas:
-			self.SystemInfo = utils.SystemInfo()
 		
 		class BeepError(Exception):
 			def __init__(self, error_msg): self.error_msg = error_msg
@@ -272,6 +266,23 @@ class Utils:
 		class StyleOfWindowError(Exception):
 			def __init__(self, error_msg): self.error_msg = error_msg
 			def __str__(self): return repr(self.error_msg)
+		
+		def __init__(self, utils):
+			
+			self.classes   = ObjectClassNames(self)
+			self.functions = None
+			self.functions = ObjectFunctionNames(self)
+			
+			self.load_uses()
+			self.run_command = lambda command: os.popen(command).read()	# Ejecuta cualquier comando en consola
+			
+			# Clases Internas:
+			self.Clipboard = self.Clipboard()
+			self.Explorer  = self.Explorer()
+			self.VBS       = self.VBS()
+			
+			# Conexiones a Clases hermanas:
+			self.SystemInfo = utils.SystemInfo()
 		
 		#---------------------------------------------------------------
 		
@@ -648,6 +659,9 @@ class Utils:
 				if not 0 <= percent <= 100: return
 				percent = percent//2
 				name = 'vol.vbs'
+				# VolumeMute: 173
+				# VolumeDown: 174
+				# VolumeUp:   175
 				payload = '''
 					' VBS Script para Subir o Bajar el Volumen del Sistema Activo.
 					
@@ -1269,6 +1283,615 @@ class Utils:
 		
 		def startApp(self, name='notepad'): #Use						# Abre una aplicación por nombre, ejemplo Notepad (Bloc de notas), Calc (Calculadora), cmd, etc.
 			WA.WinExec(name)
+	
+	class EditRegistry:	# Interacciones con el Registro de Windows (RegEdit)
+		# Requiere Permisos de Administrador
+		def __init__(self):
+			
+			self.classes   = ObjectClassNames(self)
+			self.functions = None
+			self.functions = ObjectFunctionNames(self)
+			
+			# Clases Internas:
+			self.ContextMenu = self.ContextMenu()
+			self.DropBox = self.DropBox()
+			self.FoldersOnThisPC = self.FoldersOnThisPC()
+			self.OneDrive = self.OneDrive()
+			self.PowerPlan = self.PowerPlan()
+			self.TaskManager = self.TaskManager()
+		
+		class ContextMenu:
+			
+			def __init__(self):
+				
+				self.classes   = ObjectClassNames(self)
+				self.functions = None
+				self.functions = ObjectFunctionNames(self)
+				
+				self.HKEY = WR.HKEY_CURRENT_USER
+				self.PATH = r'SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer'
+				self.KEY  = 'NoViewContextMenu'
+				self.HIDE = 0x00000001
+				self.SHOW = 0x00000000
+				
+				self.use = '''
+				\r Clase: ContextMenu
+				\r |
+				\r + Ejemplo de uso: Requieren Permisos de administrador.
+				\r |    
+				\r |    utils = Utils()
+				\r |    
+				\r |    # Para deshabilitar el uso de el Menu Contextual (dar clic derecho):
+				\r |    utils.EditRegistry.ContextMenu.disable()
+				\r |    
+				\r |    # Para habilitar el uso de el Menu Contextual (dar clic derecho):
+				\r |    utils.EditRegistry.ContextMenu.enable()
+				\r |    
+				\r |    # Para eliminar los cambios realizados en el registro:
+				\r |    utils.EditRegistry.ContextMenu.cleanUp()
+				\r \\
+				'''
+			
+			def _keyExists(self):
+				try:
+					reg = WR.OpenKeyEx(self.HKEY, self.PATH)
+					value = WR.QueryValueEx(reg, self.KEY)[0]
+					WR.CloseKey(reg)
+					return True, value
+				except:
+					return False, None
+			
+			# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer]
+			# "NoViewContextMenu"=dword:00000000
+			def enable(self):
+				key_exists, isDisabled = self._keyExists()										# Intenta abrir el key y extraer su valor.
+				if not key_exists:																# Si no existe el key, lo crea y lo habilita.
+					reg = WR.CreateKey(self.HKEY, self.PATH)
+					WR.SetValueEx(reg, self.KEY, 0,  WR.REG_DWORD, self.SHOW)
+					WR.CloseKey(reg)
+				elif key_exists and isDisabled:													# Si existe el key y esta deshabilitado, lo habilita.
+					reg = WR.OpenKey(self.HKEY, self.PATH, 0, WR.KEY_SET_VALUE)
+					WR.SetValueEx(reg, self.KEY, 0,  WR.REG_DWORD, self.SHOW)
+					WR.CloseKey(reg)
+			
+			# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer]
+			# "NoViewContextMenu"=dword:00000001
+			def disable(self):
+				key_exists, isDisabled = self._keyExists()										# Intenta abrir el key y extraer su valor.
+				if not key_exists:																# Si no existe el key, lo crea y lo deshabilita.
+					reg = WR.CreateKey(self.HKEY, self.PATH)
+					WR.SetValueEx(reg, self.KEY, 0,  WR.REG_DWORD, self.HIDE)
+					WR.CloseKey(reg)
+				elif key_exists and not isDisabled:												# Si existe el key y esta habilitado, lo deshabilita.
+					reg = WR.OpenKey(self.HKEY, self.PATH, 0, WR.KEY_SET_VALUE)
+					WR.SetValueEx(reg, self.KEY, 0,  WR.REG_DWORD, self.HIDE)
+					WR.CloseKey(reg)
+			
+			# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System]
+			# "DisableTaskMgr"=-
+			def cleanUp(self):
+				key_exists, isDisabled = self._keyExists()
+				if key_exists:
+					reg = WR.OpenKey(self.HKEY, self.PATH, 0, WR.KEY_SET_VALUE)
+					WR.DeleteValue(reg, self.KEY)
+					WR.CloseKey(reg)
+		
+		class DropBox:
+			# DropBox: {E31EA727-12ED-4702-820C-4B6445F28E1A}
+			def __init__(self):
+				
+				self.classes   = ObjectClassNames(self)
+				self.functions = None
+				self.functions = ObjectFunctionNames(self)
+				
+				self.HKEY  = WR.HKEY_CLASSES_ROOT
+				self.PATH  = r'CLSID\{E31EA727-12ED-4702-820C-4B6445F28E1A}'
+				self.KEY   = 'System.IsPinnedToNameSpaceTree'
+				self.TRUE  = 0x00000001
+				self.FALSE = 0x00000000
+				
+				self.use = '''
+				\r Clase: DropBox
+				\r |
+				\r + Ejemplo de uso: Requieren Permisos de administrador.
+				\r |    
+				\r |    utils = Utils()
+				\r |    
+				\r |    # Para ocultar el acceso a la ruta de DropBox (Si se tiene instalado)
+				\r |    # que aparece del lado izquierdo en el explorador de archivos:
+				\r |    utils.EditRegistry.DropBox.disable()
+				\r |    
+				\r |    # Para mostrar el acceso a la ruta de DropBox (Si se tiene instalado)
+				\r |    # que aparece del lado izquierdo en el explorador de archivos:
+				\r |    utils.EditRegistry.DropBox.enable()
+				\r \\
+				'''
+			
+			def _keyExists(self):
+				try:
+					reg = WR.OpenKeyEx(self.HKEY, self.PATH)
+					value = WR.QueryValueEx(reg, self.KEY)[0]
+					WR.CloseKey(reg)
+					return True, value
+				except:
+					return False, None
+			
+			# [HKEY_CLASSES_ROOT\CLSID\{E31EA727-12ED-4702-820C-4B6445F28E1A}]
+			# "System.IsPinnedToNameSpaceTree"=dword:00000001
+			def enable(self):
+				key_exists, isDisabled = self._keyExists()										# Intenta abrir el key y extraer su valor.
+				if not key_exists:																# Si no existe el key, lo crea y lo habilita.
+					reg = WR.CreateKey(self.HKEY, self.PATH)
+					WR.SetValueEx(reg, self.KEY, 0,  WR.REG_DWORD, self.TRUE)
+					WR.CloseKey(reg)
+				elif key_exists and not isDisabled:												# Si existe el key y esta deshabilitado, lo habilita.
+					reg = WR.OpenKey(self.HKEY, self.PATH, 0, WR.KEY_SET_VALUE)
+					WR.SetValueEx(reg, self.KEY, 0,  WR.REG_DWORD, self.TRUE)
+					WR.CloseKey(reg)
+			
+			# [HKEY_CLASSES_ROOT\CLSID\{E31EA727-12ED-4702-820C-4B6445F28E1A}]
+			# "System.IsPinnedToNameSpaceTree"=dword:00000000
+			def disable(self):
+				key_exists, isDisabled = self._keyExists()										# Intenta abrir el key y extraer su valor.
+				if not key_exists:																# Si no existe el key, lo crea y lo deshabilita.
+					reg = WR.CreateKey(self.HKEY, self.PATH)
+					WR.SetValueEx(reg, self.KEY, 0,  WR.REG_DWORD, self.FALSE)
+					WR.CloseKey(reg)
+				elif key_exists and isDisabled:													# Si existe el key y esta habilitado, lo deshabilita.
+					reg = WR.OpenKey(self.HKEY, self.PATH, 0, WR.KEY_SET_VALUE)
+					WR.SetValueEx(reg, self.KEY, 0,  WR.REG_DWORD, self.FALSE)
+					WR.CloseKey(reg)
+		
+		class FoldersOnThisPC:
+			
+			def __init__(self):
+				''' Oculta o Desoculta las carpetas que se muestran en
+					la parte izquierda del explorador de archivos en la
+					sección de "Este Equipo".'''
+				
+				self.classes   = ObjectClassNames(self)
+				self.functions = None
+				self.functions = ObjectFunctionNames(self)
+				
+				self.HKEY  = WR.HKEY_LOCAL_MACHINE
+				self.PATH  = r'SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\FolderDescriptions'
+				self.VALUE = 'ThisPCPolicy'
+				self.SHOW  = 'Show'
+				self.HIDE  = 'Hide'
+				
+				# CLSID of Folders on "This PC":
+				self.f3DObjects = r'\{31C0DD25-9439-4F12-BF41-7FF4EDA38722}'
+				self.fDesktop   = r'\{B4BFCC3A-DB2C-424C-B029-7FE99A87C641}'
+				self.fDocuments = r'\{f42ee2d3-909f-4907-8871-4c22fc0bf756}'
+				self.fDownloads = r'\{7d83ee9b-2244-4e70-b1f5-5393042af1e4}'
+				self.fMusic     = r'\{a0c69a99-21c8-4671-8703-7934162fcf1d}'
+				self.fPictures  = r'\{0ddd015d-b06c-45d5-8c4c-f59713854639}'
+				self.fVideos    = r'\{35286a68-3c57-41a1-bbb1-0eae73d76c95}'
+				
+				# Clases Internas:
+				self.Folder3DObjects = self.Folder3DObjects(self)
+				self.FolderDesktop   = self.FolderDesktop(self)
+				self.FolderDocuments = self.FolderDocuments(self)
+				self.FolderDownloads = self.FolderDownloads(self)
+				self.FolderMusic     = self.FolderMusic(self)
+				self.FolderPictures  = self.FolderPictures(self)
+				self.FolderVideos    = self.FolderVideos(self)
+				
+				self.enumFolders = [
+					'Folder3DObjects',
+					'FolderDesktop',
+					'FolderDocuments',
+					'FolderDownloads',
+					'FolderMusic',
+					'FolderPictures',
+					'FolderVideos'
+				]
+				
+				self.use = '''
+				\r Clase: FoldersOnThisPC
+				\r |
+				\r + Ejemplo de uso: Requieren Permisos de administrador.
+				\r |    
+				\r |    utils = Utils()
+				\r |    
+				\r |    # Para ver las carpetas que estan disponibles para
+				\r |    # ocultar o desocultar de el apartado 'Este Equipo'
+				\r |    # en la parte izquierda del explorador de archivos:
+				\r |    print(utils.EditRegistry.FoldersOnThisPC.enumFolders)
+				\r |    
+				\r |    # Para ocultar el acceso a la carpeta de 'Objectos 3D':
+				\r |    utils.EditRegistry.FoldersOnThisPC.Folder3DObjects.hide()
+				\r |    
+				\r |    # Para desocultar el acceso a la carpeta de 'Objectos 3D':
+				\r |    utils.EditRegistry.FoldersOnThisPC.Folder3DObjects.show()
+				\r |    
+				\r |    # Se puede aplicar lo mismo que con 'Folder3DObjects' para
+				\r |    # cualquier otra carpeta mostrada en enumFolders
+				\r |    
+				\r |    # Requiere reiniciar el explroador de archivos para aplicar
+				\r |    # cambios. Se puede utilizar el siguiente comando desde la
+				\r |    # consola de comandos (cmd):
+				\r |    #     taskkill /F /IM explorer.exe & start explorer.exe
+				\r \\
+				'''
+			
+			def _keyExists(self, PATH, withValue=False):
+				try:
+					value = None
+					reg = WR.OpenKeyEx(self.HKEY, PATH)
+					if withValue: value = WR.QueryValueEx(reg, self.VALUE)[0]
+					WR.CloseKey(reg)
+					if withValue:
+						return True, value
+					else:
+						return True
+				except:
+					if withValue:
+						return False, None
+					else:
+						return False
+			
+			def _hide(self, FOLDERPATH, PATH):
+				key_exists = self._keyExists(FOLDERPATH, withValue=False)						# Intenta abrir el key.
+				if key_exists:
+					keyExists, value = self._keyExists(PATH, withValue=True)					# Intenta abrir el key y extraer su valor.
+					if not keyExists:																# Si no existe el key, lo crea y lo habilita.
+						reg = WR.CreateKey(self.HKEY, PATH)
+						WR.SetValueEx(reg, self.VALUE, 0, WR.REG_SZ, self.HIDE)
+						WR.CloseKey(reg)
+					elif keyExists and value == 'Show':												# Si existe el key y esta deshabilitado, lo habilita.
+						reg = WR.OpenKey(self.HKEY, PATH, 0, WR.KEY_SET_VALUE)
+						WR.SetValueEx(reg, self.VALUE, 0, WR.REG_SZ, self.HIDE)
+						WR.CloseKey(reg)
+			
+			def _show(self, FOLDERPATH, PATH):
+				key_exists = self._keyExists(FOLDERPATH, withValue=False)						# Intenta abrir el key.
+				if key_exists:
+					keyExists, value = self._keyExists(PATH, withValue=True)					# Intenta abrir el key y extraer su valor.
+					if not keyExists:
+						reg = WR.CreateKey(self.HKEY, PATH)
+						WR.SetValueEx(reg, self.VALUE, 0, WR.REG_SZ, self.SHOW)
+						WR.CloseKey(reg)
+					elif keyExists and value == 'Hide':												# Si existe el key y esta deshabilitado, lo habilita.
+						reg = WR.OpenKey(self.HKEY, PATH, 0, WR.KEY_SET_VALUE)
+						WR.SetValueEx(reg, self.VALUE, 0, WR.REG_SZ, self.SHOW)
+						WR.CloseKey(reg)
+			
+			class Folder3DObjects:
+				
+				def __init__(self, parent):
+					self.parent = parent
+					self.FOLDERPATH = parent.PATH + parent.f3DObjects			# ...\{31C0DD25-9439-4F12-BF41-7FF4EDA38722}
+					self.SUBFOLDERPATH = self.FOLDERPATH + r'\PropertyBag'		# ...\{31C0DD25-9439-4F12-BF41-7FF4EDA38722}\PropertyBag
+				
+				# [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\FolderDescriptions\{31C0DD25-9439-4F12-BF41-7FF4EDA38722}\PropertyBag]
+				# "ThisPCPolicy"="Show"
+				def show(self): self.parent._show(self.FOLDERPATH, self.SUBFOLDERPATH)
+				
+				# [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\FolderDescriptions\{31C0DD25-9439-4F12-BF41-7FF4EDA38722}\PropertyBag]
+				# "ThisPCPolicy"="Hide"
+				def hide(self): self.parent._hide(self.FOLDERPATH, self.SUBFOLDERPATH)
+			
+			class FolderDesktop:
+				
+				def __init__(self, parent):
+					self.parent = parent
+					self.FOLDERPATH = parent.PATH + parent.fDesktop				# ...\{B4BFCC3A-DB2C-424C-B029-7FE99A87C641}
+					self.SUBFOLDERPATH = self.FOLDERPATH + r'\PropertyBag'		# ...\{B4BFCC3A-DB2C-424C-B029-7FE99A87C641}\PropertyBag
+				
+				# [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\FolderDescriptions\{B4BFCC3A-DB2C-424C-B029-7FE99A87C641}\PropertyBag]
+				# "ThisPCPolicy"="Show"
+				def show(self): self.parent._show(self.FOLDERPATH, self.SUBFOLDERPATH)
+				
+				# [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\FolderDescriptions\{B4BFCC3A-DB2C-424C-B029-7FE99A87C641}\PropertyBag]
+				# "ThisPCPolicy"="Hide"
+				def hide(self): self.parent._hide(self.FOLDERPATH, self.SUBFOLDERPATH)
+			
+			class FolderDocuments:
+				
+				def __init__(self, parent):
+					self.parent = parent
+					self.FOLDERPATH = parent.PATH + parent.fDocuments			# ...\{f42ee2d3-909f-4907-8871-4c22fc0bf756}
+					self.SUBFOLDERPATH = self.FOLDERPATH + r'\PropertyBag'		# ...\{f42ee2d3-909f-4907-8871-4c22fc0bf756}\PropertyBag
+				
+				# [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\FolderDescriptions\{f42ee2d3-909f-4907-8871-4c22fc0bf756}\PropertyBag]
+				# "ThisPCPolicy"="Show"
+				def show(self): self.parent._show(self.FOLDERPATH, self.SUBFOLDERPATH)
+				
+				# [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\FolderDescriptions\{f42ee2d3-909f-4907-8871-4c22fc0bf756}\PropertyBag]
+				# "ThisPCPolicy"="Hide"
+				def hide(self): self.parent._hide(self.FOLDERPATH, self.SUBFOLDERPATH)
+			
+			class FolderDownloads:
+				
+				def __init__(self, parent):
+					self.parent = parent
+					self.FOLDERPATH = parent.PATH + parent.fDownloads			# ...\{7d83ee9b-2244-4e70-b1f5-5393042af1e4}
+					self.SUBFOLDERPATH = self.FOLDERPATH + r'\PropertyBag'		# ...\{7d83ee9b-2244-4e70-b1f5-5393042af1e4}\PropertyBag
+				
+				# [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\FolderDescriptions\{7d83ee9b-2244-4e70-b1f5-5393042af1e4}\PropertyBag]
+				# "ThisPCPolicy"="Show"
+				def show(self): self.parent._show(self.FOLDERPATH, self.SUBFOLDERPATH)
+				
+				# [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\FolderDescriptions\{7d83ee9b-2244-4e70-b1f5-5393042af1e4}\PropertyBag]
+				# "ThisPCPolicy"="Hide"
+				def hide(self): self.parent._hide(self.FOLDERPATH, self.SUBFOLDERPATH)
+			
+			class FolderMusic:
+				
+				def __init__(self, parent):
+					self.parent = parent
+					self.FOLDERPATH = parent.PATH + parent.fMusic				# ...\{a0c69a99-21c8-4671-8703-7934162fcf1d}
+					self.SUBFOLDERPATH = self.FOLDERPATH + r'\PropertyBag'		# ...\{a0c69a99-21c8-4671-8703-7934162fcf1d}\PropertyBag
+				
+				# [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\FolderDescriptions\{a0c69a99-21c8-4671-8703-7934162fcf1d}\PropertyBag]
+				# "ThisPCPolicy"="Show"
+				def show(self): self.parent._show(self.FOLDERPATH, self.SUBFOLDERPATH)
+				
+				# [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\FolderDescriptions\{a0c69a99-21c8-4671-8703-7934162fcf1d}\PropertyBag]
+				# "ThisPCPolicy"="Hide"
+				def hide(self): self.parent._hide(self.FOLDERPATH, self.SUBFOLDERPATH)
+			
+			class FolderPictures:
+				
+				def __init__(self, parent):
+					self.parent = parent
+					self.FOLDERPATH = parent.PATH + parent.fPictures			# ...\{0ddd015d-b06c-45d5-8c4c-f59713854639}
+					self.SUBFOLDERPATH = self.FOLDERPATH + r'\PropertyBag'		# ...\{0ddd015d-b06c-45d5-8c4c-f59713854639}\PropertyBag
+				
+				# [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\FolderDescriptions\{0ddd015d-b06c-45d5-8c4c-f59713854639}\PropertyBag]
+				# "ThisPCPolicy"="Show"
+				def show(self): self.parent._show(self.FOLDERPATH, self.SUBFOLDERPATH)
+				
+				# [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\FolderDescriptions\{0ddd015d-b06c-45d5-8c4c-f59713854639}\PropertyBag]
+				# "ThisPCPolicy"="Hide"
+				def hide(self): self.parent._hide(self.FOLDERPATH, self.SUBFOLDERPATH)
+			
+			class FolderVideos:
+				
+				def __init__(self, parent):
+					self.parent = parent
+					self.FOLDERPATH = parent.PATH + parent.fVideos				# ...\{35286a68-3c57-41a1-bbb1-0eae73d76c95}
+					self.SUBFOLDERPATH = self.FOLDERPATH + r'\PropertyBag'		# ...\{35286a68-3c57-41a1-bbb1-0eae73d76c95}\PropertyBag
+				
+				# [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\FolderDescriptions\{35286a68-3c57-41a1-bbb1-0eae73d76c95}\PropertyBag]
+				# "ThisPCPolicy"="Show"
+				def show(self): self.parent._show(self.FOLDERPATH, self.SUBFOLDERPATH)
+				
+				# [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\FolderDescriptions\{35286a68-3c57-41a1-bbb1-0eae73d76c95}\PropertyBag]
+				# "ThisPCPolicy"="Hide"
+				def hide(self): self.parent._hide(self.FOLDERPATH, self.SUBFOLDERPATH)
+		
+		class OneDrive:
+			# DropBox: {E31EA727-12ED-4702-820C-4B6445F28E1A}
+			def __init__(self):
+				
+				self.classes   = ObjectClassNames(self)
+				self.functions = None
+				self.functions = ObjectFunctionNames(self)
+				
+				self.HKEY  = WR.HKEY_CLASSES_ROOT
+				self.PATH  = r'CLSID\{018D5C66-4533-4307-9B53-224DE2ED1FE6}'
+				self.KEY   = 'System.IsPinnedToNameSpaceTree'
+				self.TRUE  = 0x00000001
+				self.FALSE = 0x00000000
+				
+				self.use = '''
+				\r Clase: OneDrive
+				\r |
+				\r + Ejemplo de uso: Requieren Permisos de administrador.
+				\r |    
+				\r |    utils = Utils()
+				\r |    
+				\r |    # Para ocultar el acceso a la ruta de OneDrive (Si se tiene instalado)
+				\r |    # que aparece del lado izquierdo en el explorador de archivos:
+				\r |    utils.EditRegistry.OneDrive.disable()
+				\r |    
+				\r |    # Para mostrar el acceso a la ruta de OneDrive (Si se tiene instalado)
+				\r |    # que aparece del lado izquierdo en el explorador de archivos:
+				\r |    utils.EditRegistry.OneDrive.enable()
+				\r \\
+				'''
+			
+			def _keyExists(self):
+				try:
+					reg = WR.OpenKeyEx(self.HKEY, self.PATH)
+					value = WR.QueryValueEx(reg, self.KEY)[0]
+					WR.CloseKey(reg)
+					return True, value
+				except:
+					return False, None
+			
+			# [HKEY_CLASSES_ROOT\CLSID\{018D5C66-4533-4307-9B53-224DE2ED1FE6}]
+			# "System.IsPinnedToNameSpaceTree"=dword:00000001
+			def enable(self):
+				key_exists, isDisabled = self._keyExists()										# Intenta abrir el key y extraer su valor.
+				if not key_exists:																# Si no existe el key, lo crea y lo habilita.
+					reg = WR.CreateKey(self.HKEY, self.PATH)
+					WR.SetValueEx(reg, self.KEY, 0,  WR.REG_DWORD, self.TRUE)
+					WR.CloseKey(reg)
+				elif key_exists and not isDisabled:												# Si existe el key y esta deshabilitado, lo habilita.
+					reg = WR.OpenKey(self.HKEY, self.PATH, 0, WR.KEY_SET_VALUE)
+					WR.SetValueEx(reg, self.KEY, 0,  WR.REG_DWORD, self.TRUE)
+					WR.CloseKey(reg)
+			
+			# [HKEY_CLASSES_ROOT\CLSID\{018D5C66-4533-4307-9B53-224DE2ED1FE6}]
+			# "System.IsPinnedToNameSpaceTree"=dword:00000000
+			def disable(self):
+				key_exists, isDisabled = self._keyExists()										# Intenta abrir el key y extraer su valor.
+				if not key_exists:																# Si no existe el key, lo crea y lo deshabilita.
+					reg = WR.CreateKey(self.HKEY, self.PATH)
+					WR.SetValueEx(reg, self.KEY, 0,  WR.REG_DWORD, self.FALSE)
+					WR.CloseKey(reg)
+				elif key_exists and isDisabled:													# Si existe el key y esta habilitado, lo deshabilita.
+					reg = WR.OpenKey(self.HKEY, self.PATH, 0, WR.KEY_SET_VALUE)
+					WR.SetValueEx(reg, self.KEY, 0,  WR.REG_DWORD, self.FALSE)
+					WR.CloseKey(reg)
+		
+		class PowerPlan:
+			
+			def __init__(self):
+				
+				self.classes   = ObjectClassNames(self)
+				self.functions = None
+				self.functions = ObjectFunctionNames(self)
+				
+				self.HKEY = WR.HKEY_LOCAL_MACHINE
+				self.ROOT_PATH = r'SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes'
+				self.BRIGHTNESS_LVL_SUBPATH = r'7516b95f-f776-4464-8c53-06167f40cc99\aded5e82-b909-4619-9949-f5d71dac0bcb'
+				self.POWER_SAV_MODE_SUBPATH = r'19cbb8fa-5279-450e-9fac-8a3d5fedd0c1\12bbebe6-58d6-4636-95bb-3217ef867c1a'
+				
+				self.use = '''
+				\r Clase: PowerPlan
+				\r │
+				\r │ # Default params:
+				\r │
+				\r ├─ powerSavingMode(      # Para dispositivos con batería.
+				\r │      ACDC = 'DC'       # Selecciona entre 'AC' y 'DC'. AC: Conectado. DC: Desconectado.
+				\r │  )
+				\r │
+				\r ├─ setBrightnessLevel(
+				\r │      level = 4         # Nivel de brillo. Debe estar entre 0 y 10.
+				\r │  )
+				\r |
+				\r + Ejemplo de uso: 
+				\r |    
+				\r |    utils = Utils()
+				\r |    
+				\r |    # Para obtener el nivel de brillo actual:
+				\r |    print(utils.EditRegistry.PowerPlan.brightnessLevel)
+				\r |    
+				\r |    # Para obtener el GUID del plan actual de energía:
+				\r |    print(utils.EditRegistry.PowerPlan.currentPowerPlanGUID)
+				\r |    
+				\r |    # Para obtener el Modo de Ahorro de energía:
+				\r |    utils.EditRegistry.PowerPlan.powerSavingMode()
+				\r |    
+				\r |    # Para cambiar el nivel de brillo en la pantalla:
+				\r |    utils.EditRegistry.PowerPlan.setBrightnessLevel(5)
+				\r \\
+				'''
+			
+			class BrightnessLevelError(Exception):
+				def __init__(self, error_msg): self.error_msg = error_msg
+				def __str__(self): return repr(self.error_msg)
+			
+			@property
+			def brightnessLevel(self):
+				
+				PATH = self.ROOT_PATH + '\\' + self.currentPowerPlanGUID + '\\' + self.BRIGHTNESS_SUBPATH
+				
+				reg = WR.OpenKeyEx(self.HKEY, PATH)
+				brightnessValue = WR.QueryValueEx(reg, 'DCSettingIndex')[0]
+				WR.CloseKey(reg)
+				
+				return brightnessValue
+			
+			@property
+			def currentPowerPlanGUID(self):
+				# GUID de plan de energía. Se puede obtener desde la cmd con el comando: "powercfg /L"
+				reg = WR.OpenKeyEx(self.HKEY, self.ROOT_PATH)
+				activePowerScheme = WR.QueryValueEx(reg, 'ActivePowerScheme')[0]
+				WR.CloseKey(reg)
+				return activePowerScheme
+			
+			def powerSavingMode(self, ACDC='DC'):
+				reg = WR.OpenKeyEx(self.HKEY, self.ROOT_PATH + '\\' + self.currentPowerPlanGUID + '\\' + self.POWER_SAV_MODE_SUBPATH)
+				if ACDC.upper() == 'DC':
+					value = WR.QueryValueEx(reg, 'DCSettingIndex')[0]
+				elif ACDC.upper() == 'AC':
+					value = WR.QueryValueEx(reg, 'ACSettingIndex')[0]
+				else:
+					value = WR.QueryValueEx(reg, 'DCSettingIndex')[0]
+				WR.CloseKey(reg)
+				if   value == b'\x00\x00\x00\x00': return 'Rendimiento máximo'
+				elif value == b'\x01\x00\x00\x00': return 'Ahorro de energía bajo'
+				elif value == b'\x02\x00\x00\x00': return 'Ahorro de energía medio'
+				elif value == b'\x03\x00\x00\x00': return 'Ahorro de energía máximo'
+				else: return None
+			
+			def setBrightnessLevel(self, value=4):
+				if not type(value) == int or not 0 <= value <= 10:
+					raise self.BrightnessLevelError('El valor de brillo debe ser entero y estar entre 0 y 10.')
+				val = wmi.WMI(namespace='wmi')
+				val = val.WmiMonitorBrightnessMethods()[0]
+				val.WmiSetBrightness(value*10, 0)
+		
+		class TaskManager:
+			
+			def __init__(self):
+				
+				self.classes   = ObjectClassNames(self)
+				self.functions = None
+				self.functions = ObjectFunctionNames(self)
+				
+				self.HKEY  = WR.HKEY_CURRENT_USER
+				self.PATH  = r'SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System'
+				self.KEY   = 'DisableTaskMgr'
+				self.TRUE  = 0x00000001
+				self.FALSE = 0x00000000
+				
+				self.use = '''
+				\r Clase: TaskManager
+				\r |
+				\r + Ejemplo de uso: Requieren Permisos de administrador.
+				\r |    
+				\r |    utils = Utils()
+				\r |    
+				\r |    # Para deshabilitar el uso de el Administrador de tareas:
+				\r |    utils.EditRegistry.TaskManager.disable()
+				\r |    
+				\r |    # Para habilitar el uso de el Administrador de tareas:
+				\r |    utils.EditRegistry.TaskManager.enable()
+				\r |    
+				\r |    # Para eliminar los cambios realizados en el registro:
+				\r |    utils.EditRegistry.TaskManager.cleanUp()
+				\r \\
+				'''
+			
+			def _keyExists(self):
+				try:
+					reg = WR.OpenKeyEx(self.HKEY, self.PATH)
+					value = WR.QueryValueEx(reg, self.KEY)[0]
+					WR.CloseKey(reg)
+					return True, value
+				except:
+					return False, None
+			
+			# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System]
+			# "DisableTaskMgr"=dword:00000000
+			def enable(self):
+				key_exists, isDisabled = self._keyExists()										# Intenta abrir el key y extraer su valor.
+				if not key_exists:																# Si no existe el key, lo crea y lo habilita.
+					reg = WR.CreateKey(self.HKEY, self.PATH)
+					WR.SetValueEx(reg, self.KEY, 0,  WR.REG_DWORD, self.FALSE)
+					WR.CloseKey(reg)
+				elif key_exists and isDisabled:													# Si existe el key y esta deshabilitado, lo habilita.
+					reg = WR.OpenKey(self.HKEY, self.PATH, 0, WR.KEY_SET_VALUE)
+					WR.SetValueEx(reg, self.KEY, 0,  WR.REG_DWORD, self.FALSE)
+					WR.CloseKey(reg)
+			
+			# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System]
+			# "DisableTaskMgr"=dword:00000001
+			def disable(self):
+				key_exists, isDisabled = self._keyExists()										# Intenta abrir el key y extraer su valor.
+				if not key_exists:																# Si no existe el key, lo crea y lo deshabilita.
+					reg = WR.CreateKey(self.HKEY, self.PATH)
+					WR.SetValueEx(reg, self.KEY, 0,  WR.REG_DWORD, self.TRUE)
+					WR.CloseKey(reg)
+				elif key_exists and not isDisabled:												# Si existe el key y esta habilitado, lo deshabilita.
+					reg = WR.OpenKey(self.HKEY, self.PATH, 0, WR.KEY_SET_VALUE)
+					WR.SetValueEx(reg, self.KEY, 0,  WR.REG_DWORD, self.TRUE)
+					WR.CloseKey(reg)
+			
+			# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System]
+			# "DisableTaskMgr"=-
+			def cleanUp(self):
+				key_exists, isDisabled = self._keyExists()
+				if key_exists:
+					reg = WR.OpenKey(self.HKEY, self.PATH, 0, WR.KEY_SET_VALUE)
+					WR.DeleteValue(reg, self.KEY)
+					WR.CloseKey(reg)
 		
 	class MemoryInfo:	# Información relacionadas a espacio en disco y demás.
 		
@@ -1598,6 +2221,44 @@ class Utils:
 			
 			return False
 		
+		def enumComputerSystemInfo(self):								# Muestra información detallada del sistema.
+			con = wmi.WMI()
+			# ~ print(f'Manufacturer: {computerSystem.Manufacturer}')
+			# ~ print(f'Model: {computerSystem.Model}')
+			# ~ print(f'Name: {computerSystem.Name}')
+			# ~ print(f'NumberOfProcessors: {computerSystem.NumberOfProcessors}')
+			# ~ print(f'SystemType: {computerSystem.SystemType}')
+			# ~ print(f'SystemFamily: {computerSystem.SystemFamily}')
+			return con.Win32_ComputerSystem()[0]
+		
+		def enumLocalDisk(self):										# Lista todos los discos conectados con información detallada.
+			#DriveType	Description
+			#		 0	Unknown
+			#		 1	No Root Directory
+			#		 2	Removable Disk
+			#		 3	Local Disk
+			#		 4	Network Drive
+			#		 5	Compact Disc
+			#		 6	RAM Disk
+			con = wmi.WMI()
+			localDisks = []
+			for disk in con.Win32_LogicalDisk():
+				if disk.size != None:
+					localDisks.append(disk)
+					# ~ print(disk)
+					# ~ print('Free space on disk \'{}\': {:.2f}%'.format(disk.Caption, 100*float(disk.FreeSpace)/float(disk.Size)))
+			
+			return localDisks
+		
+		def enumLocalUsersAndGroups(self):								# Lista todos los grupos y usuarios de cada uno de ellos con información detallada.
+			con = wmi.WMI()
+			userAndGroups = {}
+			for group in con.Win32_Group():
+				userAndGroups[group.Caption] = {'users': [], 'group': group}
+				for user in group.associators(wmi_result_class="Win32_UserAccount"):
+					userAndGroups[group.Caption]['users'].append(user)
+			return userAndGroups
+		
 		def enumProcess(self, findstr=None): #Use						# Enumera todos los procesos o los que coincidan con la cadena 'findstr' y los devuelve.
 			
 			output = list()
@@ -1805,7 +2466,7 @@ class Utils:
 			}
 			
 			return collected
-		
+	
 	class Utilities:	# Funciones de utilidad para cosas generales.
 		
 		def __init__(self):
@@ -1817,6 +2478,7 @@ class Utils:
 			self.load_uses()
 			
 			self.AsciiFont = self.AsciiFont()
+			self.UBZ2 = self.UBZ2()
 		
 		class AsciiFont:	# Clase que permite convertir un texto a un tipo de ASCII FONT
 			
@@ -2473,7 +3135,225 @@ class Utils:
 				]
 				
 				return self.textToAscii(text, c, rules, width=8)
+		
+		class UBZ2:			# Algoritmo de compresión y descompresión de archivos bz2. El nombre se refiere a Utils BZ2.
 			
+			def __init__(self):
+				
+				self.classes   = ObjectClassNames(self)
+				self.functions = None
+				self.functions = ObjectFunctionNames(self)
+				
+				# Icono de Navi de Zelda en Pixel Art (de mi autoria). Esta en bz2.
+				self.iconFile = b''
+				
+				# Datos para agregar al registro al añadir el icono a los archivos con la extension .ubz2
+				self.iconFileName = 'ubz2file.ico'
+				self.fileName = 'ubz2file'
+				self.fileExt = '.ubz2'
+				
+				self.use = '''
+				\r Clase: UBZ2 (v1.0)
+				\r │
+				\r │ # Descripción: Permite comprimir archivos de manera individual con
+				\r │ el algoritmo de compresión 'bz2' con el método 'compress()' generando
+				\r │ un nuevo archivo con extensión .ubz2 (utils bz2) los cuales puede
+				\r │ descomprimirse con el método de descompresión 'decompress()'.
+				\r │ Al Generar los archivos comprimidos (.ubz2) se generara en cada
+				\r │ uno de ellos un flujo de datos alterno llamado 'Info' (.ubz2:Info)
+				\r │ en el cual se almacenan metadatos con información de la compresión.
+				\r │ Estos metadatos podran obtenerse con el método 'getDataFromUBZ2File()'.
+				\r │ También es posible generar un icono para agregar al tipo de
+				\r │ archivo .ubz2 utilizando el método 'addIconToFileExtension()'
+				\r │ pero requerira permisos de administrador para esta acción.
+				\r │ También es posible solo generar el icono para su visualización
+				\r │ con el método 'generateIcon()'
+				\r │ 
+				\r │ # Default params:
+				\r │
+				\r ├─ compress(
+				\r │      fileName,             # Nombre del archivo
+				\r │      verb = False          # Muestra texto para ver progreso
+				\r │  )
+				\r ├─ decompress(
+				\r │      fileNameUbz2,         # Nombre del archivo comprimido
+				\r │      verb = False          # Muestra texto para ver progreso
+				\r │  )
+				\r ├─ getDataFromUBZ2File(
+				\r │      fileNameUbz2,         # Nombre del archivo comprimido
+				\r │  )
+				\r ├─ addIconToFileExtension()  # No requiere parametros. Requiere permisos.
+				\r ├─ generateIcon()            # No requiere parametros
+				\r |
+				\r + Ejemplo de uso:
+				\r |    
+				\r |    utils = Utils()
+				\r |    
+				\r |    # Para comprimir un archivo:
+				\r |    fileName = utils.Actions.Explorer.getFileName(topmost=False)
+				\r |    if fileName:
+				\r |        utils.Utilities.UBZ2.compress(fileName)
+				\r |    
+				\r |    # Para descomprimir un archivo:
+				\r |    fileNameUbz2 = utils.Actions.Explorer.getFileName(topmost=False)
+				\r |    if fileNameUbz2:
+				\r |        utils.Utilities.UBZ2.decompress(fileNameUbz2)
+				\r |    
+				\r |    # Para extraer los metadatos generados en algún archivo comprimido:
+				\r |    fileNameUbz2 = utils.Actions.Explorer.getFileName(topmost=False)
+				\r |    if fileNameUbz2:
+				\r |        data = utils.Utilities.UBZ2.getDataFromUBZ2File(fileNameUbz2)
+				\r |        print(data)
+				\r |    
+				\r |    # Utilizar la función addIconToFileExtension() para añadir el icono
+				\r |    # de navi a los archivos con extensión .ubz2
+				\r |    utils.Utilities.UBZ2.addIconToFileExtension()   # Requiere permisos de admin
+				\r |    
+				\r |    # Se puede crear solo el icono de navi con:
+				\r |    utils.Utilities.UBZ2.generateIcon()             # No requiere permisos
+				\r \\
+				'''
+			
+			def _keyExists(self, HKEY, PATH, VALUE=''):
+				try:
+					reg = WR.OpenKeyEx(HKEY, PATH)
+					value = WR.QueryValueEx(reg, VALUE)[0]
+					WR.CloseKey(reg)
+					return True, value
+				except:
+					return False, None
+			
+			def _originalCode(self):
+				
+				xD = open('xD diccionary.txt', 'rb')
+				
+				original_data = xD.read()
+				print('\nOriginal     :', len(original_data))#, binascii.hexlify(original_data))
+				
+				compressed = bz2.compress(original_data)
+				print('Compressed   :', len(compressed))#, binascii.hexlify(compressed))
+				xD = open('xD Compress'+self.fileExt, 'wb')
+				xD.write(compressed)
+				
+				xD = open('xD Compress'+self.fileExt, 'rb')
+				compressedData = xD.read()
+				decompressed = bz2.decompress(compressedData)
+				print('Decompressed :', len(decompressed))#, decompressed)
+				xD = open('xD diccionary-decompress.txt', 'wb')
+				xD.write(decompressed)
+				
+				print('Porcentaje Compresion: ', 100-round(len(compressed)/len(original_data), 3)*100, '%')
+			
+			def _saveInfoData(self, fileName, lenCompressed, lenOriginalData):
+				
+				prevData = self.getDataFromUBZ2File(fileName)
+				
+				if prevData == {}:
+					rounded = round(lenCompressed/lenOriginalData, 3)
+				else:
+					rounded = round(lenCompressed/prevData['originalFileLength'], 3)
+				data = {
+					'author':   __author__,
+					'software': __title__,
+					'version':  __version__,
+					'originalFileLength': lenOriginalData if prevData == {} else prevData['originalFileLength'],
+					'compressedFileLength': lenCompressed,
+					'compressionPercentage': str(100 - rounded*100) + '%',
+					'timesCompressed': 1 if prevData == {} else prevData['timesCompressed'] + 1
+				}
+				infoFile = open(fileName+':Info', 'w')
+				infoFile.write(json.dumps(data))
+			
+			def addIconToFileExtension(self):							# Agrega un icono pixel art (de mi autoria) de Navi de Zelda a los archivos con extensión .ubz2 pero Requiere permisos de admin
+				
+				if not os.path.exists(self.iconFileName): self._generateIcon()
+				
+				# [HKEY_CLASSES_ROOT\.ubz2]
+				# @="ubz2file"
+				reg = WR.CreateKey(WR.HKEY_CLASSES_ROOT, self.fileExt)
+				WR.SetValueEx(reg, '', 0, WR.REG_SZ, self.fileName)
+				WR.CloseKey(reg)
+				
+				# [HKEY_CLASSES_ROOT\ubz2file\DefaultIcon]
+				# @="C:\Users\etc...\ubz2file.ico"
+				reg = WR.CreateKey(WR.HKEY_CLASSES_ROOT, self.fileName+r'\DefaultIcon')
+				WR.SetValueEx(reg, '', 0, WR.REG_SZ, os.path.abspath(self.iconFileName))
+				WR.CloseKey(reg)
+				
+				# [HKEY_CLASSES_ROOT\ubz2file\shell\edit\command]
+				# @="notepad.exe %1"
+				reg = WR.CreateKey(WR.HKEY_CLASSES_ROOT, self.fileName+r'\shell\edit\command')
+				WR.SetValueEx(reg, '', 0, WR.REG_SZ, 'notepad.exe %1')
+				WR.CloseKey(reg)
+				
+				# [HKEY_CLASSES_ROOT\ubz2file\shell\edit]
+				# @="Editar"
+				reg = WR.OpenKey(WR.HKEY_CLASSES_ROOT, self.fileName+r'\shell\edit', 0, WR.KEY_SET_VALUE)
+				WR.SetValueEx(reg, '', 0, WR.REG_SZ, 'Editar')
+				WR.CloseKey(reg)
+				
+				# [HKEY_CLASSES_ROOT\ubz2file\shell\open\command]
+				# @="notepad.exe %1"
+				reg = WR.CreateKey(WR.HKEY_CLASSES_ROOT, self.fileName+r'\shell\open\command')
+				WR.SetValueEx(reg, '', 0, WR.REG_SZ, 'notepad.exe %1')
+				WR.CloseKey(reg)
+				
+				# [HKEY_CLASSES_ROOT\ubz2file\shell\open]
+				# @="Abrir"
+				reg = WR.OpenKey(WR.HKEY_CLASSES_ROOT, self.fileName+r'\shell\open', 0, WR.KEY_SET_VALUE)
+				WR.SetValueEx(reg, '', 0, WR.REG_SZ, 'Abrir')
+				WR.CloseKey(reg)
+			
+			def generateIcon(self):										# Genera el icono de Navi en la carpeta del código.
+				xD = open(self.iconFileName, 'wb')
+				iconData = bz2.decompress(self.iconFile)
+				xD.write(iconData)
+				xD.close()
+			
+			def compress(self, fileName='file.txt', verb=False):		# Compresión de un archivo con el algoritmo bz2 genera un archivo con extension .ubz2
+				
+				if verb: print('Extracting the uncompressed data...')
+				xD = open(fileName, 'rb')
+				originalData = xD.read()
+				xD.close()
+				
+				if verb: print('Compressing...')
+				compressed = bz2.compress(originalData)
+				
+				if verb: print('Saving compressed file...')
+				xD = open(fileName+self.fileExt, 'wb')
+				xD.write(compressed)
+				xD.close()
+				
+				self._saveInfoData(fileName+self.fileExt, len(compressed), len(originalData))
+				
+				if verb: print('Done!')
+			
+			def decompress(self, fileNameUbz2='file.ubz2', verb=False):	# Descompresión de un archivo con el algoritmo bz2
+				
+				if verb: print('Extracting the compressed data...')
+				xD = open(fileNameUbz2, 'rb')
+				compressedData = xD.read()
+				xD.close()
+				
+				if verb: print('Decompressing...')
+				decompressed = bz2.decompress(compressedData)
+				
+				if verb: print('Saving decompressed file...')
+				xD = open(fileNameUbz2[:-len(self.fileExt)], 'wb')
+				xD.write(decompressed)
+				xD.close()
+				
+				if verb: print('Done!')
+			
+			def getDataFromUBZ2File(self, fileNameUbz2):
+				try:
+					infoFile = open(fileNameUbz2+':Info', 'r')
+					data = json.loads(infoFile.read())
+					return data
+				except FileNotFoundError:
+					return {}
+		
 		class Hash:			# Convierte un texto a algun tipo de hash seleccionado.
 			
 			class HashNotAvailableError(Exception):
@@ -2608,14 +3488,15 @@ class Utils:
 #=======================================================================
 #=======================================================================
 
-struct = '''
-   ┌───┬───┐   ╔═══╦═══╗   ▄▄▄▄▄▄▄▄▄
-   │   │   │   ║   ║   ║   █   █   █
-   ├───┼───┤   ╠═══╬═══╣   █■■■█■■■█
-   │   │   │   ║   ║   ║   █   █   █
-   └───┴───┘   ╚═══╩═══╝   ▀▀▀▀▀▀▀▀▀
+# ~ ┌───┬───┐   ╔═══╦═══╗   ▄▄▄▄▄▄▄▄▄
+# ~ │   │   │   ║   ║   ║   █   █   █
+# ~ ├───┼───┤   ╠═══╬═══╣   █■■■█■■■█
+# ~ │   │   │   ║   ║   ║   █   █   █
+# ~ └───┴───┘   ╚═══╩═══╝   ▀▀▀▀▀▀▀▀▀
+
+STRUCT = '''\
    
-■■■ Class Utils
+■■■ Class Utils ({})
     ║
     ║ - Main Classes:
     ╠══ Class Actions
@@ -2628,8 +3509,25 @@ struct = '''
     ║   ║
     ║   ║ - Classes: ─────────────────────────
     ║   ╠══ Class Clipboard
+    ║   ║    │
+    ║   ║    │ - Functions: ──────────────────
+    ║   ║    └── property text (get, set, delete)
+    ║   ║
     ║   ╠══ Class Explorer
+    ║   ║    │
+    ║   ║    │ - Functions: ──────────────────
+    ║   ║    ├── function getFileName
+    ║   ║    ├── function getFolderName
+    ║   ║    └── function getFileNameSave
+    ║   ║
     ║   ╠══ Class VBS
+    ║   │    │
+    ║   │    │ - Functions: ──────────────────
+    ║   │    ├── function ejectCDROM
+    ║   │    ├── function getWindowsProductKey
+    ║   │    ├── function minimizeAll
+    ║   │    ├── function runScriptVBS
+    ║   │    └── function setVolume
     ║   │
     ║   │ - Functions: ───────────────────────
     ║   ├── function beep
@@ -2650,6 +3548,91 @@ struct = '''
     ║   ├── function setTopWindow
     ║   ├── function setPriorityPID
     ║   └── function startApp
+    ║
+    ╠═ EditRegistry
+    ║   ║
+    ║   ║ - Classes: ─────────────────────────
+    ║   ╠══ Class ContextMenu
+    ║   ║    │
+    ║   ║    │ - Functions: ──────────────────
+    ║   ║    ├── function enable
+    ║   ║    ├── function disable
+    ║   ║    └── function cleanUp
+    ║   ║
+    ║   ╠══ Class DropBox
+    ║   ║    │
+    ║   ║    │ - Functions: ──────────────────
+    ║   ║    ├── function enable
+    ║   ║    └── function disable
+    ║   ║
+    ║   ╠══ Class FoldersOnThisPC
+    ║   ║    ║
+    ║   ║    ║ - Classes: ────────────────────
+    ║   ║    ╠══ Class Folder3DObjects
+    ║   ║    ║    │
+    ║   ║    ║    │ - Functions: ─────────────
+    ║   ║    ║    ├── function show
+    ║   ║    ║    └── function hide
+    ║   ║    ║
+    ║   ║    ╠══ Class FolderDesktop
+    ║   ║    ║    │
+    ║   ║    ║    │ - Functions: ─────────────
+    ║   ║    ║    ├── function show
+    ║   ║    ║    └── function hide
+    ║   ║    ║
+    ║   ║    ╠══ Class FolderDocuments
+    ║   ║    ║    │
+    ║   ║    ║    │ - Functions: ─────────────
+    ║   ║    ║    ├── function show
+    ║   ║    ║    └── function hide
+    ║   ║    ║
+    ║   ║    ╠══ Class FolderDownloads
+    ║   ║    ║    │
+    ║   ║    ║    │ - Functions: ─────────────
+    ║   ║    ║    ├── function show
+    ║   ║    ║    └── function hide
+    ║   ║    ║
+    ║   ║    ╠══ Class FolderMusic
+    ║   ║    ║    │
+    ║   ║    ║    │ - Functions: ─────────────
+    ║   ║    ║    ├── function show
+    ║   ║    ║    └── function hide
+    ║   ║    ║
+    ║   ║    ╠══ Class FolderPictures
+    ║   ║    ║    │
+    ║   ║    ║    │ - Functions: ─────────────
+    ║   ║    ║    ├── function show
+    ║   ║    ║    └── function hide
+    ║   ║    ║
+    ║   ║    ╚══ Class FolderVideos
+    ║   ║         │
+    ║   ║         │ - Functions: ─────────────
+    ║   ║         ├── function show
+    ║   ║         └── function hide
+    ║   ║
+    ║   ╠══ Class OneDrive
+    ║   ║    │
+    ║   ║    │ - Functions: ──────────────────
+    ║   ║    ├── function enable
+    ║   ║    └── function disable
+    ║   ║
+    ║   ╠══ Class PowerPlan
+    ║   ║    ║
+    ║   ║    ║ - Error Classes: ──────────────
+    ║   ║    ╠══ Class BrightnessLevelError
+    ║   ║    │
+    ║   ║    │ - Functions: ──────────────────
+    ║   ║    ├── property brightnessLevel      (get)
+    ║   ║    ├── property currentPowerPlanGUID (get)
+    ║   ║    ├── function powerSavingMode
+    ║   ║    └── function setBrightnessLevel
+    ║   ║
+    ║   ╚══ Class TaskManager
+    ║        │
+    ║        │ - Functions: ──────────────────
+    ║        ├── function enable
+    ║        ├── function disable
+    ║        └── function cleanUp
     ║
     ╠═ Class MemoryInfo
     ║   │
@@ -2672,6 +3655,9 @@ struct = '''
     ╠═ Class SystemInfo
     ║   │
     ║   │ - Functions: ───────────────────────
+    ║   ├── function enumComputerSystemInfo
+    ║   ├── function enumLocalDisk
+    ║   ├── function enumLocalUsersAndGroups
     ║   ├── function enumProcess
     ║   ├── function isCapsLockActive
     ║   ├── function isLinux
@@ -2705,11 +3691,11 @@ struct = '''
         ║ - Classes: ─────────────────────────
         ╠══ Class AsciiFont
         ║    ║
-        ║    ║ - Error Classes: ───────────────────
+        ║    ║ - Error Classes: ──────────────
         ║    ╠══ Class NotSupportedError
         ║    ╠══ Class TypeError
         ║    │
-        ║    │ - Functions: ───────────────────────
+        ║    │ - Functions: ──────────────────
         ║    ├── function ansiShadow
         ║    ├── function ansiRegular
         ║    ├── function calvinS
@@ -2721,6 +3707,19 @@ struct = '''
         ║    ├── function doble
         ║    └── function rammstein
         ║
+        ╠══ Class UBZ2
+        ║    ║
+        ║    ║ - Error Classes: ──────────────
+        ║    ╠══ Class NotSupportedError
+        ║    ╠══ Class TypeError
+        ║    │
+        ║    │ - Functions: ──────────────────
+        ║    ├── function addIconToFileExtension
+        ║    ├── function generateIcon
+        ║    ├── function compress
+        ║    ├── function decompress
+        ║    └── function getDataFromUBZ2File
+        ║
         ╠══ Class Hash
         │
         │ - Functions: ───────────────────────
@@ -2731,7 +3730,7 @@ struct = '''
 
  All Classes Have a 'use', 'classes' and 'functions' variables.
 
-'''
+'''.format(__version__)
 
 
 
@@ -2746,29 +3745,66 @@ if __name__ == '__main__':
 	
 	# Pruebas:
 	
+	# ~ print(struct)
+	
 	utils = Utils()
+	# ~ reg = utils.Utilities.AsciiFont.ansiRegular(__version__)
+	# ~ print('ansiShadow:\n' + reg)
+	
+	print(utils.Utilities.UBZ2.use)
+	
+	# ~ utils.Utilities.UBZ2.addIconToFileExtension()
+	
+	# ~ fileName = utils.Actions.Explorer.getFileName(topmost=False)
+	# ~ if fileName:
+		# ~ utils.Utilities.UBZ2.compress(fileName)
+		# ~ utils.Utilities.UBZ2.decompress(fileName)
+		# ~ print(utils.Utilities.UBZ2.getDataFromUBZ2File(fileName))
+	
+	# ~ utils.EditRegistry.ContextMenu.disable()
+	# ~ utils.EditRegistry.TaskManager.disable()
+	# ~ utils.EditRegistry.OneDrive.disable()
+	# ~ utils.EditRegistry.DropBox.disable()
+	# ~ utils.EditRegistry.FoldersOnThisPC.Folder3DObjects.hide()
+	
+	# ~ print(utils.EditRegistry.PowerPlan.currentPowerPlanGUID)
+	# ~ print(utils.EditRegistry.PowerPlan.brightnessLevel)
+	# ~ print(utils.EditRegistry.PowerPlan.powerSavingMode())
+	# ~ utils.EditRegistry.PowerPlan.setBrightnessLevel(3)
+	
+	# ~ print(utils.SystemInfo.enumLocalDisk())
+	
+	# ~ groups = utils.SystemInfo.enumLocalUsersAndGroups()
+	# ~ for name, group in groups.items():
+		# ~ print(name, group['group'])
+		# ~ for user in group['users']:
+			# ~ print(user)
+	
+	# ~ print(utils.SystemInfo.enumComputerSystemInfo())
+	
+	# ~ utils.Actions.setCursorPos(700,400)
 	
 	#-------------------------------------------------------------------
 	# Buscando la contraseña de usuario 'prueba'.
 	# Contraseña de prueba propuesta: 'xD'.
-	palabras = [
-		'ab',    'cd',    'ef',    'fg',    'hi',
-		'jk',    'lasd',  'lasd1', 'lasd3', 'lasd2',
-		'lasd4', 'lasd5', 'lasd6', 'xD',    'XDD',
-		'xD3',   'xD4',   'lasx1', 'laxd3', 'xasd2'
-	]
+	# ~ palabras = [
+		# ~ 'ab',    'cd',    'ef',    'fg',    'hi',
+		# ~ 'jk',    'lasd',  'lasd1', 'lasd3', 'lasd2',
+		# ~ 'lasd4', 'lasd5', 'lasd6', 'xD',    'XDD',
+		# ~ 'xD3',   'xD4',   'lasx1', 'laxd3', 'xasd2'
+	# ~ ]
 	
-	user = 'prueba'
+	# ~ user = 'prueba'
 	
-	for x in palabras:
-		resp = utils.SystemInfo.isUserPasswordValid(user, x)
-		if resp:
-			print('\n User:', user)
-			print('\n Passwd:', x)
-			break
+	# ~ for x in palabras:
+		# ~ resp = utils.SystemInfo.isUserPasswordValid(user, x)
+		# ~ if resp:
+			# ~ print('\n User:', user)
+			# ~ print('\n Passwd:', x)
+			# ~ break
 
-	if not resp:
-		print('Password Not Found...')
+	# ~ if not resp:
+		# ~ print('Password Not Found...')
 	#-------------------------------------------------------------------
 	
 	# ~ if utils.Actions.runAsAdmin():
