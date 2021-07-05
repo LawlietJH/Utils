@@ -14,3 +14,5 @@
 ## Tested in: Python 3.8.8
 ## By: LawlietJH
 ## Utils v1.0.6
+
+![Icon](ubz2file.ico "Icono de archivos ubz2")
