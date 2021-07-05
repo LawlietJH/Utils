@@ -1299,6 +1299,7 @@ class Utils:
 			self.OneDrive = self.OneDrive()
 			self.PowerPlan = self.PowerPlan()
 			self.TaskManager = self.TaskManager()
+			self.PhysicalDrivesInWinExplorer = self.PhysicalDrivesInWinExplorer()
 		
 		class ContextMenu:
 			
@@ -1726,6 +1727,220 @@ class Utils:
 				elif key_exists and isDisabled:													# Si existe el key y esta habilitado, lo deshabilita.
 					reg = WR.OpenKey(self.HKEY, self.PATH, 0, WR.KEY_SET_VALUE)
 					WR.SetValueEx(reg, self.KEY, 0,  WR.REG_DWORD, self.FALSE)
+					WR.CloseKey(reg)
+		
+		class PhysicalDrivesInWinExplorer:
+			
+			def __init__(self):
+				
+				self.classes   = ObjectClassNames(self)
+				self.functions = None
+				self.functions = ObjectFunctionNames(self)
+				
+				# ~ self.LETTERS = {
+					# ~ 'A': 0x01000000, 'B': 0x02000000, 'C': 0x04000000, 'D': 0x08000000,
+					# ~ 'E': 0x10000000, 'F': 0x20000000, 'G': 0x40000000, 'H': 0x80000000,
+					# ~ 'I': 0x00010000, 'J': 0x00020000, 'K': 0x00040000, 'L': 0x00080000,
+					# ~ 'M': 0x00100000, 'N': 0x00200000, 'O': 0x00400000, 'P': 0x00800000,
+					# ~ 'Q': 0x00000100, 'R': 0x00000200, 'S': 0x00000400, 'T': 0x00000800,
+					# ~ 'U': 0x00001000, 'V': 0x00002000, 'W': 0x00004000, 'X': 0x00008000,
+					# ~ 'Y': 0x00000001, 'Z': 0x00000002
+				# ~ }
+				
+				self.LETTERS = {
+					'A': 0x01000000, 'E': 0x10000000, 'I': 0x00010000, 'M': 0x00100000, 'Q': 0x00000100, 'U': 0x00001000, 'Y': 0x00000001,
+					'B': 0x02000000, 'F': 0x20000000, 'J': 0x00020000, 'N': 0x00200000, 'R': 0x00000200, 'V': 0x00002000, 'Z': 0x00000002,
+					'C': 0x04000000, 'G': 0x40000000, 'K': 0x00040000, 'O': 0x00400000, 'S': 0x00000400, 'W': 0x00004000,
+					'D': 0x08000000, 'H': 0x80000000, 'L': 0x00080000, 'P': 0x00800000, 'T': 0x00000800, 'X': 0x00008000
+				}
+				
+				self.HKEY = WR.HKEY_CURRENT_USER
+				self.PATH = 'SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer'
+				self.VALUE = 'NoDrives'
+				
+				self.use = '''
+				\r Clase: PhysicalDrivesInWinExplorer
+				\r │
+				\r │ # Descripción: Permite ocultar o desocultar los discos físicos
+				\r │ que están en el explorador de windows en la parte izquierda en 
+				\r │ el apartado de "Este Equipo" indicando la letra o letras de estos.
+				\r │
+				\r │ # Default params:
+				\r │
+				\r ├─ enumHiddenDrives()	# No requiere parametros.
+				\r │ 
+				\r ├─ hide(             # Requiere permisos de administrador.
+				\r │      letters		# letters puede ser un caracter de la 'A' a la 'Z' o un conjunto
+				\r │  )                 # de ellos (ejemplo: 'ABC', 'A B C' o ['A', 'B', 'C'])
+				\r │
+				\r ├─ show(             # Requiere permisos de administrador.
+				\r │      letters       # letters puede ser un caracter de la 'A' a la 'Z' o un conjunto
+				\r │  )                 # de ellos (ejemplo: 'ABC', 'A B C' o ['A', 'B', 'C'])
+				\r │
+				\r ├─ showAll()         # No requiere parametros.
+				\r │
+				\r ├─ cleanUp()         # No requiere parametros. Requiere permisos de admin.
+				\r |
+				\r + Ejemplo de uso:
+				\r |    
+				\r |    utils = Utils()
+				\r |    
+				\r |    # Para ver las letras de los discos fisicos que estan actualmente ocultos:
+				\r |    print(utils.EditRegistry.PhysicalDrivesInWinExplorer.enumHiddenDrives())
+				\r |    
+				\r |    # Para ocultar uno o varios discos indicamos sus letras:
+				\r |    utils.EditRegistry.PhysicalDrivesInWinExplorer.hide('ABCZ')
+				\r |    
+				\r |    # Para desocultar uno o varios discos indicamos sus letras:
+				\r |    utils.EditRegistry.PhysicalDrivesInWinExplorer.show('BZ')
+				\r |    
+				\r |    # Para desocultar todos los discos:
+				\r |    utils.EditRegistry.PhysicalDrivesInWinExplorer.showAll()
+				\r |    
+				\r |    # Para deshacer los cambios en el registro (desoculta todos):
+				\r |    utils.EditRegistry.PhysicalDrivesInWinExplorer.cleanUp()
+				\r |    
+				\r |    # Requiere reiniciar el explroador de archivos para aplicar
+				\r |    # cambios. Se puede utilizar el siguiente comando desde la
+				\r |    # consola de comandos (cmd):
+				\r |    #     taskkill /F /IM explorer.exe & start explorer.exe
+				\r \\
+				'''
+			
+			class DriveLettersError(Exception):
+				def __init__(self, error_msg): self.error_msg = error_msg
+				def __str__(self): return repr(self.error_msg)
+			
+			def _keyExists(self):
+				try:
+					reg = WR.OpenKeyEx(self.HKEY, self.PATH)
+					value = WR.QueryValueEx(reg, self.VALUE)[0]
+					WR.CloseKey(reg)
+					return True, value
+				except:
+					return False, None
+			
+			def _int2bytes(self, value):
+				value = hex(value)[2:].zfill(8)
+				value = [int(value[i*2:(i+1)*2], 16) for i in range(len(value)//2)]
+				value = bytes(value)
+				return value
+			
+			def enumHiddenDrives(self):
+				
+				keyExists, _bytes = self._keyExists()					# Intenta abrir el key y extraer su valor.
+				
+				if not keyExists: return []
+				
+				LETTERS_NUMS = {										# Valor a restar (es basado en binario, la suma entre estos representa un valor unico, ejemplo: A=1,B=2,A+B=3,C=4,A+C=5,B+C=6,A+B+C=7,D=8,A+D=9, etc...)
+					'A': 1, 'B': 2, 'C': 4, 'D': 8,
+					'E': 1, 'F': 2, 'G': 4, 'H': 8,
+					'I': 1, 'J': 2, 'K': 4, 'L': 8,
+					'M': 1, 'N': 2, 'O': 4, 'P': 8,
+					'Q': 1, 'R': 2, 'S': 4, 'T': 8,
+					'U': 1, 'V': 2, 'W': 4, 'X': 8,
+					'Y': 1, 'Z': 2, ' ': 16
+				}
+				POS = {													# Posiciones de caracter en la cadena hexadecimal. la cadena consta de 8 caracteres (de 0 al 7)
+					1: ['A','B','C','D'],
+					0: ['E','F','G','H'],
+					3: ['I','J','K','L'],
+					2: ['M','N','O','P'],
+					5: ['Q','R','S','T'],
+					4: ['U','V','W','X'],
+					7: ['Y','Z',' ',' '],
+					6: [' ',' ',' ',' ']
+				}
+				value = _bytes.hex()									# Convierte los bytes a hexadecimal
+				letters = []
+				
+				for i, v in enumerate(value):							# i = posicion del caracter hexadecimal extraido. v = el caracter hexadecimal extraido.
+					if v == '0': continue								# Si el caracter es 0 entonces se omite
+					qty = int(v, 16)									# Convierte a decimal el hexadecimal                # Ejemplo usando i=1 y obteniendo las letras A, B, C y D y el qty de 11 como ejemplo:
+					if qty - LETTERS_NUMS[POS[i][3]] >= 0: letters.append(POS[i][3]); qty -= LETTERS_NUMS[POS[i][3]]		# 11 - 8 >= 0:  True.    Se agrega la D. al 10 se le restan los 8 y continuamos con el 2.
+					if qty - LETTERS_NUMS[POS[i][2]] >= 0: letters.append(POS[i][2]); qty -= LETTERS_NUMS[POS[i][2]]		#  2 - 4 >= 0: False. No se agrega la C. al  2 no se le resta nada.
+					if qty - LETTERS_NUMS[POS[i][1]] >= 0: letters.append(POS[i][1]); qty -= LETTERS_NUMS[POS[i][1]]		#  2 - 2 >= 0:  True.    Se agrega la B. al  2 se le restan los 2 y continuamos con el 0.
+					if qty - LETTERS_NUMS[POS[i][0]] >= 0: letters.append(POS[i][0])										#  0 - 2 >= 0: False. No se agrega la A.
+																															# El resultado final obtendriamos que las letras B y D si estan en el hexadecimal.
+				letters.sort()
+				
+				return letters
+			
+			# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer]
+			# "NoDrives"=hex:XX,XX,XX,XX 															# Las X representan hexadecimal
+			def hide(self, letters):
+				
+				if not type(letters) in [str, list, tuple, set]:
+					raise self.DriveLettersError('Solo se permiten letras de la \'A\' a la \'Z\' o conjunto de letras \'ABC\', \'A B C\' o [\'A\',\'B\',\'C\']')
+				
+				if type(letters) in [str, list, tuple]:
+					letters = set(letters)
+					if ' ' in letters: letters.remove(' ')
+					if '.' in letters: letters.remove('.')
+					if ',' in letters: letters.remove(',')
+					if '+' in letters: letters.remove('+')
+					if '-' in letters: letters.remove('-')
+					if '_' in letters: letters.remove('_')
+					
+				for letter in letters:
+					letter = letter.upper()
+					if not letter in self.LETTERS:
+						raise self.DriveLettersError('Solo se permiten letras de la \'A\' a la \'Z\' o conjunto de letras \'ABC\', \'A B C\' o [\'A\',\'B\',\'C\']')
+				
+				value = 0
+				for letter in letters:
+					letter = letter.upper()
+					value += self.LETTERS[letter]
+				value = self._int2bytes(value)														# Convierte el entero en bytes
+				
+				keyExists, hexadecimal = self._keyExists()											# Intenta abrir el key y extraer su valor.
+				
+				if not keyExists:
+					reg = WR.CreateKey(self.HKEY, self.PATH)
+					WR.SetValueEx(reg, self.VALUE, 0, WR.REG_BINARY, value)
+					WR.CloseKey(reg)
+				elif keyExists:																		# Si existe el key y esta deshabilitado, lo habilita.
+					reg = WR.OpenKey(self.HKEY, self.PATH, 0, WR.KEY_SET_VALUE)
+					WR.SetValueEx(reg, self.VALUE, 0, WR.REG_BINARY, value)
+					WR.CloseKey(reg)
+			
+			# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer]
+			# "NoDrives"=hex:XX,XX,XX,XX 															# Las X representan hexadecimal
+			def show(self, letters):
+				
+				res = self.enumHiddenDrives()							# Obtiene la lista de Letras actualmente ocultas
+				
+				for letter in letters:
+					letter = letter.upper()
+					if letter in res:
+						res.remove(letter)								# Quita la letra de la lista de Letras actualmente ocultas 
+				
+				self.hide(res)											# Actualiza la lista de letras ocultas
+			
+			# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer]
+			# "NoDrives"=hex:00,00,00,00
+			def showAll(self):
+				
+				keyExists, hexadecimal = self._keyExists()												# Intenta abrir el key y extraer su valor.
+				
+				if not keyExists:
+					reg = WR.CreateKey(self.HKEY, self.PATH)
+					WR.SetValueEx(reg, self.VALUE, 0, WR.REG_BINARY, bytes([0,0,0,0]))
+					WR.CloseKey(reg)
+				elif keyExists:																		# Si existe el key y esta deshabilitado, lo habilita.
+					reg = WR.OpenKey(self.HKEY, self.PATH, 0, WR.KEY_SET_VALUE)
+					WR.SetValueEx(reg, self.VALUE, 0, WR.REG_BINARY, bytes([0,0,0,0]))
+					WR.CloseKey(reg)
+			
+			# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer]
+			# "NoDrives"=-
+			def cleanUp(self):
+				
+				key_exists, _ = self._keyExists()
+				
+				if key_exists:
+					reg = WR.OpenKey(self.HKEY, self.PATH, 0, WR.KEY_SET_VALUE)
+					WR.DeleteValue(reg, self.VALUE)
 					WR.CloseKey(reg)
 		
 		class PowerPlan:
@@ -3751,7 +3966,13 @@ if __name__ == '__main__':
 	# ~ reg = utils.Utilities.AsciiFont.ansiRegular(__version__)
 	# ~ print('ansiShadow:\n' + reg)
 	
-	print(utils.Utilities.UBZ2.use)
+	# ~ print(utils.Utilities.UBZ2.use)
+	
+	utils.EditRegistry.PhysicalDrivesInWinExplorer.hide('ABCDEFGH')
+	# ~ utils.EditRegistry.PhysicalDrivesInWinExplorer.show('CFB')
+	print(utils.EditRegistry.PhysicalDrivesInWinExplorer.enumHiddenDrives())
+	# ~ utils.EditRegistry.PhysicalDrivesInWinExplorer.showAll()
+	# ~ utils.EditRegistry.PhysicalDrivesInWinExplorer.cleanUp()
 	
 	# ~ utils.Utilities.UBZ2.addIconToFileExtension()
 	
