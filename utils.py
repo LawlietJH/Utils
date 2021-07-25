@@ -1543,6 +1543,9 @@ class Utils:
 		def setCursorPos(self, posX, posY):								# Posiciona el cursor en (X, Y)
 			WA.SetCursorPos((posX, posY))
 		
+		def setTopMostWindow(self, hwnd=WG.GetForegroundWindow()):
+			WG.SetWindowPos(hwnd, WC.HWND_TOPMOST, *self.getWindowRect(hwnd), 0)
+		
 		def setTopWindow(self, proc_name='Administrador de tareas'):	# Coloca al frente una ventana, la busca por nombre.
 			
 			def aux(HWND,info):
@@ -1560,9 +1563,6 @@ class Utils:
 					PyCWnd1.SetForegroundWindow()
 					PyCWnd1.SetFocus()
 					return True
-		
-		def setTopMostWindow(self, hwnd=WG.GetForegroundWindow()):
-			WG.SetWindowPos(hwnd, WC.HWND_TOPMOST, *self.getWindowRect(hwnd), 0)
 		
 		def not_setDisplayRotation(self, monitor=0):						#[X] Rota la Pantalla 180 graods en el monitor seleccionado.
 			# monitor:
@@ -1646,6 +1646,72 @@ class Utils:
 			self.Programs = self.Programs()
 			self.PowerPlan = self.PowerPlan()
 			self.TaskManager = self.TaskManager()
+		
+		class DropBox:
+			# DropBox: {E31EA727-12ED-4702-820C-4B6445F28E1A}
+			def __init__(self):
+				
+				self.classes   = ObjectClassNames(self)
+				self.functions = None
+				self.functions = ObjectFunctionNames(self)
+				
+				self.HKEY  = WR.HKEY_CLASSES_ROOT
+				self.PATH  = r'CLSID\{E31EA727-12ED-4702-820C-4B6445F28E1A}'
+				self.VALUE   = 'System.IsPinnedToNameSpaceTree'
+				self.TRUE  = 0x00000001
+				self.FALSE = 0x00000000
+				
+				self.use = '''
+				\r Clase: DropBox
+				\r |
+				\r + Ejemplo de uso: Requieren Permisos de administrador.
+				\r |    
+				\r |    utils = Utils()
+				\r |    
+				\r |    # Para ocultar el acceso a la ruta de DropBox (Si se tiene instalado)
+				\r |    # que aparece del lado izquierdo en el explorador de archivos:
+				\r |    utils.EditRegistry.DropBox.disable()
+				\r |    
+				\r |    # Para mostrar el acceso a la ruta de DropBox (Si se tiene instalado)
+				\r |    # que aparece del lado izquierdo en el explorador de archivos:
+				\r |    utils.EditRegistry.DropBox.enable()
+				\r \\
+				'''
+			
+			def _keyExists(self):
+				try:
+					reg = WR.OpenKeyEx(self.HKEY, self.PATH)
+					value = WR.QueryValueEx(reg, self.VALUE)[0]
+					WR.CloseKey(reg)
+					return True, value
+				except:
+					return False, None
+			
+			# [HKEY_CLASSES_ROOT\CLSID\{E31EA727-12ED-4702-820C-4B6445F28E1A}]
+			# "System.IsPinnedToNameSpaceTree"=dword:00000001
+			def enable(self):
+				key_exists, isDisabled = self._keyExists()										# Intenta abrir el key y extraer su valor.
+				if not key_exists:																# Si no existe el key, lo crea y lo habilita.
+					reg = WR.CreateKey(self.HKEY, self.PATH)
+					WR.SetValueEx(reg, self.VALUE, 0,  WR.REG_DWORD, self.TRUE)
+					WR.CloseKey(reg)
+				elif key_exists and not isDisabled:												# Si existe el key y esta deshabilitado, lo habilita.
+					reg = WR.OpenKey(self.HKEY, self.PATH, 0, WR.KEY_SET_VALUE)
+					WR.SetValueEx(reg, self.VALUE, 0,  WR.REG_DWORD, self.TRUE)
+					WR.CloseKey(reg)
+			
+			# [HKEY_CLASSES_ROOT\CLSID\{E31EA727-12ED-4702-820C-4B6445F28E1A}]
+			# "System.IsPinnedToNameSpaceTree"=dword:00000000
+			def disable(self):
+				key_exists, isDisabled = self._keyExists()										# Intenta abrir el key y extraer su valor.
+				if not key_exists:																# Si no existe el key, lo crea y lo deshabilita.
+					reg = WR.CreateKey(self.HKEY, self.PATH)
+					WR.SetValueEx(reg, self.VALUE, 0,  WR.REG_DWORD, self.FALSE)
+					WR.CloseKey(reg)
+				elif key_exists and isDisabled:													# Si existe el key y esta habilitado, lo deshabilita.
+					reg = WR.OpenKey(self.HKEY, self.PATH, 0, WR.KEY_SET_VALUE)
+					WR.SetValueEx(reg, self.VALUE, 0,  WR.REG_DWORD, self.FALSE)
+					WR.CloseKey(reg)
 		
 		class Explorer:
 			
@@ -2363,72 +2429,6 @@ class Utils:
 				# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer]
 				# "ClassicShell"=-
 				def cleanUp(self): self.parent._cleanUp(self.parent.classicShell)
-		
-		class DropBox:
-			# DropBox: {E31EA727-12ED-4702-820C-4B6445F28E1A}
-			def __init__(self):
-				
-				self.classes   = ObjectClassNames(self)
-				self.functions = None
-				self.functions = ObjectFunctionNames(self)
-				
-				self.HKEY  = WR.HKEY_CLASSES_ROOT
-				self.PATH  = r'CLSID\{E31EA727-12ED-4702-820C-4B6445F28E1A}'
-				self.VALUE   = 'System.IsPinnedToNameSpaceTree'
-				self.TRUE  = 0x00000001
-				self.FALSE = 0x00000000
-				
-				self.use = '''
-				\r Clase: DropBox
-				\r |
-				\r + Ejemplo de uso: Requieren Permisos de administrador.
-				\r |    
-				\r |    utils = Utils()
-				\r |    
-				\r |    # Para ocultar el acceso a la ruta de DropBox (Si se tiene instalado)
-				\r |    # que aparece del lado izquierdo en el explorador de archivos:
-				\r |    utils.EditRegistry.DropBox.disable()
-				\r |    
-				\r |    # Para mostrar el acceso a la ruta de DropBox (Si se tiene instalado)
-				\r |    # que aparece del lado izquierdo en el explorador de archivos:
-				\r |    utils.EditRegistry.DropBox.enable()
-				\r \\
-				'''
-			
-			def _keyExists(self):
-				try:
-					reg = WR.OpenKeyEx(self.HKEY, self.PATH)
-					value = WR.QueryValueEx(reg, self.VALUE)[0]
-					WR.CloseKey(reg)
-					return True, value
-				except:
-					return False, None
-			
-			# [HKEY_CLASSES_ROOT\CLSID\{E31EA727-12ED-4702-820C-4B6445F28E1A}]
-			# "System.IsPinnedToNameSpaceTree"=dword:00000001
-			def enable(self):
-				key_exists, isDisabled = self._keyExists()										# Intenta abrir el key y extraer su valor.
-				if not key_exists:																# Si no existe el key, lo crea y lo habilita.
-					reg = WR.CreateKey(self.HKEY, self.PATH)
-					WR.SetValueEx(reg, self.VALUE, 0,  WR.REG_DWORD, self.TRUE)
-					WR.CloseKey(reg)
-				elif key_exists and not isDisabled:												# Si existe el key y esta deshabilitado, lo habilita.
-					reg = WR.OpenKey(self.HKEY, self.PATH, 0, WR.KEY_SET_VALUE)
-					WR.SetValueEx(reg, self.VALUE, 0,  WR.REG_DWORD, self.TRUE)
-					WR.CloseKey(reg)
-			
-			# [HKEY_CLASSES_ROOT\CLSID\{E31EA727-12ED-4702-820C-4B6445F28E1A}]
-			# "System.IsPinnedToNameSpaceTree"=dword:00000000
-			def disable(self):
-				key_exists, isDisabled = self._keyExists()										# Intenta abrir el key y extraer su valor.
-				if not key_exists:																# Si no existe el key, lo crea y lo deshabilita.
-					reg = WR.CreateKey(self.HKEY, self.PATH)
-					WR.SetValueEx(reg, self.VALUE, 0,  WR.REG_DWORD, self.FALSE)
-					WR.CloseKey(reg)
-				elif key_exists and isDisabled:													# Si existe el key y esta habilitado, lo deshabilita.
-					reg = WR.OpenKey(self.HKEY, self.PATH, 0, WR.KEY_SET_VALUE)
-					WR.SetValueEx(reg, self.VALUE, 0,  WR.REG_DWORD, self.FALSE)
-					WR.CloseKey(reg)
 		
 		class FoldersOnThisPC:
 			
@@ -5330,7 +5330,7 @@ class Utils:
 						break
 					else:
 						qty += 1
-			
+		
 		class Images:
 			
 			def __init__(self):
@@ -5834,6 +5834,7 @@ STRUCT = '''\
     ║   ├── function exitWindows
     ║   ├── function getPrivileges
     ║   ├── function getProcessPrivileges
+    ║   ├── function getWindowRect
     ║   ├── function hideConsole
     ║   ├── function hideCursor
     ║   ├── function killProcess
@@ -5842,6 +5843,7 @@ STRUCT = '''\
     ║   ├── function minimizeWindowCMD
     ║   ├── function screenshot
     ║   ├── function setCursorPos
+    ║   ├── function setTopMostWindow
     ║   ├── function setTopWindow
     ║   ├── function setPriorityPID
     ║   └── function startApp
@@ -5849,69 +5851,74 @@ STRUCT = '''\
     ╠═ EditRegistry
     ║   ║
     ║   ║ - Classes: ─────────────────────────
-    ║   ╠══ Class ContextMenu
-    ║   ║    │
-    ║   ║    │ - Functions: ──────────────────
-    ║   ║    ├── function enable
-    ║   ║    ├── function disable
-    ║   ║    └── function cleanUp
-    ║   ║
     ║   ╠══ Class DropBox
     ║   ║    │
     ║   ║    │ - Functions: ──────────────────
     ║   ║    ├── function enable
     ║   ║    └── function disable
     ║   ║
+    ║   ╠══ Class Explorer
+    ║   ║    ║
+    ║   ║    ║ - Classes: ────────────────────
+    ║   ║    ╠══ Class ControlPanel
+    ║   ║    ╠══ Class ContextMenu
+    ║   ║    ╠══ Class Clock
+    ║   ║    ╠══ Class SCAHealth
+    ║   ║    ╠══ Class SCANetwork
+    ║   ║    ╠══ Class SCAPower
+    ║   ║    ╠══ Class SCAVolume
+    ║   ║    ╠══ Class ActiveDesktop
+    ║   ║    ╠══ Class AutoTrayNotify
+    ║   ║    ╠══ Class DrivesInSendToMenu
+    ║   ║    ╠══ Class FavoritesMenu
+    ║   ║    ╠══ Class InternetOpenWith
+    ║   ║    ╠══ Class RecentDocsMenu
+    ║   ║    ╠══ Class Run
+    ║   ║    ╠══ Class SaveSettings
+    ║   ║    ╠══ Class TrayItemsDisplay
+    ║   ║    ╠══ Class ClassicShell
+    ║   ║    ╠══ Class PropertiesRecycleBin
+    ║   ║    ╚══ Class Close
+    ║   ║
     ║   ╠══ Class FoldersOnThisPC
     ║   ║    ║
     ║   ║    ║ - Classes: ────────────────────
     ║   ║    ╠══ Class Folder3DObjects
-    ║   ║    ║    │
-    ║   ║    ║    │ - Functions: ─────────────
-    ║   ║    ║    ├── function show
-    ║   ║    ║    └── function hide
-    ║   ║    ║
     ║   ║    ╠══ Class FolderDesktop
-    ║   ║    ║    │
-    ║   ║    ║    │ - Functions: ─────────────
-    ║   ║    ║    ├── function show
-    ║   ║    ║    └── function hide
-    ║   ║    ║
     ║   ║    ╠══ Class FolderDocuments
-    ║   ║    ║    │
-    ║   ║    ║    │ - Functions: ─────────────
-    ║   ║    ║    ├── function show
-    ║   ║    ║    └── function hide
-    ║   ║    ║
     ║   ║    ╠══ Class FolderDownloads
-    ║   ║    ║    │
-    ║   ║    ║    │ - Functions: ─────────────
-    ║   ║    ║    ├── function show
-    ║   ║    ║    └── function hide
-    ║   ║    ║
     ║   ║    ╠══ Class FolderMusic
-    ║   ║    ║    │
-    ║   ║    ║    │ - Functions: ─────────────
-    ║   ║    ║    ├── function show
-    ║   ║    ║    └── function hide
-    ║   ║    ║
     ║   ║    ╠══ Class FolderPictures
-    ║   ║    ║    │
-    ║   ║    ║    │ - Functions: ─────────────
-    ║   ║    ║    ├── function show
-    ║   ║    ║    └── function hide
-    ║   ║    ║
     ║   ║    ╚══ Class FolderVideos
-    ║   ║         │
-    ║   ║         │ - Functions: ─────────────
-    ║   ║         ├── function show
-    ║   ║         └── function hide
     ║   ║
     ║   ╠══ Class OneDrive
     ║   ║    │
     ║   ║    │ - Functions: ──────────────────
     ║   ║    ├── function enable
     ║   ║    └── function disable
+    ║   ║
+    ║   ╠══ Class PhysicalDrivesInWinExplorer
+    ║   ║    ║
+    ║   ║    ║ - Error Classes: ──────────────
+    ║   ║    ╠══ Class DriveLettersError
+    ║   ║    │
+    ║   ║    │ - Functions: ──────────────────
+    ║   ║    ├── function enumHiddenDrives
+    ║   ║    ├── function hide
+    ║   ║    ├── function show
+    ║   ║    ├── function showAll
+    ║   ║    └── function cleanUp
+    ║   ║
+    ║   ╠══ Class Programs
+    ║   ║    ║
+    ║   ║    ║ - Classes: ────────────────────
+    ║   ║    ╠══ Class ProgramsAndFeatures
+    ║   ║    ╠══ Class WindowsFeatures
+    ║   ║    ╠══ Class WindowsMarketplace
+    ║   ║    ╠══ Class ProgramsControlPanel
+    ║   ║    ╠══ Class InstalledUpdates
+    ║   ║    ╠══ Class DefaultPrograms
+    ║   ║    ╚══ Class GetPrograms
     ║   ║
     ║   ╠══ Class PowerPlan
     ║   ║    ║
@@ -6008,6 +6015,41 @@ STRUCT = '''\
         ║    └── function rammstein
         ║
         ╠══ Class DoomsdayRule
+        ║    ║
+        ║    ║ - Error Classes: ──────────────
+        ║    ╠══ Class MonthDoesNotExist
+        ║    ╠══ Class InvalidDate
+        ║    │
+        ║    │ - Functions: ──────────────────
+        ║    ├── function getWeekday (Principal)
+        ║    ├── function getRandomDate
+        ║    ├── function isLeapYear
+        ║    ├── function getCenturyBaseDay
+        ║    ├── function getBaseDayOfDecade
+        ║    ├── function isValidDate
+        ║    ├── function getDateValues
+        ║    ├── function getMonthValue
+        ║    └── function calculateWeekday
+        ║
+        ╠══ Class Images
+        ║    ║
+        ║    ║ - Error Classes: ──────────────
+        ║    ╠══ Class MonthDoesNotExist
+        ║    │
+        ║    │ - Functions: ──────────────────
+        ║    ├── function convertFromCv2ToImage
+        ║    ├── function convertFromImageToCv2
+        ║    ├── function screenshot
+        ║    ├── function cropImage
+        ║    ├── function compare
+        ║    ├── function get_grayscale
+        ║    ├── function remove_noise
+        ║    ├── function thresholding
+        ║    ├── function histogram
+        ║    ├── function dilate
+        ║    ├── function erode
+        ║    ├── function opening
+        ║    └── function canny
         ║
         ╠══ Class UBZ2
         ║    ║
