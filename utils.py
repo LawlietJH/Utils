@@ -1,18 +1,18 @@
 
 # Tested in: Python 3.8.8 - Windows
 # By: LawlietJH
-# Utils v1.0.6
+# Utils v1.0.7
 
 # Banner:
 # ███    █▄      ███      ▄█   ▄█          ▄████████ 
 # ███    ███ ▀█████████▄ ███  ███         ███    ███ 
 # ███    ███    ▀███▀▀██ ███▌ ███         ███    █▀  
 # ███    ███     ███   ▀ ███▌ ███         ███        
-# ███    ███     ███     ███▌ ███       ▀███████████    ██    ██  ██     ██████      ██████
-# ███    ███     ███     ███  ███                ███    ██    ██ ███    ██  ████    ██
-# ███    ███     ███     ███  ███▌    ▄    ▄█    ███    ██    ██  ██    ██ ██ ██    ███████
-# ████████▀     ▄████▀   █▀   █████▄▄██  ▄████████▀      ██  ██   ██    ████  ██    ██    ██
-#                             ▀                           ████    ██ ██  ██████  ██  ██████
+# ███    ███     ███     ███▌ ███       ▀███████████    ██    ██  ██     ██████     ███████
+# ███    ███     ███     ███  ███                ███    ██    ██ ███    ██  ████         ██
+# ███    ███     ███     ███  ███▌    ▄    ▄█    ███    ██    ██  ██    ██ ██ ██        ██
+# ████████▀     ▄████▀   █▀   █████▄▄██  ▄████████▀      ██  ██   ██    ████  ██       ██
+#                             ▀                           ████    ██ ██  ██████  ██    ██
 
 from datetime import datetime
 import pywintypes
@@ -21,13 +21,17 @@ import requests						# python -m pip install requests
 import hashlib
 import atexit
 import psutil						# python -m pip install psutil
+import random
 import socket
 import string
+import numpy						# python -m pip install numpy
 import json
 import math
 import time
+import cv2							# pip install opencv-python scipy
 import bz2
 import mss							# python -m pip install mss
+import PIL							# python -m pip install pillow
 import sys
 import wmi							# python -m pip install wmi
 import re
@@ -66,7 +70,7 @@ import winreg			as WR
 #=======================================================================
 __author__  = 'LawlietJH'	# Desarrollador
 __title__   = 'Utils'		# Nombre
-__version__ = 'v1.0.6'		# Version
+__version__ = 'v1.0.7'		# Version
 #=======================================================================
 #=======================================================================
 # Constants ============================================================
@@ -279,6 +283,8 @@ class Utils:
 			# Clases Internas:
 			self.Clipboard = self.Clipboard()
 			self.Explorer  = self.Explorer()
+			self.Keyboard  = self.Keyboard()
+			self.Mouse     = self.Mouse()
 			self.VBS       = self.VBS()
 			
 			# Conexiones a Clases hermanas:
@@ -443,6 +449,334 @@ class Utils:
 													  filetypes = file_types)
 				if not f_name == '':
 					return f_name
+		
+		#---------------------------------------------------------------
+		
+		class Keyboard:													# Controla eventos del Teclado
+			
+			def __init__(self):
+				
+				self.classes   = ObjectClassNames(self)
+				self.functions = None
+				self.functions = ObjectFunctionNames(self)
+				
+				# Giant dictonary to hold key name and VK value
+				# https://gist.github.com/chriskiehl/2906125
+				self.VK = {
+					'left button': 0x01,
+					'right button': 0x02,
+					'middle button': 0x04,
+					'x button 1': 0x05,
+					'x button 2': 0x06,
+					'backspace': 0x08,
+					'tab': 0x09,
+					'clear': 0x0C,
+					'enter': 0x0D,
+					'shift': 0x10,
+					'ctrl': 0x11,
+					'alt': 0x12,
+					'pause': 0x13,
+					'caps lock': 0x14,
+					'esc': 0x1B,
+					'spacebar': 0x20,
+					' ': 0x20,
+					'page up': 0x21,
+					'page down': 0x22,
+					'end': 0x23,
+					'home': 0x24,
+					'left arrow': 0x25,
+					'up arrow': 0x26,
+					'right arrow': 0x27,
+					'down arrow': 0x28,
+					'select': 0x29,
+					'print': 0x2A,
+					'execute': 0x2B,
+					'print screen': 0x2C,
+					'ins': 0x2D,
+					'del': 0x2E,
+					'help': 0x2F,
+					'0': 0x30,
+					'1': 0x31,
+					'2': 0x32,
+					'3': 0x33,
+					'4': 0x34,
+					'5': 0x35,
+					'6': 0x36,
+					'7': 0x37,
+					'8': 0x38,
+					'9': 0x39,
+					'a': 0x41,
+					'b': 0x42,
+					'c': 0x43,
+					'd': 0x44,
+					'e': 0x45,
+					'f': 0x46,
+					'g': 0x47,
+					'h': 0x48,
+					'i': 0x49,
+					'j': 0x4A,
+					'k': 0x4B,
+					'l': 0x4C,
+					'm': 0x4D,
+					'n': 0x4E,
+					'o': 0x4F,
+					'p': 0x50,
+					'q': 0x51,
+					'r': 0x52,
+					's': 0x53,
+					't': 0x54,
+					'u': 0x55,
+					'v': 0x56,
+					'w': 0x57,
+					'x': 0x58,
+					'y': 0x59,
+					'z': 0x5A,
+					'numpad 0': 0x60,
+					'numpad 1': 0x61,
+					'numpad 2': 0x62,
+					'numpad 3': 0x63,
+					'numpad 4': 0x64,
+					'numpad 5': 0x65,
+					'numpad 6': 0x66,
+					'numpad 7': 0x67,
+					'numpad 8': 0x68,
+					'numpad 9': 0x69,
+					'multiply key': 0x6A,
+					'add key': 0x6B,
+					'separator key': 0x6C,
+					'subtract key': 0x6D,
+					'decimal key': 0x6E,
+					'divide key': 0x6F,
+					'F1': 0x70,
+					'F2': 0x71,
+					'F3': 0x72,
+					'F4': 0x73,
+					'F5': 0x74,
+					'F6': 0x75,
+					'F7': 0x76,
+					'F8': 0x77,
+					'F9': 0x78,
+					'F10': 0x79,
+					'F11': 0x7A,
+					'F12': 0x7B,
+					'F13': 0x7C,
+					'F14': 0x7D,
+					'F15': 0x7E,
+					'F16': 0x7F,
+					'F17': 0x80,
+					'F18': 0x81,
+					'F19': 0x82,
+					'F20': 0x83,
+					'F21': 0x84,
+					'F22': 0x85,
+					'F23': 0x86,
+					'F24': 0x87,
+					'num lock': 0x90,
+					'scroll lock': 0x91,
+					'left shift': 0xA0,
+					'right shift': 0xA1,
+					'left control': 0xA2,
+					'right control': 0xA3,
+					'left menu': 0xA4,
+					'right menu': 0xA5,
+					'browser back': 0xA6,
+					'browser forward': 0xA7,
+					'browser refresh': 0xA8,
+					'browser stop': 0xA9,
+					'browser search': 0xAA,
+					'browser favorites': 0xAB,
+					'browser start and home': 0xAC,
+					'volume mute': 0xAD,
+					'volume down': 0xAE,
+					'volume up': 0xAF,
+					'next track': 0xB0,
+					'previous track': 0xB1,
+					'stop media': 0xB2,
+					'play/pause media': 0xB3,
+					'start mail': 0xB4,
+					'select media': 0xB5,
+					'start application 1': 0xB6,
+					'start application 2': 0xB7,
+					'attn key': 0xF6,
+					'crsel key': 0xF7,
+					'exsel key': 0xF8,
+					'play key': 0xFA,
+					'zoom key': 0xFB,
+					'clear key': 0xFE,
+					'+': 0xBB,
+					',': 0xBC,
+					'-': 0xBD,
+					'.': 0xBE,
+					'/': 0xBF,
+					'`': 0xC0,
+					';': 0xBA,
+					'[': 0xDB,
+					'\\': 0xDC,
+					']': 0xDD,
+					"'": 0xDE,
+					'`': 0xC0
+				}
+			
+			def getVK(self, vk=''):
+				try:
+					return self.VK[vk.lower()]
+				except:
+					return None
+			
+			def getKeyState(self, vk=''):
+				return WA.GetKeyState(self.VK[vk.lower()])
+			
+			def press(self, *args):
+				'''
+				one press, one release.
+				accepts as many arguments as you want. e.g. press('left arrow', 'a','b').
+				'''
+				for char in args:
+					WA.keybd_event(self.VK[char.lower()], 0, 0, 0)
+					time.sleep(.05)
+					WA.keybd_event(self.VK[char.lower()], 0, WC.KEYEVENTF_KEYUP, 0)
+			
+			def pressAndHold(self, *args):
+				'''
+				press and hold. Do NOT release.
+				accepts as many arguments as you want.
+				e.g. pressAndHold('left arrow', 'a','b').
+				'''
+				for char in args:
+					WA.keybd_event(self.VK[char.lower()], 0, 0, 0)
+					time.sleep(.05)
+			
+			def pressHoldRelease(self, *args):
+				'''
+				press and hold passed in strings. Once held, release
+				accepts as many arguments as you want.
+				e.g. pressAndHold('left arrow', 'a', 'b').
+
+				this is useful for issuing shortcut command or shift commands.
+				e.g. pressHoldRelease('ctrl', 'alt', 'del'), pressHoldRelease('shift','a')
+				'''
+				for char in args:
+					WA.keybd_event(self.VK[char.lower()], 0, 0, 0)
+					time.sleep(.05)
+						
+				for char in args:
+					WA.keybd_event(self.VK[char.lower()], 0, WC.KEYEVENTF_KEYUP, 0)
+					time.sleep(.1)
+			
+			def release(self, *args):
+				'''
+				release depressed keys
+				accepts as many arguments as you want.
+				e.g. release('left arrow', 'a','b').
+				'''
+				for char in args:
+					WA.keybd_event(self.VK[char.lower()], 0, WC.KEYEVENTF_KEYUP, 0)
+			
+			def typeWithShift(self, vk=''):
+				WA.keybd_event(self.VK['left shift'], 0, 0, 0)
+				WA.keybd_event(self.VK[vk], 0, 0, 0)
+				time.sleep(.05)
+				WA.keybd_event(self.VK['left shift'], 0, WC.KEYEVENTF_KEYUP, 0)
+				WA.keybd_event(self.VK[vk], 0, WC.KEYEVENTF_KEYUP, 0)
+			
+			def typer(self, string=''):
+				for char in string:
+					if   char == '!': self.typeWithShift('1')
+					elif char == '@': self.typeWithShift('2')
+					elif char == '{': self.typeWithShift('[')
+					elif char == '?': self.typeWithShift('/')
+					elif char == ':': self.typeWithShift(';')
+					elif char == '"': self.typeWithShift('\'')
+					elif char == '}': self.typeWithShift(']')
+					elif char == '#': self.typeWithShift('3')
+					elif char == '$': self.typeWithShift('4')
+					elif char == '%': self.typeWithShift('5')
+					elif char == '^': self.typeWithShift('6')
+					elif char == '&': self.typeWithShift('7')
+					elif char == '*': self.typeWithShift('8')
+					elif char == '(': self.typeWithShift('9')
+					elif char == ')': self.typeWithShift('0')
+					elif char == '_': self.typeWithShift('-')
+					elif char == '=': self.typeWithShift('+')
+					elif char == '~': self.typeWithShift('`')
+					elif char == '<': self.typeWithShift(',')
+					elif char == '>': self.typeWithShift('.')
+					elif char in 'ABCDEFGHIJKLMNOPQRSTUVWXYZ':
+						self.typeWithShift(char.lower())
+					else:
+						WA.keybd_event(self.VK[char.lower()], 0, 0, 0)
+						time.sleep(.05)
+						WA.keybd_event(self.VK[char.lower()], 0, WC.KEYEVENTF_KEYUP, 0)
+		
+		#---------------------------------------------------------------
+		
+		class Mouse:													# Controla eventos del Mouse
+			
+			def __init__(self):
+				
+				self.classes   = ObjectClassNames(self)
+				self.functions = None
+				self.functions = ObjectFunctionNames(self)
+				
+				# https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-mouse_event
+				self.MOUSEEVENTF_LEFTDOWN   = 0x0002
+				self.MOUSEEVENTF_LEFTUP     = 0x0004
+				self.MOUSEEVENTF_RIGHTDOWN  = 0x0008
+				self.MOUSEEVENTF_RIGHTUP    = 0x0010
+				self.MOUSEEVENTF_MIDDLEDOWN = 0x0020
+				self.MOUSEEVENTF_MIDDLEUP   = 0x0040
+				# ~ self.MOUSEEVENTF_MOVE       = 0x0001
+				# ~ self.MOUSEEVENTF_WHEEL      = 0x0800
+				# ~ self.MOUSEEVENTF_XDOWN      = 0x0080
+				# ~ self.MOUSEEVENTF_XUP        = 0x0100
+				# ~ self.MOUSEEVENTF_HWHEEL     = 0x01000
+				# ~ self.MOUSEEVENTF_ABSOLUTE   = 0x8000
+			
+			# print(Mouse.position)
+			@property
+			def position(self):											# Devuelve la posición actual del cursor en pantalla en (X, Y) pixeles
+				return WA.GetCursorPos()
+			
+			# Mouse.position = (100, 100)
+			@position.setter
+			def position(self, position):								# Posiciona el cursor en (X, Y)
+				WA.SetCursorPos(position)
+			
+			def leftClick(self, qty=1, sleep=0.01):									# Da un clic izquierdo en la posición actual del cursor
+				for x in range(qty):
+					ctypes.windll.user32.mouse_event(self.MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0)
+					time.sleep(sleep)
+					ctypes.windll.user32.mouse_event(self.MOUSEEVENTF_LEFTUP,   0, 0, 0, 0)
+			
+			def leftClickDown(self):									# Da un clic izquierdo en la posición actual del cursor y lo mantiene
+				ctypes.windll.user32.mouse_event(self.MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0)
+			
+			def leftClickUp(self):										# Deja de presionar el clic izquierdo
+				ctypes.windll.user32.mouse_event(self.MOUSEEVENTF_LEFTUP, 0, 0, 0, 0)
+			
+			def rightClick(self, qty=1, sleep=0.01):								# Da un clic derecho en la posición actual del cursor
+				for x in range(qty):
+					ctypes.windll.user32.mouse_event(self.MOUSEEVENTF_RIGHTDOWN, 0, 0, 0, 0)
+					time.sleep(sleep)
+					ctypes.windll.user32.mouse_event(self.MOUSEEVENTF_RIGHTUP,   0, 0, 0, 0)
+			
+			def rightClickDown(self):									# Da un clic derecho en la posición actual del cursor y lo mantiene
+				ctypes.windll.user32.mouse_event(self.MOUSEEVENTF_RIGHTDOWN, 0, 0, 0, 0)
+			
+			def rightClickUp(self):										# Deja de presionar el clic derecho
+				ctypes.windll.user32.mouse_event(self.MOUSEEVENTF_RIGHTUP, 0, 0, 0, 0)
+			
+			def middleClick(self, qty=1, sleep=0.01):								# Da un clic central (rueda del mouse) en la posición actual del cursor
+				for x in range(qty):
+					ctypes.windll.user32.mouse_event(self.MOUSEEVENTF_MIDDLEDOWN, 0, 0, 0, 0)
+					time.sleep(sleep)
+					ctypes.windll.user32.mouse_event(self.MOUSEEVENTF_MIDDLEUP,   0, 0, 0, 0)
+			
+			def middleClickDown(self):									# Da un clic central (presionando rueda del mouse) en la posición actual del cursor y lo mantiene
+				ctypes.windll.user32.mouse_event(self.MOUSEEVENTF_MIDDLEDOWN, 0, 0, 0, 0)
+			
+			def middleClickUp(self):										# Deja de presionar el clic central (rueda del mouse)
+				ctypes.windll.user32.mouse_event(self.MOUSEEVENTF_MIDDLEUP, 0, 0, 0, 0)
 		
 		#---------------------------------------------------------------
 		
@@ -981,7 +1315,7 @@ class Utils:
 			if not 0 <= tipo <= 3: tipo = 0
 			tipos = ['/internal', '/clone', '/extend', '/external']
 			cmd = 'displayswitch.exe ' + tipos[tipo]
-			print(cmd)
+			# ~ print(cmd)
 			self.run_command(cmd)
 		
 		def exitWindows(self, type_output):								# LogOff = Cierre Total de Sesión, Cierra Todas Las Aplicaciones.
@@ -1048,6 +1382,13 @@ class Utils:
 			except: privlist = 'N/A'
 			
 			return privlist
+		
+		def getWindowRect(self, hwnd):
+			rect = WG.GetWindowRect(hwnd)
+			x, y = rect[:2]
+			w = rect[2] - x
+			h = rect[3] - y
+			return (x, y, w, h)
 		
 		def hideConsole(self, xD=True):									# Oculta/Desoculta la consola de comandos
 			WG.ShowWindow(WCS.GetConsoleWindow(), not xD)
@@ -1189,7 +1530,7 @@ class Utils:
 			
 			if os.path.isfile(screen_name):
 				while os.path.isfile(scree_new_name):
-					print(os.path.isfile(scree_new_name))
+					# ~ print(os.path.isfile(scree_new_name))
 					data += 1
 					scree_new_name = 'Screenshots\\Screenshot_{}.jpg'.format(str(data).zfill(3))
 				os.rename(screen_name, scree_new_name)
@@ -1219,6 +1560,9 @@ class Utils:
 					PyCWnd1.SetForegroundWindow()
 					PyCWnd1.SetFocus()
 					return True
+		
+		def setTopMostWindow(self, hwnd=WG.GetForegroundWindow()):
+			WG.SetWindowPos(hwnd, WC.HWND_TOPMOST, *self.getWindowRect(hwnd), 0)
 		
 		def not_setDisplayRotation(self, monitor=0):						#[X] Rota la Pantalla 180 graods en el monitor seleccionado.
 			# monitor:
@@ -1285,7 +1629,8 @@ class Utils:
 			WA.WinExec(name)
 	
 	class EditRegistry:	# Interacciones con el Registro de Windows (RegEdit)
-		# Requiere Permisos de Administrador
+		# Las Modificaciónes Requieren Permisos de Administrador.
+		# Por ejemplo las funciones: enable, disable, show, hide y cleanUp.
 		def __init__(self):
 			
 			self.classes   = ObjectClassNames(self)
@@ -1293,17 +1638,21 @@ class Utils:
 			self.functions = ObjectFunctionNames(self)
 			
 			# Clases Internas:
-			self.ContextMenu = self.ContextMenu()
 			self.DropBox = self.DropBox()
+			self.Explorer = self.Explorer()
 			self.FoldersOnThisPC = self.FoldersOnThisPC()
 			self.OneDrive = self.OneDrive()
+			self.PhysicalDrivesInWinExplorer = self.PhysicalDrivesInWinExplorer()
+			self.Programs = self.Programs()
 			self.PowerPlan = self.PowerPlan()
 			self.TaskManager = self.TaskManager()
-			self.PhysicalDrivesInWinExplorer = self.PhysicalDrivesInWinExplorer()
 		
-		class ContextMenu:
+		class Explorer:
 			
 			def __init__(self):
+				''' Oculta o Desoculta las páginas que se indiquen,
+				por ejemplo el contenido en la ventana de
+				"Programas y características".'''
 				
 				self.classes   = ObjectClassNames(self)
 				self.functions = None
@@ -1311,71 +1660,709 @@ class Utils:
 				
 				self.HKEY = WR.HKEY_CURRENT_USER
 				self.PATH = r'SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer'
-				self.KEY  = 'NoViewContextMenu'
-				self.HIDE = 0x00000001
-				self.SHOW = 0x00000000
+				self.SHOW = 0
+				self.HIDE = 1
+				
+				# Valores para esta ruta:
+				self.controlPanel       = 'NoControlPanel'
+				self.viewContextMenu    = 'NoViewContextMenu'
+				self.clock              = 'HideClock'
+				self.SCAHealthVal       = 'HideSCAHealth'
+				self.SCANetworkVal      = 'HideSCANetwork'
+				self.SCAPowerVal        = 'HideSCAPower'
+				self.SCAVolumeVal       = 'HideSCAVolume'
+				self.activeDesktop      = 'NoActiveDesktop'
+				self.autoTrayNotify     = 'NoAutoTrayNotify'
+				self.drivesInSendToMenu = 'NoDrivesInSendToMenu'
+				self.favoritesMenu      = 'NoFavoritesMenu'
+				self.internetOpenWith   = 'NoInternetOpenWith'
+				self.recentDocsMenu     = 'NoRecentDocsMenu'
+				self.run                = 'NoRun'
+				self.saveSettings       = 'NoSaveSettings'
+				self.trayItemsDisplay   = 'NoTrayItemsDisplay'
+				self.classicShell       = 'ClassicShell'
+				#self.activeDesktopChanges = 'NoActiveDesktopChanges'
+				self.propertiesRecycleBin = 'NoPropertiesRecycleBin'
+				self.close              = 'NoClose'
+				# Modificadas:
+				self.windowMinimizingShortcuts = 'NoWindowMinimizingShortcuts'
+				
+				# Clases Internas:
+				self.ControlPanel       = self.ControlPanel(self)
+				self.ContextMenu        = self.ContextMenu(self)
+				self.Clock              = self.Clock(self)
+				self.SCAHealth          = self.SCAHealth(self)
+				self.SCANetwork         = self.SCANetwork(self)
+				self.SCAPower           = self.SCAPower(self)
+				self.SCAVolume          = self.SCAVolume(self)
+				self.ActiveDesktop      = self.ActiveDesktop(self)
+				self.AutoTrayNotify     = self.AutoTrayNotify(self)
+				self.DrivesInSendToMenu = self.DrivesInSendToMenu(self)
+				self.FavoritesMenu      = self.FavoritesMenu(self)
+				self.InternetOpenWith   = self.InternetOpenWith(self)
+				self.RecentDocsMenu     = self.RecentDocsMenu(self)
+				self.Run                = self.Run(self)
+				self.SaveSettings       = self.SaveSettings(self)
+				self.TrayItemsDisplay   = self.TrayItemsDisplay(self)
+				self.ClassicShell       = self.ClassicShell(self)
+				#self.ActiveDesktopChanges = self.ActiveDesktopChanges(self)
+				self.PropertiesRecycleBin = self.PropertiesRecycleBin(self)
+				self.Close              = self.Close(self)
+				# Modificadas:
+				self.WindowMinimizingShortcuts = self.WindowMinimizingShortcuts(self)
+				
+				self.enumValues = [
+					'ControlPanel',
+					'ContextMenu',
+					'Clock',
+					'SCAHealth',
+					'SCANetwork',
+					'SCAPower',
+					'SCAVolume',
+					'ActiveDesktop',
+					'AutoTrayNotify',
+					'DrivesInSendToMenu',
+					'FavoritesMenu',
+					'InternetOpenWith',
+					'RecentDocsMenu',
+					'Run',
+					'SaveSettings',
+					'TrayItemsDisplay',
+					'ClassicShell',
+					#'ActiveDesktopChanges',
+					'PropertiesRecycleBin',
+					'Close'
+				]
 				
 				self.use = '''
-				\r Clase: ContextMenu
+				\r Clase: Explorer
 				\r |
 				\r + Ejemplo de uso: Requieren Permisos de administrador.
 				\r |    
 				\r |    utils = Utils()
 				\r |    
-				\r |    # Para deshabilitar el uso de el Menu Contextual (dar clic derecho):
-				\r |    utils.EditRegistry.ContextMenu.disable()
+				\r |    # Para ver los valores que estan disponibles para
+				\r |    # ocultar o desocultar:
+				\r |    print(utils.EditRegistry.Explorer.enumValues)
 				\r |    
-				\r |    # Para habilitar el uso de el Menu Contextual (dar clic derecho):
-				\r |    utils.EditRegistry.ContextMenu.enable()
+				\r |    # Para ocultar el 'Panel de Control':
+				\r |    utils.EditRegistry.Explorer.ControlPanel.hide()
 				\r |    
-				\r |    # Para eliminar los cambios realizados en el registro:
-				\r |    utils.EditRegistry.ContextMenu.cleanUp()
+				\r |    # Para desocultar el 'Panel de Control':
+				\r |    utils.EditRegistry.Explorer.ControlPanel.show()
+				\r |    
+				\r |    # Es posible utilizar las funciones enable() en
+				\r |    # lugar de show() y disable() en lugar de hide()
+				\r |    
+				\r |    # Para deshacer el cambio realizados en el registro
+				\r |    # dejando el valor por defecto del windows:
+				\r |    utils.EditRegistry.Explorer.ControlPanel.cleanUp()
+				\r |    
+				\r |    # Para ver su descripción y características:
+				\r |    print(utils.EditRegistry.Explorer.ControlPanel.description)
+				\r |    
+				\r |    # Se puede aplicar lo mismo que con 'ControlPanel' (Panel
+				\r |    # de Control) para cualquier otro valor mostrado en enumValues
+				\r |    
+				\r |    # Requiere reiniciar el explroador de archivos para aplicar
+				\r |    # cambios. Se puede utilizar el siguiente comando desde la
+				\r |    # consola de comandos (cmd):
+				\r |    #     taskkill /F /IM explorer.exe & start explorer.exe
 				\r \\
 				'''
 			
-			def _keyExists(self):
+			def _keyExists(self, VALUE):
 				try:
 					reg = WR.OpenKeyEx(self.HKEY, self.PATH)
-					value = WR.QueryValueEx(reg, self.KEY)[0]
+					value = WR.QueryValueEx(reg, VALUE)[0]
 					WR.CloseKey(reg)
 					return True, value
 				except:
 					return False, None
 			
-			# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer]
-			# "NoViewContextMenu"=dword:00000000
-			def enable(self):
-				key_exists, isDisabled = self._keyExists()										# Intenta abrir el key y extraer su valor.
-				if not key_exists:																# Si no existe el key, lo crea y lo habilita.
+			def _show(self, VALUE):
+				key_exists, isHidden = self._keyExists(VALUE)										# Intenta abrir el key y extraer su valor.
+				if not key_exists:																	# Si no existe el key, lo crea y lo habilita.
 					reg = WR.CreateKey(self.HKEY, self.PATH)
-					WR.SetValueEx(reg, self.KEY, 0,  WR.REG_DWORD, self.SHOW)
+					WR.SetValueEx(reg, VALUE, 0,  WR.REG_DWORD, self.SHOW)
 					WR.CloseKey(reg)
-				elif key_exists and isDisabled:													# Si existe el key y esta deshabilitado, lo habilita.
+				elif key_exists and isHidden:														# Si existe el key y esta deshabilitado, lo habilita.
 					reg = WR.OpenKey(self.HKEY, self.PATH, 0, WR.KEY_SET_VALUE)
-					WR.SetValueEx(reg, self.KEY, 0,  WR.REG_DWORD, self.SHOW)
+					WR.SetValueEx(reg, VALUE, 0,  WR.REG_DWORD, self.SHOW)
 					WR.CloseKey(reg)
 			
-			# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer]
-			# "NoViewContextMenu"=dword:00000001
-			def disable(self):
-				key_exists, isDisabled = self._keyExists()										# Intenta abrir el key y extraer su valor.
-				if not key_exists:																# Si no existe el key, lo crea y lo deshabilita.
+			def _hide(self, VALUE):
+				key_exists, isHidden = self._keyExists(VALUE)										# Intenta abrir el key y extraer su valor.
+				if not key_exists:																	# Si no existe el key, lo crea y lo deshabilita.
 					reg = WR.CreateKey(self.HKEY, self.PATH)
-					WR.SetValueEx(reg, self.KEY, 0,  WR.REG_DWORD, self.HIDE)
+					WR.SetValueEx(reg, VALUE, 0,  WR.REG_DWORD, self.HIDE)
 					WR.CloseKey(reg)
-				elif key_exists and not isDisabled:												# Si existe el key y esta habilitado, lo deshabilita.
+				elif key_exists and not isHidden:													# Si existe el key y esta habilitado, lo deshabilita.
 					reg = WR.OpenKey(self.HKEY, self.PATH, 0, WR.KEY_SET_VALUE)
-					WR.SetValueEx(reg, self.KEY, 0,  WR.REG_DWORD, self.HIDE)
+					WR.SetValueEx(reg, VALUE, 0,  WR.REG_DWORD, self.HIDE)
 					WR.CloseKey(reg)
 			
-			# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System]
-			# "DisableTaskMgr"=-
-			def cleanUp(self):
-				key_exists, isDisabled = self._keyExists()
+			def _cleanUp(self, VALUE):
+				key_exists, isHidden = self._keyExists(VALUE)
 				if key_exists:
 					reg = WR.OpenKey(self.HKEY, self.PATH, 0, WR.KEY_SET_VALUE)
-					WR.DeleteValue(reg, self.KEY)
+					WR.DeleteValue(reg, VALUE)
 					WR.CloseKey(reg)
+			
+			class Close:
+			
+				def __init__(self, parent):
+					
+					self.description = '''
+					\r 
+					'''
+					
+					self.parent = parent
+					self.enable = self.show
+					self.disable = self.hide
+				
+				# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer]
+				# "NoClose"=dword:00000000
+				def show(self): self.parent._show(self.parent.close)
+				
+				# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer]
+				# "NoClose"=dword:00000001
+				def hide(self): self.parent._hide(self.parent.close)
+				
+				# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer]
+				# "NoClose"=-
+				def cleanUp(self): self.parent._cleanUp(self.parent.close)
+			
+			class PropertiesRecycleBin:
+			
+				def __init__(self, parent):
+					
+					self.description = '''
+					\r Quitar Propiedades del menú contextual de
+					\r Papelera de reciclaje:
+					\r  
+					\r  Quita la opción Propiedades del menú contextual
+					\r  de Papelera de reciclaje.
+					\r  
+					\r  Si habilita esta opción, la opción Propiedades
+					\r  no aparecerá cuando el usuario haga clic con el botón secundario en Papelera de reciclaje o abra la Papelera de reciclaje y luego haga clic en Archivo. Asimismo, Alt+Entrar no realizará ninguna acción cuando Papelera de reciclaje esté seleccionado.
+					\r  
+					\r  Si deshabilita esta opción o no la configura, el
+					\r  elemento Propiedades se mostrará con normalidad.
+					\r  
+					\r  URL: https://admx.help/?Category=Windows_10_2016&Policy=Microsoft.Policies.WindowsDesktop::NoRecycleBinProperties&Language=es-es
+					'''
+					
+					self.parent = parent
+					self.enable = self.show
+					self.disable = self.hide
+				
+				# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer]
+				# "NoPropertiesRecycleBin"=dword:00000000
+				def show(self): self.parent._show(self.parent.propertiesRecycleBin)
+				
+				# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer]
+				# "NoPropertiesRecycleBin"=dword:00000001
+				def hide(self): self.parent._hide(self.parent.propertiesRecycleBin)
+				
+				# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer]
+				# "NoPropertiesRecycleBin"=-
+				def cleanUp(self): self.parent._cleanUp(self.parent.propertiesRecycleBin)
+			
+			class WindowMinimizingShortcuts:
+			
+				def __init__(self, parent):
+					
+					self.description = '''
+					\r Desactivar el gesto del mouse de minimización de
+					\r ventanas:
+					\r  
+					\r  Impide que las ventanas se minimicen o restauren
+					\r  cuando se agite la ventana activa hacia delante
+					\r  y hacia atrás.
+					\r  
+					\r  Si habilita esta directiva, no se minimizarán ni
+					\r  restaurarán las ventanas de aplicaciones cuando
+					\r  se agite la ventana activa hacia delante y hacia
+					\r  atrás con el mouse.
+					\r  
+					\r  Si deshabilita o no configura esta directiva, se
+					\r  aplicará el gesto de minimización y restauración
+					\r  de ventanas.
+					\r  
+					\r  URL: https://admx.help/?Category=Windows_10_2016&Policy=Microsoft.Policies.WindowsDesktop::NoWindowMinimizingShortcuts&Language=es-es#
+					'''
+					
+					self.parent = parent
+					self.PATH = r'SOFTWARE\Policies\Microsoft\Windows\Explorer'
+					self.enable = self.show
+					self.disable = self.hide
+				
+				# [HKEY_CURRENT_USER\SOFTWARE\Policies\Microsoft\Windows\Explorer]
+				# "NoWindowMinimizingShortcuts"=dword:00000000
+				def show(self): self.parent._show(self.parent.windowMinimizingShortcuts)
+				
+				# [HKEY_CURRENT_USER\SOFTWARE\Policies\Microsoft\Windows\Explorer]
+				# "NoWindowMinimizingShortcuts"=dword:00000001
+				def hide(self): self.parent._hide(self.parent.windowMinimizingShortcuts)
+				
+				# [HKEY_CURRENT_USER\SOFTWARE\Policies\Microsoft\Windows\Explorer]
+				# "NoWindowMinimizingShortcuts"=-
+				def cleanUp(self): self.parent._cleanUp(self.parent.windowMinimizingShortcuts)
+			
+			class ControlPanel:
+			
+				def __init__(self, parent):
+					
+					self.description = '''
+					\r Prohibir el acceso a Configuración de PC y a
+					\r Panel de control:
+					\r 
+					\r  Deshabilita todos los programas del Panel de control y la
+					\r  aplicación Configuración de PC.
+					\r  
+					\r  Esta configuración impide que se ejecuten Control.exe
+					\r  y SystemSettings.exe, que son los archivos de programa
+					\r  de Panel de control y Configuración de PC. En consecuencia,
+					\r  los usuarios no pueden iniciar el Panel de control ni
+					\r  Configuración de PC, ni ejecutar ninguno de sus elementos.
+					\r  
+					\r  Esta configuración quita el Panel de control de:
+					\r  La pantalla Inicio
+					\r  Explorador de archivos
+					\r  
+					\r  Esta configuración quita Configuración de PC de:
+					\r  La pantalla Inicio
+					\r  Acceso a Configuración
+					\r  Imagen de cuenta
+					\r  Resultados de búsqueda
+					\r  
+					\r  Si los usuarios intentan seleccionar un elemento del
+					\r  Panel de control desde el elemento Propiedades en un
+					\r  menú contextual, aparece un mensaje que explica que
+					\r  existe una configuración que impide la acción.
+					\r  
+					\r  URL: https://admx.help/?Category=Windows_10_2016&Policy=Microsoft.Policies.ControlPanel::NoControlPanel&Language=es-es
+					'''
+					
+					self.parent = parent
+					self.enable = self.show
+					self.disable = self.hide
+				
+				# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer]
+				# "NoControlPanel"=dword:00000000
+				def show(self): self.parent._show(self.parent.controlPanel)
+				
+				# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer]
+				# "NoControlPanel"=dword:00000001
+				def hide(self): self.parent._hide(self.parent.controlPanel)
+				
+				# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer]
+				# "NoControlPanel"=-
+				def cleanUp(self): self.parent._cleanUp(self.parent.controlPanel)
+			
+			class ContextMenu:
+			
+				def __init__(self, parent):
+					
+					self.description = '''
+					\r Deshabilita el menú contextual en el explorador
+					\r de Windows.
+					'''
+					
+					self.parent = parent
+					self.enable = self.show
+					self.disable = self.hide
+					
+					self.use = '''
+					\r Clase: ContextMenu
+					\r |
+					\r + Ejemplo de uso: Requieren Permisos de administrador.
+					\r |    
+					\r |    utils = Utils()
+					\r |    
+					\r |    # Para deshabilitar el uso de el Menu Contextual (dar clic derecho):
+					\r |    utils.EditRegistry.Explorer.ContextMenu.hide()
+					\r |    
+					\r |    # Para habilitar el uso de el Menu Contextual (dar clic derecho):
+					\r |    utils.EditRegistry.Explorer.ContextMenu.show()
+					\r |    
+					\r |    # Para eliminar los cambios realizados en el registro:
+					\r |    utils.EditRegistry.Explorer.ContextMenu.cleanUp()
+					\r \\
+					'''
+				
+				# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer]
+				# "NoViewContextMenu"=dword:00000000
+				def show(self): self.parent._show(self.parent.viewContextMenu)
+				
+				# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer]
+				# "NoViewContextMenu"=dword:00000001
+				def hide(self): self.parent._hide(self.parent.viewContextMenu)
+				
+				# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer]
+				# "NoViewContextMenu"=-
+				def cleanUp(self): self.parent._cleanUp(self.parent.viewContextMenu)
+			
+			class Clock:
+				
+				def __init__(self, parent):
+					
+					self.description = '''
+					\r Oculta el reloj de la barra de tareas
+					'''
+					
+					self.parent = parent
+					self.enable = self.show
+					self.disable = self.hide
+				
+				# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer]
+				# "HideClock"=dword:00000000
+				def show(self): self.parent._show(self.parent.clock)
+				
+				# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer]
+				# "HideClock"=dword:00000001
+				def hide(self): self.parent._hide(self.parent.clock)
+				
+				# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer]
+				# "HideClock"=-
+				def cleanUp(self): self.parent._cleanUp(self.parent.clock)
+			
+			class SCAHealth:
+				
+				def __init__(self, parent):
+					
+					self.description = '''
+					\r Oculta el estado de x de la barra de tareas
+					'''
+					
+					self.parent = parent
+					self.enable = self.show
+					self.disable = self.hide
+				
+				# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer]
+				# "HideSCAHealth"=dword:00000000
+				def show(self): self.parent._show(self.parent.SCAHealthVal)
+				
+				# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer]
+				# "HideSCAHealth"=dword:00000001
+				def hide(self): self.parent._hide(self.parent.SCAHealthVal)
+				
+				# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer]
+				# "HideSCAHealth"=-
+				def cleanUp(self): self.parent._cleanUp(self.parent.SCAHealthVal)
+			
+			class SCANetwork:
+				
+				def __init__(self, parent):
+					
+					self.description = '''
+					\r Oculta el estado de red de la barra de tareas
+					'''
+					
+					self.parent = parent
+					self.enable = self.show
+					self.disable = self.hide
+				
+				# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer]
+				# "HideSCANetwork"=dword:00000000
+				def show(self): self.parent._show(self.parent.SCANetworkVal)
+				
+				# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer]
+				# "HideSCANetwork"=dword:00000001
+				def hide(self): self.parent._hide(self.parent.SCANetworkVal)
+				
+				# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer]
+				# "HideSCANetwork"=-
+				def cleanUp(self): self.parent._cleanUp(self.parent.SCANetworkVal)
+			
+			class SCAPower:
+				
+				def __init__(self, parent):
+					
+					self.description = '''
+					\r Oculta el estado de la batería de la barra de tareas
+					'''
+					
+					self.parent = parent
+					self.enable = self.show
+					self.disable = self.hide
+				
+				# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer]
+				# "HideSCAPower"=dword:00000000
+				def show(self): self.parent._show(self.parent.SCAPowerVal)
+				
+				# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer]
+				# "HideSCAPower"=dword:00000001
+				def hide(self): self.parent._hide(self.parent.SCAPowerVal)
+				
+				# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer]
+				# "HideSCAPower"=-
+				def cleanUp(self): self.parent._cleanUp(self.parent.SCAPowerVal)
+			
+			class SCAVolume:
+				
+				def __init__(self, parent):
+					
+					self.description = '''
+					\r Oculta el estado del volumen de la barra de tareas
+					'''
+					
+					self.parent = parent
+					self.enable = self.show
+					self.disable = self.hide
+				
+				# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer]
+				# "HideSCAVolume"=dword:00000000
+				def show(self): self.parent._show(self.parent.SCAVolumeVal)
+				
+				# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer]
+				# "HideSCAVolume"=dword:00000001
+				def hide(self): self.parent._hide(self.parent.SCAVolumeVal)
+				
+				# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer]
+				# "HideSCAVolume"=-
+				def cleanUp(self): self.parent._cleanUp(self.parent.SCAVolumeVal)
+			
+			class ActiveDesktop:
+				
+				def __init__(self, parent):
+					
+					self.description = '''
+					\r 
+					'''
+					
+					self.parent = parent
+					self.enable = self.show
+					self.disable = self.hide
+				
+				# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer]
+				# "NoActiveDesktop"=dword:00000000
+				def show(self): self.parent._show(self.parent.activeDesktop)
+				
+				# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer]
+				# "NoActiveDesktop"=dword:00000001
+				def hide(self): self.parent._hide(self.parent.activeDesktop)
+				
+				# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer]
+				# "NoActiveDesktop"=-
+				def cleanUp(self): self.parent._cleanUp(self.parent.activeDesktop)
+			
+			class AutoTrayNotify:
+				
+				def __init__(self, parent):
+					
+					self.description = '''
+					\r 
+					'''
+					
+					self.parent = parent
+					self.enable = self.show
+					self.disable = self.hide
+				
+				# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer]
+				# "NoAutoTrayNotify"=dword:00000000
+				def show(self): self.parent._show(self.parent.autoTrayNotify)
+				
+				# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer]
+				# "NoAutoTrayNotify"=dword:00000001
+				def hide(self): self.parent._hide(self.parent.autoTrayNotify)
+				
+				# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer]
+				# "NoAutoTrayNotify"=-
+				def cleanUp(self): self.parent._cleanUp(self.parent.autoTrayNotify)
+			
+			class DrivesInSendToMenu:
+				
+				def __init__(self, parent):
+					
+					self.description = '''
+					\r 
+					'''
+					
+					self.parent = parent
+					self.enable = self.show
+					self.disable = self.hide
+				
+				# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer]
+				# "NoDrivesInSendToMenu"=dword:00000000
+				def show(self): self.parent._show(self.parent.drivesInSendToMenu)
+				
+				# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer]
+				# "NoDrivesInSendToMenu"=dword:00000001
+				def hide(self): self.parent._hide(self.parent.drivesInSendToMenu)
+				
+				# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer]
+				# "NoDrivesInSendToMenu"=-
+				def cleanUp(self): self.parent._cleanUp(self.parent.drivesInSendToMenu)
+			
+			class FavoritesMenu:
+				
+				def __init__(self, parent):
+					
+					self.description = '''
+					\r 
+					'''
+					
+					self.parent = parent
+					self.enable = self.show
+					self.disable = self.hide
+				
+				# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer]
+				# "NoFavoritesMenu"=dword:00000000
+				def show(self): self.parent._show(self.parent.favoritesMenu)
+				
+				# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer]
+				# "NoFavoritesMenu"=dword:00000001
+				def hide(self): self.parent._hide(self.parent.favoritesMenu)
+				
+				# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer]
+				# "NoFavoritesMenu"=-
+				def cleanUp(self): self.parent._cleanUp(self.parent.favoritesMenu)
+			
+			class InternetOpenWith:
+				
+				def __init__(self, parent):
+					
+					self.description = '''
+					\r 
+					'''
+					
+					self.parent = parent
+					self.enable = self.show
+					self.disable = self.hide
+				
+				# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer]
+				# "NoInternetOpenWith"=dword:00000000
+				def show(self): self.parent._show(self.parent.internetOpenWith)
+				
+				# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer]
+				# "NoInternetOpenWith"=dword:00000001
+				def hide(self): self.parent._hide(self.parent.internetOpenWith)
+				
+				# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer]
+				# "NoInternetOpenWith"=-
+				def cleanUp(self): self.parent._cleanUp(self.parent.internetOpenWith)
+			
+			class RecentDocsMenu:
+				
+				def __init__(self, parent):
+					
+					self.description = '''
+					\r 
+					'''
+					
+					self.parent = parent
+					self.enable = self.show
+					self.disable = self.hide
+				
+				# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer]
+				# "NoRecentDocsMenu"=dword:00000000
+				def show(self): self.parent._show(self.parent.recentDocsMenu)
+				
+				# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer]
+				# "NoRecentDocsMenu"=dword:00000001
+				def hide(self): self.parent._hide(self.parent.recentDocsMenu)
+				
+				# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer]
+				# "NoRecentDocsMenu"=-
+				def cleanUp(self): self.parent._cleanUp(self.parent.recentDocsMenu)
+			
+			class Run:
+				
+				def __init__(self, parent):
+					
+					self.description = '''
+					\r Deshabilita la ventana de 'Ejecutar...' (Win+R)
+					'''
+					
+					self.parent = parent
+					self.enable = self.show
+					self.disable = self.hide
+				
+				# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer]
+				# "NoRun"=dword:00000000
+				def show(self): self.parent._show(self.parent.run)
+				
+				# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer]
+				# "NoRun"=dword:00000001
+				def hide(self): self.parent._hide(self.parent.run)
+				
+				# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer]
+				# "NoRun"=-
+				def cleanUp(self): self.parent._cleanUp(self.parent.run)
+			
+			class SaveSettings:
+				
+				def __init__(self, parent):
+					
+					self.description = '''
+					\r 
+					'''
+					
+					self.parent = parent
+					self.enable = self.show
+					self.disable = self.hide
+				
+				# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer]
+				# "NoSaveSettings"=dword:00000000
+				def show(self): self.parent._show(self.parent.saveSettings)
+				
+				# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer]
+				# "NoSaveSettings"=dword:00000001
+				def hide(self): self.parent._hide(self.parent.saveSettings)
+				
+				# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer]
+				# "NoSaveSettings"=-
+				def cleanUp(self): self.parent._cleanUp(self.parent.saveSettings)
+			
+			class TrayItemsDisplay:
+				
+				def __init__(self, parent):
+					
+					self.description = '''
+					\r 
+					'''
+					
+					self.parent = parent
+					self.enable = self.show
+					self.disable = self.hide
+				
+				# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer]
+				# "NoTrayItemsDisplay"=dword:00000000
+				def show(self): self.parent._show(self.parent.trayItemsDisplay)
+				
+				# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer]
+				# "NoTrayItemsDisplay"=dword:00000001
+				def hide(self): self.parent._hide(self.parent.trayItemsDisplay)
+				
+				# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer]
+				# "NoTrayItemsDisplay"=-
+				def cleanUp(self): self.parent._cleanUp(self.parent.trayItemsDisplay)
+			
+			class ClassicShell:
+				
+				def __init__(self, parent):
+					
+					self.description = '''
+					\r 
+					'''
+					
+					self.parent = parent
+					self.enable = self.show
+					self.disable = self.hide
+				
+				# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer]
+				# "ClassicShell"=dword:00000000
+				def show(self): self.parent._show(self.parent.classicShell)
+				
+				# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer]
+				# "ClassicShell"=dword:00000001
+				def hide(self): self.parent._hide(self.parent.classicShell)
+				
+				# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer]
+				# "ClassicShell"=-
+				def cleanUp(self): self.parent._cleanUp(self.parent.classicShell)
 		
 		class DropBox:
 			# DropBox: {E31EA727-12ED-4702-820C-4B6445F28E1A}
@@ -1387,7 +2374,7 @@ class Utils:
 				
 				self.HKEY  = WR.HKEY_CLASSES_ROOT
 				self.PATH  = r'CLSID\{E31EA727-12ED-4702-820C-4B6445F28E1A}'
-				self.KEY   = 'System.IsPinnedToNameSpaceTree'
+				self.VALUE   = 'System.IsPinnedToNameSpaceTree'
 				self.TRUE  = 0x00000001
 				self.FALSE = 0x00000000
 				
@@ -1411,7 +2398,7 @@ class Utils:
 			def _keyExists(self):
 				try:
 					reg = WR.OpenKeyEx(self.HKEY, self.PATH)
-					value = WR.QueryValueEx(reg, self.KEY)[0]
+					value = WR.QueryValueEx(reg, self.VALUE)[0]
 					WR.CloseKey(reg)
 					return True, value
 				except:
@@ -1423,11 +2410,11 @@ class Utils:
 				key_exists, isDisabled = self._keyExists()										# Intenta abrir el key y extraer su valor.
 				if not key_exists:																# Si no existe el key, lo crea y lo habilita.
 					reg = WR.CreateKey(self.HKEY, self.PATH)
-					WR.SetValueEx(reg, self.KEY, 0,  WR.REG_DWORD, self.TRUE)
+					WR.SetValueEx(reg, self.VALUE, 0,  WR.REG_DWORD, self.TRUE)
 					WR.CloseKey(reg)
 				elif key_exists and not isDisabled:												# Si existe el key y esta deshabilitado, lo habilita.
 					reg = WR.OpenKey(self.HKEY, self.PATH, 0, WR.KEY_SET_VALUE)
-					WR.SetValueEx(reg, self.KEY, 0,  WR.REG_DWORD, self.TRUE)
+					WR.SetValueEx(reg, self.VALUE, 0,  WR.REG_DWORD, self.TRUE)
 					WR.CloseKey(reg)
 			
 			# [HKEY_CLASSES_ROOT\CLSID\{E31EA727-12ED-4702-820C-4B6445F28E1A}]
@@ -1436,11 +2423,11 @@ class Utils:
 				key_exists, isDisabled = self._keyExists()										# Intenta abrir el key y extraer su valor.
 				if not key_exists:																# Si no existe el key, lo crea y lo deshabilita.
 					reg = WR.CreateKey(self.HKEY, self.PATH)
-					WR.SetValueEx(reg, self.KEY, 0,  WR.REG_DWORD, self.FALSE)
+					WR.SetValueEx(reg, self.VALUE, 0,  WR.REG_DWORD, self.FALSE)
 					WR.CloseKey(reg)
 				elif key_exists and isDisabled:													# Si existe el key y esta habilitado, lo deshabilita.
 					reg = WR.OpenKey(self.HKEY, self.PATH, 0, WR.KEY_SET_VALUE)
-					WR.SetValueEx(reg, self.KEY, 0,  WR.REG_DWORD, self.FALSE)
+					WR.SetValueEx(reg, self.VALUE, 0,  WR.REG_DWORD, self.FALSE)
 					WR.CloseKey(reg)
 		
 		class FoldersOnThisPC:
@@ -1540,7 +2527,7 @@ class Utils:
 						reg = WR.CreateKey(self.HKEY, PATH)
 						WR.SetValueEx(reg, self.VALUE, 0, WR.REG_SZ, self.HIDE)
 						WR.CloseKey(reg)
-					elif keyExists and value == 'Show':												# Si existe el key y esta deshabilitado, lo habilita.
+					elif keyExists and value == self.SHOW:												# Si existe el key y esta deshabilitado, lo habilita.
 						reg = WR.OpenKey(self.HKEY, PATH, 0, WR.KEY_SET_VALUE)
 						WR.SetValueEx(reg, self.VALUE, 0, WR.REG_SZ, self.HIDE)
 						WR.CloseKey(reg)
@@ -1553,7 +2540,7 @@ class Utils:
 						reg = WR.CreateKey(self.HKEY, PATH)
 						WR.SetValueEx(reg, self.VALUE, 0, WR.REG_SZ, self.SHOW)
 						WR.CloseKey(reg)
-					elif keyExists and value == 'Hide':												# Si existe el key y esta deshabilitado, lo habilita.
+					elif keyExists and value == self.HIDE:												# Si existe el key y esta deshabilitado, lo habilita.
 						reg = WR.OpenKey(self.HKEY, PATH, 0, WR.KEY_SET_VALUE)
 						WR.SetValueEx(reg, self.VALUE, 0, WR.REG_SZ, self.SHOW)
 						WR.CloseKey(reg)
@@ -1664,7 +2651,7 @@ class Utils:
 				def hide(self): self.parent._hide(self.FOLDERPATH, self.SUBFOLDERPATH)
 		
 		class OneDrive:
-			# DropBox: {E31EA727-12ED-4702-820C-4B6445F28E1A}
+			# OneDrive: {018D5C66-4533-4307-9B53-224DE2ED1FE6}
 			def __init__(self):
 				
 				self.classes   = ObjectClassNames(self)
@@ -1673,7 +2660,7 @@ class Utils:
 				
 				self.HKEY  = WR.HKEY_CLASSES_ROOT
 				self.PATH  = r'CLSID\{018D5C66-4533-4307-9B53-224DE2ED1FE6}'
-				self.KEY   = 'System.IsPinnedToNameSpaceTree'
+				self.VALUE   = 'System.IsPinnedToNameSpaceTree'
 				self.TRUE  = 0x00000001
 				self.FALSE = 0x00000000
 				
@@ -1697,7 +2684,7 @@ class Utils:
 			def _keyExists(self):
 				try:
 					reg = WR.OpenKeyEx(self.HKEY, self.PATH)
-					value = WR.QueryValueEx(reg, self.KEY)[0]
+					value = WR.QueryValueEx(reg, self.VALUE)[0]
 					WR.CloseKey(reg)
 					return True, value
 				except:
@@ -1709,11 +2696,11 @@ class Utils:
 				key_exists, isDisabled = self._keyExists()										# Intenta abrir el key y extraer su valor.
 				if not key_exists:																# Si no existe el key, lo crea y lo habilita.
 					reg = WR.CreateKey(self.HKEY, self.PATH)
-					WR.SetValueEx(reg, self.KEY, 0,  WR.REG_DWORD, self.TRUE)
+					WR.SetValueEx(reg, self.VALUE, 0,  WR.REG_DWORD, self.TRUE)
 					WR.CloseKey(reg)
 				elif key_exists and not isDisabled:												# Si existe el key y esta deshabilitado, lo habilita.
 					reg = WR.OpenKey(self.HKEY, self.PATH, 0, WR.KEY_SET_VALUE)
-					WR.SetValueEx(reg, self.KEY, 0,  WR.REG_DWORD, self.TRUE)
+					WR.SetValueEx(reg, self.VALUE, 0,  WR.REG_DWORD, self.TRUE)
 					WR.CloseKey(reg)
 			
 			# [HKEY_CLASSES_ROOT\CLSID\{018D5C66-4533-4307-9B53-224DE2ED1FE6}]
@@ -1722,11 +2709,11 @@ class Utils:
 				key_exists, isDisabled = self._keyExists()										# Intenta abrir el key y extraer su valor.
 				if not key_exists:																# Si no existe el key, lo crea y lo deshabilita.
 					reg = WR.CreateKey(self.HKEY, self.PATH)
-					WR.SetValueEx(reg, self.KEY, 0,  WR.REG_DWORD, self.FALSE)
+					WR.SetValueEx(reg, self.VALUE, 0,  WR.REG_DWORD, self.FALSE)
 					WR.CloseKey(reg)
 				elif key_exists and isDisabled:													# Si existe el key y esta habilitado, lo deshabilita.
 					reg = WR.OpenKey(self.HKEY, self.PATH, 0, WR.KEY_SET_VALUE)
-					WR.SetValueEx(reg, self.KEY, 0,  WR.REG_DWORD, self.FALSE)
+					WR.SetValueEx(reg, self.VALUE, 0,  WR.REG_DWORD, self.FALSE)
 					WR.CloseKey(reg)
 		
 		class PhysicalDrivesInWinExplorer:
@@ -1943,6 +2930,466 @@ class Utils:
 					WR.DeleteValue(reg, self.VALUE)
 					WR.CloseKey(reg)
 		
+		class Programs:
+			
+			def __init__(self):
+				''' Oculta o Desoculta las páginas que se indiquen,
+				por ejemplo el contenido en la ventana de
+				"Programas y características".'''
+				
+				self.classes   = ObjectClassNames(self)
+				self.functions = None
+				self.functions = ObjectFunctionNames(self)
+				
+				self.HKEY = WR.HKEY_CURRENT_USER
+				self.PATH = r'SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Programs'
+				self.SHOW = 0
+				self.HIDE = 1
+				
+				# Valores para esta ruta:
+				self.programsAndFeatures  = 'NoProgramsAndFeatures'
+				self.windowsFeatures      = 'NoWindowsFeatures'
+				self.windowsMarketplace   = 'NoWindowsMarketplace'
+				self.programsControlPanel = 'NoProgramsCPL'
+				self.installedUpdates     = 'NoInstalledUpdates'
+				self.defaultPrograms      = 'NoDefaultPrograms'
+				self.getPrograms          = 'NoGetPrograms'
+				
+				# Clases Internas:
+				self.ProgramsAndFeatures  = self.ProgramsAndFeatures(self)
+				self.WindowsFeatures      = self.WindowsFeatures(self)
+				self.WindowsMarketplace   = self.WindowsMarketplace(self)
+				self.ProgramsControlPanel = self.ProgramsControlPanel(self)
+				self.InstalledUpdates     = self.InstalledUpdates(self)
+				self.DefaultPrograms      = self.DefaultPrograms(self)
+				self.GetPrograms          = self.GetPrograms(self)
+				
+				self.enumValues = [
+					'ProgramsAndFeatures',
+					'WindowsFeatures',
+					'WindowsMarketplace',
+					'ProgramsControlPanel',
+					'InstalledUpdates',
+					'DefaultPrograms',
+					'GetPrograms'
+				]
+				
+				self.use = '''
+				\r Clase: Programs
+				\r |
+				\r + Ejemplo de uso: Requieren Permisos de administrador.
+				\r |    
+				\r |    utils = Utils()
+				\r |    
+				\r |    # Para ver los valores que estan disponibles para
+				\r |    # ocultar o desocultar:
+				\r |    print(utils.EditRegistry.Programs.enumValues)
+				\r |    
+				\r |    # Para ocultar el contenido de 'Programas y características':
+				\r |    utils.EditRegistry.Programs.ProgramsAndFeatures.hide()
+				\r |    
+				\r |    # Para desocultar el contenido de 'Programas y características':
+				\r |    utils.EditRegistry.Programs.ProgramsAndFeatures.show()
+				\r |    
+				\r |    # Para deshacer el cambio realizados en el registro
+				\r |    # dejando el valor por defecto del windows:
+				\r |    utils.EditRegistry.Programs.ProgramsAndFeatures.cleanUp()
+				\r |    
+				\r |    # Para ver su descripción y características:
+				\r |    print(utils.EditRegistry.Programs.ProgramsAndFeatures.description)
+				\r |    
+				\r |    # Se puede aplicar lo mismo que con 'ProgramsAndFeatures' (Programas
+				\r |    # y características) para cualquier otro valor mostrado en enumValues
+				\r |    
+				\r |    # Requiere reiniciar el explroador de archivos para aplicar
+				\r |    # cambios. Se puede utilizar el siguiente comando desde la
+				\r |    # consola de comandos (cmd):
+				\r |    #     taskkill /F /IM explorer.exe & start explorer.exe
+				\r \\
+				'''
+			
+			def _keyExists(self, VALUE):
+				try:
+					reg = WR.OpenKeyEx(self.HKEY, self.PATH)
+					value = WR.QueryValueEx(reg, VALUE)[0]
+					WR.CloseKey(reg)
+					return True, value
+				except:
+					return False, None
+			
+			def _show(self, VALUE):
+				key_exists, isHidden = self._keyExists(VALUE)										# Intenta abrir el key y extraer su valor.
+				if not key_exists:																	# Si no existe el key, lo crea y lo habilita.
+					reg = WR.CreateKey(self.HKEY, self.PATH)
+					WR.SetValueEx(reg, VALUE, 0,  WR.REG_DWORD, self.SHOW)
+					WR.CloseKey(reg)
+				elif key_exists and isHidden:														# Si existe el key y esta deshabilitado, lo habilita.
+					reg = WR.OpenKey(self.HKEY, self.PATH, 0, WR.KEY_SET_VALUE)
+					WR.SetValueEx(reg, VALUE, 0,  WR.REG_DWORD, self.SHOW)
+					WR.CloseKey(reg)
+			
+			def _hide(self, VALUE):
+				key_exists, isHidden = self._keyExists(VALUE)										# Intenta abrir el key y extraer su valor.
+				if not key_exists:																	# Si no existe el key, lo crea y lo deshabilita.
+					reg = WR.CreateKey(self.HKEY, self.PATH)
+					WR.SetValueEx(reg, VALUE, 0,  WR.REG_DWORD, self.HIDE)
+					WR.CloseKey(reg)
+				elif key_exists and not isHidden:													# Si existe el key y esta habilitado, lo deshabilita.
+					reg = WR.OpenKey(self.HKEY, self.PATH, 0, WR.KEY_SET_VALUE)
+					WR.SetValueEx(reg, VALUE, 0,  WR.REG_DWORD, self.HIDE)
+					WR.CloseKey(reg)
+			
+			def _cleanUp(self, VALUE):
+				key_exists, isHidden = self._keyExists(VALUE)
+				if key_exists:
+					reg = WR.OpenKey(self.HKEY, self.PATH, 0, WR.KEY_SET_VALUE)
+					WR.DeleteValue(reg, VALUE)
+					WR.CloseKey(reg)
+			
+			class ProgramsAndFeatures:
+				
+				def __init__(self, parent):
+					self.description = '''
+					\r Ocultar la página "Programas y características":
+					\r  
+					\r  Esta opción impide a los usuarios obtener acceso a
+					\r  "Programas y características" para ver, desinstalar,
+					\r  cambiar o reparar programas instalados actualmente
+					\r  en el equipo.
+					\r  
+					\r  Si esta opción está deshabilitada o no está
+					\r  configurada, "Programas y características" estará
+					\r  disponible para todos los usuarios.
+					\r  
+					\r  Esta opción no impide que los usuarios usen otros
+					\r  métodos y herramientas para ver o desinstalar
+					\r  programas. Tampoco impide que los usuarios creen
+					\r  vínculos a características relacionadas en el panel
+					\r  de control Programas, como Características de
+					\r  Windows, Obtener programas o Windows Marketplace.
+					\r 
+					\r URL: https://admx.help/?Category=Windows_10_2016&Policy=Microsoft.Policies.Programs::NoProgramsAndFeatures&Language=es-es
+					'''
+					
+					self.parent = parent
+					self.enable = self.show
+					self.disable = self.hide
+				
+				# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Programs]
+				# "NoProgramsAndFeatures"=dword:00000000
+				def show(self): self.parent._show(self.parent.programsAndFeatures)
+				
+				# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Programs]
+				# "NoProgramsAndFeatures"=dword:00000001
+				def hide(self): self.parent._hide(self.parent.programsAndFeatures)
+				
+				# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Programs]
+				# "NoProgramsAndFeatures"=-
+				def cleanUp(self): self.parent._cleanUp(self.parent.programsAndFeatures)
+			
+			class WindowsFeatures:
+				
+				def __init__(self, parent):
+					self.description = '''
+					\r Ocultar "Características de Windows":
+					\r  
+					\r  Esta opción impide a los usuarios obtener acceso
+					\r  a la tarea "Activar o desactivar las características
+					\r  de Windows" del panel de control Programas de la
+					\r  vista por categorías, Programas y características
+					\r  de la vista clásica, y Obtener programas. Por
+					\r  consiguiente, los usuarios no pueden ver,
+					\r  habilitar ni deshabilitar diversas características
+					\r  y servicios de Windows.
+					\r  
+					\r  Si esta opción está deshabilitada o no está
+					\r  configurada, la tarea "Activar o desactivar las
+					\r  características de Windows" estará disponible
+					\r  para todos los usuarios.
+					\r  
+					\r  Esta opción no impide que los usuarios usen otros
+					\r  métodos y herramientas para configurar servicios,
+					\r  o bien para habilitar o deshabilitar componentes
+					\r  de programa.
+					\r  
+					\r URL: https://admx.help/?Category=Windows_10_2016&Policy=Microsoft.Policies.Programs::NoWindowsFeatures&Language=es-es
+					'''
+					
+					self.parent = parent
+					self.enable = self.show
+					self.disable = self.hide
+				
+				# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Programs]
+				# "NoWindowsFeatures"=dword:00000000
+				def show(self): self.parent._show(self.parent.windowsFeatures)
+				
+				# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Programs]
+				# "NoWindowsFeatures"=dword:00000001
+				def hide(self): self.parent._hide(self.parent.windowsFeatures)
+				
+				# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Programs]
+				# "NoWindowsFeatures"=-
+				def cleanUp(self): self.parent._cleanUp(self.parent.windowsFeatures)
+			
+			class WindowsMarketplace:
+				
+				def __init__(self, parent):
+					self.description = '''
+					\r Ocultar "Windows Marketplace":
+					\r  
+					\r  Esta opción impide a los usuarios obtener acceso
+					\r  a la tarea "Obtener nuevos programas de Windows
+					\r  Marketplace" del panel de control Programas de
+					\r  la vista por categorías, Programas y características
+					\r  de la vista clásica, y Obtener programas.
+					\r  
+					\r  Windows Marketplace permite a los usuarios
+					\r  comprar o descargar varios programas a su equipo
+					\r  para instalarlos.
+					\r  
+					\r  Habilitar esta característica no impide a los
+					\r  usuarios desplazarse hasta Windows Marketplace
+					\r  usando otros métodos.
+					\r  
+					\r  Si esta característica está deshabilitada o no
+					\r  está configurada, el vínculo de la tarea "Obtener
+					\r  nuevos programas de Windows Marketplace" estará
+					\r  disponible para todos los usuarios.
+					\r  
+					\r  Nota: esta opción se omitirá si "Ocultar el panel
+					\r  de control Programas" está habilitada.
+					\r  
+					\r URL: https://admx.help/?Category=Windows_10_2016&Policy=Microsoft.Policies.Programs::NoWindowsMarketplace&Language=es-es
+					'''
+					
+					self.parent = parent
+					self.enable = self.show
+					self.disable = self.hide
+				
+				# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Programs]
+				# "NoWindowsMarketplace"=dword:00000000
+				def show(self): self.parent._show(self.parent.windowsMarketplace)
+				
+				# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Programs]
+				# "NoWindowsMarketplace"=dword:00000001
+				def hide(self): self.parent._hide(self.parent.windowsMarketplace)
+				
+				# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Programs]
+				# "NoWindowsMarketplace"=-
+				def cleanUp(self): self.parent._cleanUp(self.parent.windowsMarketplace)
+			
+			class ProgramsControlPanel:
+				
+				def __init__(self, parent):
+					self.description = '''
+					\r Ocultar el panel de control Programas:
+					\r  
+					\r  Esta opción impide a los usuarios usar el panel
+					\r  de control Programas de la vista por categorías
+					\r  y Programas y características de la vista clásica.
+					\r  
+					\r  El panel de control Programas permite a los usuarios
+					\r  desinstalar, cambiar y reparar programas, habilitar
+					\r  y deshabilitar características de Windows,
+					\r  establecer los valores predeterminados de los
+					\r  programas, ver las actualizaciones instaladas y
+					\r  comprar software de Windows Marketplace. Los
+					\r  programas publicados o asignados al usuario por
+					\r  el administrador del sistema también aparecen en
+					\r  el panel de control Programas.
+					\r  
+					\r  Si esta opción está deshabilitada o no está
+					\r  configurada, el panel de control Programas de la
+					\r  vista por categorías y Programas y características
+					\r  de la vista clásica estarán disponibles para todos
+					\r  los usuarios.
+					\r  
+					\r  Cuando se habilita, esta opción tiene preferencia
+					\r  sobre el resto de los valores de esta carpeta.
+					\r  
+					\r  Esta opción no impide que los usuarios usen otros
+					\r  métodos y herramientas para instalar o desinstalar
+					\r  programas.
+					\r  
+					\r URL: https://admx.help/?Category=Windows_10_2016&Policy=Microsoft.Policies.Programs::NoProgramsCPL&Language=es-es
+					'''
+					
+					self.parent = parent
+					self.enable = self.show
+					self.disable = self.hide
+				
+				# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Programs]
+				# "NoProgramsCPL"=dword:00000000
+				def show(self): self.parent._show(self.parent.programsControlPanel)
+				
+				# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Programs]
+				# "NoProgramsCPL"=dword:00000001
+				def hide(self): self.parent._hide(self.parent.programsControlPanel)
+				
+				# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Programs]
+				# "NoProgramsCPL"=-
+				def cleanUp(self): self.parent._cleanUp(self.parent.programsControlPanel)
+			
+			class InstalledUpdates:
+				
+				def __init__(self, parent):
+					self.description = '''
+					\r Ocultar la página "Actualizaciones instaladas":
+					\r  
+					\r  Esta opción impide a los usuarios obtener acceso
+					\r  a la página "Actualizaciones instaladas" desde la
+					\r  tarea "Ver actualizaciones instaladas".
+					\r  
+					\r  "Actualizaciones instaladas" permite a los usuarios
+					\r  ver y desinstalar las actualizaciones instaladas
+					\r  actualmente en el equipo. Las actualizaciones suelen
+					\r  descargarse directamente de Windows Update o de
+					\r  varios editores de programas.
+					\r  
+					\r  Si esta opción está deshabilitada o no está configurada,
+					\r  la tarea "Ver actualizaciones instaladas" y la página
+					\r  "Actualizaciones instaladas" estarán disponibles para
+					\r  todos los usuarios.
+					\r  
+					\r  Esta opción no impide que los usuarios usen otros
+					\r  métodos y herramientas para instalar o desinstalar
+					\r  programas.
+					\r  
+					\r URL: https://admx.help/?Category=Windows_10_2016&Policy=Microsoft.Policies.Programs::NoInstalledUpdates&Language=es-es
+					'''
+					
+					self.parent = parent
+					self.enable = self.show
+					self.disable = self.hide
+				
+				# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Programs]
+				# "NoInstalledUpdates"=dword:00000000
+				def show(self): self.parent._show(self.parent.installedUpdates)
+				
+				# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Programs]
+				# "NoInstalledUpdates"=dword:00000001
+				def hide(self): self.parent._hide(self.parent.installedUpdates)
+				
+				# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Programs]
+				# "NoInstalledUpdates"=-
+				def cleanUp(self): self.parent._cleanUp(self.parent.installedUpdates)
+			
+			class DefaultPrograms:
+				
+				def __init__(self, parent):
+					self.description = '''
+					\r Ocultar la página "Configurar acceso y programas
+					\r predeterminados en el equipo":
+					\r  
+					\r  Esta opción quita la página Configurar acceso y
+					\r  programas predeterminados en el equipo del panel
+					\r  de control Programas. En consecuencia, los usuarios
+					\r  no pueden ver ni cambiar la página asociada.
+					\r  
+					\r  La página Configurar acceso y programas
+					\r  predeterminados en el equipo permite a los
+					\r  administradores especificar los programas
+					\r  predeterminados para ciertas actividades, como la
+					\r  exploración web o el envío de correo electrónico,
+					\r  así como especificar los programas a los que se
+					\r  tiene acceso desde el menú Inicio, el escritorio
+					\r  y otras ubicaciones.
+					\r  
+					\r  Si esta opción está deshabilitada o no está
+					\r  configurada, el botón Configurar acceso y
+					\r  programas predeterminados está disponible para
+					\r  todos los usuarios.
+					\r  
+					\r  Esta opción no impide que los usuarios usen otros
+					\r  métodos y herramientas para cambiar el acceso o
+					\r  las opciones predeterminadas de los programas.
+					\r  
+					\r  Esta opción no impide que el icono Programas
+					\r  predeterminados aparezca en el menú Inicio.
+					\r  
+					\r URL: https://admx.help/?Category=Windows_10_2016&Policy=Microsoft.Policies.Programs::NoDefaultPrograms&Language=es-es
+					'''
+					
+					self.parent = parent
+					self.enable = self.show
+					self.disable = self.hide
+				
+				# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Programs]
+				# "NoDefaultPrograms"=dword:00000000
+				def show(self): self.parent._show(self.parent.defaultPrograms)
+				
+				# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Programs]
+				# "NoDefaultPrograms"=dword:00000001
+				def hide(self): self.parent._hide(self.parent.defaultPrograms)
+				
+				# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Programs]
+				# "NoDefaultPrograms"=-
+				def cleanUp(self): self.parent._cleanUp(self.parent.defaultPrograms)
+			
+			class GetPrograms:
+				
+				def __init__(self, parent):
+					self.description = '''
+					\r Ocultar la página "Obtener programas":
+					\r  
+					\r  Impide que los usuarios vean o instalen programas
+					\r  publicados desde la red.
+					\r  
+					\r  Esta opción impide a los usuarios obtener acceso
+					\r  a la página "Obtener programas" del panel de
+					\r  control Programas de la vista por categorías,
+					\r  Programas y características de la vista clásica
+					\r  y la tarea "Instalar un programa a partir de la
+					\r  red". La página "Obtener programas" incluye los
+					\r  programas publicados y ofrece un método sencillo
+					\r  para instalarlos.
+					\r  
+					\r  Los programas publicados son aquellos programas
+					\r  que el administrador del sistema ha puesto a
+					\r  disposición del usuario explícitamente con una
+					\r  herramienta como Windows Installer. Normalmente,
+					\r  los administradores del sistema publican programas
+					\r  para notificar a los usuarios que están disponibles,
+					\r  recomendar su uso o permitirles instalarlos sin
+					\r  tener que buscar los archivos de instalación.
+					\r  
+					\r  Si esta opción está habilitada, los usuarios no
+					\r  pueden ver los programas publicados por el
+					\r  administrador del sistema, y no pueden usar la
+					\r  página "Obtener programas" para instalar programas
+					\r  publicados. Habilitar esta característica no impide
+					\r  a los usuarios instalar programas usando otros
+					\r  métodos. Los usuarios aún pueden ver e instalar
+					\r  los programas asignados (parcialmente instalados)
+					\r  que se ofrecen en el escritorio o en el menú Inicio.
+					\r  
+					\r  Si esta opción está deshabilitada o no está
+					\r  configurada, la tarea "Instalar un programa a
+					\r  partir de la red" de la página "Obtener programas"
+					\r  estará disponible para todos los usuarios.
+					\r  
+					\r  Nota: esta opción se omitirá si "Ocultar el panel
+					\r  de control Programas" está habilitada.
+					\r  
+					\r URL: https://admx.help/?Category=Windows_10_2016&Policy=Microsoft.Policies.Programs::NoDefaultPrograms&Language=es-es
+					'''
+					
+					self.parent = parent
+					self.enable = self.show
+					self.disable = self.hide
+				
+				# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Programs]
+				# "NoGetPrograms"=dword:00000000
+				def show(self): self.parent._show(self.parent.getPrograms)
+				
+				# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Programs]
+				# "NoGetPrograms"=dword:00000001
+				def hide(self): self.parent._hide(self.parent.getPrograms)
+				
+				# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Programs]
+				# "NoGetPrograms"=-
+				def cleanUp(self): self.parent._cleanUp(self.parent.getPrograms)
+		
 		class PowerPlan:
 			
 			def __init__(self):
@@ -2042,7 +3489,7 @@ class Utils:
 				
 				self.HKEY  = WR.HKEY_CURRENT_USER
 				self.PATH  = r'SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System'
-				self.KEY   = 'DisableTaskMgr'
+				self.VALUE   = 'DisableTaskMgr'
 				self.TRUE  = 0x00000001
 				self.FALSE = 0x00000000
 				
@@ -2067,7 +3514,7 @@ class Utils:
 			def _keyExists(self):
 				try:
 					reg = WR.OpenKeyEx(self.HKEY, self.PATH)
-					value = WR.QueryValueEx(reg, self.KEY)[0]
+					value = WR.QueryValueEx(reg, self.VALUE)[0]
 					WR.CloseKey(reg)
 					return True, value
 				except:
@@ -2079,11 +3526,11 @@ class Utils:
 				key_exists, isDisabled = self._keyExists()										# Intenta abrir el key y extraer su valor.
 				if not key_exists:																# Si no existe el key, lo crea y lo habilita.
 					reg = WR.CreateKey(self.HKEY, self.PATH)
-					WR.SetValueEx(reg, self.KEY, 0,  WR.REG_DWORD, self.FALSE)
+					WR.SetValueEx(reg, self.VALUE, 0,  WR.REG_DWORD, self.FALSE)
 					WR.CloseKey(reg)
 				elif key_exists and isDisabled:													# Si existe el key y esta deshabilitado, lo habilita.
 					reg = WR.OpenKey(self.HKEY, self.PATH, 0, WR.KEY_SET_VALUE)
-					WR.SetValueEx(reg, self.KEY, 0,  WR.REG_DWORD, self.FALSE)
+					WR.SetValueEx(reg, self.VALUE, 0,  WR.REG_DWORD, self.FALSE)
 					WR.CloseKey(reg)
 			
 			# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System]
@@ -2092,11 +3539,11 @@ class Utils:
 				key_exists, isDisabled = self._keyExists()										# Intenta abrir el key y extraer su valor.
 				if not key_exists:																# Si no existe el key, lo crea y lo deshabilita.
 					reg = WR.CreateKey(self.HKEY, self.PATH)
-					WR.SetValueEx(reg, self.KEY, 0,  WR.REG_DWORD, self.TRUE)
+					WR.SetValueEx(reg, self.VALUE, 0,  WR.REG_DWORD, self.TRUE)
 					WR.CloseKey(reg)
 				elif key_exists and not isDisabled:												# Si existe el key y esta habilitado, lo deshabilita.
 					reg = WR.OpenKey(self.HKEY, self.PATH, 0, WR.KEY_SET_VALUE)
-					WR.SetValueEx(reg, self.KEY, 0,  WR.REG_DWORD, self.TRUE)
+					WR.SetValueEx(reg, self.VALUE, 0,  WR.REG_DWORD, self.TRUE)
 					WR.CloseKey(reg)
 			
 			# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System]
@@ -2105,7 +3552,7 @@ class Utils:
 				key_exists, isDisabled = self._keyExists()
 				if key_exists:
 					reg = WR.OpenKey(self.HKEY, self.PATH, 0, WR.KEY_SET_VALUE)
-					WR.DeleteValue(reg, self.KEY)
+					WR.DeleteValue(reg, self.VALUE)
 					WR.CloseKey(reg)
 		
 	class MemoryInfo:	# Información relacionadas a espacio en disco y demás.
@@ -2351,6 +3798,8 @@ class Utils:
 			
 			self.load_uses()
 			
+			self.info = self.collectAll
+			
 			self.run_command = lambda command: os.popen(command).read()	# Ejecuta cualquier comando en consola
 		
 		def load_uses(self):
@@ -2575,12 +4024,25 @@ class Utils:
 			return WA.GetCursorPos()
 		
 		@property
+		def currentSystemMetrics(self):									# Devuelve la resolucion de pantalla (Metricas Actuales)
+			xScreen = WA.GetSystemMetrics(WC.SM_CXSCREEN)	# SM_CXSCREEN = 0
+			yScreen = WA.GetSystemMetrics(WC.SM_CYSCREEN)	# SM_CYSCREEN = 1
+			return (xScreen, yScreen)
+		
+		@property
+		def realSystemMetrics(self):									# Devuelve la resolucion de pantalla (Metricas Reales)
+			ctypes.windll.user32.SetProcessDPIAware()
+			xScreen = ctypes.windll.user32.GetSystemMetrics(0)
+			yScreen = ctypes.windll.user32.GetSystemMetrics(1)
+			return (xScreen, yScreen)
+		
+		@property
 		def displaySettings(self):										# Devuelve la resolucion de pantalla y los bits de pixeles (normalmente 32 bits)
 			'''return x_resolution, y_resolution, colour_depth'''
 			xScreen = WA.GetSystemMetrics(WC.SM_CXSCREEN)	# SM_CXSCREEN = 0
 			yScreen = WA.GetSystemMetrics(WC.SM_CYSCREEN)	# SM_CYSCREEN = 1
 			bPixels = WU.GetDeviceCaps(WG.GetDC(0), WC.BITSPIXEL)
-			return [xScreen, yScreen, bPixels]
+			return (xScreen, yScreen, bPixels)
 		
 		@property
 		def computerName(self):											# Devuelve el nombre de la Computadora
@@ -2645,6 +4107,19 @@ class Utils:
 			return time
 		
 		@property
+		def userDowntime(self):										# Devuelve la cantidad de tiempo inactivo del usuario (cuanto tiempo tiene sin presionar una tecla o mover el mouse, por ejemplo)
+			
+			class LASTINPUTINFO(ctypes.Structure):
+				_fields_ = [('cbSize', ctypes.c_uint), ('dwTime', ctypes.c_uint)]
+			
+			lastInputInfo = LASTINPUTINFO()
+			lastInputInfo.cbSize = ctypes.sizeof(lastInputInfo)
+			ctypes.windll.user32.GetLastInputInfo(ctypes.byref(lastInputInfo)) 
+			millis = ctypes.windll.kernel32.GetTickCount() - lastInputInfo.dwTime
+			
+			return millis / 1000.0
+		
+		@property
 		def userName(self):												# Devuelve el nombre del Usuario
 			return os.environ.get('USERNAME')
 		
@@ -2658,6 +4133,7 @@ class Utils:
 			collected = {
 				'winDir':       self.winDir,
 				'userName':     self.userName,
+				'userDowntime': self.userDowntime,
 				'systemUptime': self.systemUptime(),
 				'systemRoot':   self.systemRoot,
 				'systemDrive':  self.systemDrive,
@@ -2693,6 +4169,8 @@ class Utils:
 			self.load_uses()
 			
 			self.AsciiFont = self.AsciiFont()
+			self.DoomsdayRule = self.DoomsdayRule()
+			self.Images = self.Images()
 			self.UBZ2 = self.UBZ2()
 		
 		class AsciiFont:	# Clase que permite convertir un texto a un tipo de ASCII FONT
@@ -2707,8 +4185,9 @@ class Utils:
 			
 			def __init__(self):
 				
-				self.functions = ObjectFunctionNames(self)
 				self.classes   = ObjectClassNames(self)
+				self.functions = None
+				self.functions = ObjectFunctionNames(self)
 				
 				self.textToAscii = self.not_textToAscii
 				
@@ -3351,6 +4830,605 @@ class Utils:
 				
 				return self.textToAscii(text, c, rules, width=8)
 		
+		class DoomsdayRule:		# Algoritmo de doomsday. Permite saber de cualquier fecha (pasado o futuro) en que día de la semana caerá. Permite crear un calendario de cualquier año con cuentas mentales simples de aritmetica. Esto se puede realizar mentalmente, es fantástico.
+			#
+			#  ██████╗  ██████╗  ██████╗ ███╗   ███╗███████╗██████╗ ██╗  ██╗██╗   ██╗
+			#  ██╔══██╗██╔═══██╗██╔═══██╗████╗ ████║██╔════╝██╔══██╗██║  ██║╚██╗ ██╔╝
+			#  ██║  ██║██║   ██║██║   ██║██╔████╔██║███████╗██║  ██║███████║ ╚████╔╝ 
+			#  ██║  ██║██║   ██║██║   ██║██║╚██╔╝██║╚════██║██║  ██║╚════██║  ╚██╔╝  
+			#  ██████╔╝╚██████╔╝╚██████╔╝██║ ╚═╝ ██║███████║██████╔╝     ██║   ██║   
+			#  ╚═════╝  ╚═════╝  ╚═════╝ ╚═╝     ╚═╝╚══════╝╚═════╝      ╚═╝   ╚═╝   
+			#                                                         By: LawlietJH
+			#                                                               v1.0.6
+			# Fuente: 'ANSI Shadow' - Desde: http://patorjk.com/software/taag/#p=display&f=ANSI%20Shadow&t=Doomsd4y
+
+			class MonthDoesNotExist(Exception):
+				def __init__(self, error_msg): self.error_msg = error_msg
+				def __str__(self): return repr(self.error_msg)
+			
+			class InvalidDate(Exception):
+				def __init__(self, error_msg): self.error_msg = error_msg
+				def __str__(self): return repr(self.error_msg)
+			
+			def __init__(self):
+				self.weekdays = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado']
+				self.msgError  = 'La Fecha {} no es valida. Modo de Uso: Día/Mes/Año o Día-Mes-Año.'
+				
+				self.learnToDoItMentally = '''
+				\r # Regla del fin del mundo (Doomsday Rule):
+				
+				Algoritmo de Doomsday.					Domingo, 29 de Septiembre del 2019
+													Por: LawlietJH
+
+				--------------------------------------------------------------------------------------------
+				El Algoritmo de Doomsday fue creado por el Matematico John Horton Conway
+				(Creador tambien del Juego de la Vida).
+
+				Este algoritmo nos permite saber en que día de la semana cae cualquier día de cualquier
+				año del pasado o del futuro.
+
+				Primeramente aprenderemos con este tutorial a hacerlo de forma mental, aunque
+				parece complicado, es demasiado sencillo.
+
+				Primero Aprenderemos a saber en que día de la semana cae cualquier fecha de 1 solo año,
+				en este caso nos basaremos en el actual escrito esto, 2019.
+
+				Sección 1: Aprendiendo a Desplazarnos en el año actual para ya
+				no necesitar ver un calendario jamas.
+
+				--------------------------------------------------------------------------------------------
+
+				Parte 1: El Doomsday es el ultimo día de febrero, si el ultimo día de febrero
+				(supongamos que es el 28) fue Jueves, entonces todos los Jueves de ese mismo
+				año son Doomsday.
+
+				El Doomsday de este año, 2019, es Jueves.
+
+				-----------------------------------------------
+				Calendario de Doomsdays -----------------------
+				-----------------------------------------------
+					Mes		| Día
+				 1- Enero	| 3  o  4 en bisiesto
+				 2- Febrero	| 28 o 29 en bisiesto <- Base
+				 3- Marzo	| 7
+				 4- Abril	| 4
+				 5- Mayo	| 9
+				 6- Junio	| 6
+				 7- Julio	| 11
+				 8- Agosto	| 8
+				 9- Septiembre	| 5
+				10- Octubre	| 10
+				11- Noviembre	| 7
+				12- Diciembre	| 12
+				------------------------------------------------
+
+				Para comprenderlo mejor lo dividimos en 3 secciones:
+
+				Sección 1: Primeros 3 meses --------------------
+
+				 1 - Enero	| 3   o  4 en bisiesto
+				 2 - Febrero	| 28  o 29 en bisiesto <- Base
+				 3 - Marzo	| 7
+
+				Sección 2: Pares -------------------------------
+
+				 4 - Abril	| 4
+				 6 - Junio	| 6
+				 8 - Agosto	| 8
+				10 - Octubre	| 10
+				12 - Diciembre	| 12
+
+				Sección 3: Impares -----------------------------
+				5 -> 9, 7 -> 11 y viceversa 9 -> 5 y 11 -> 7. O sea:
+				Mes  5 -> Día 9
+				Mes  7 -> Día 11
+				Mes  9 -> Día 5
+				Mes 11 -> Día 7
+
+				 5 - Mayo	| 9
+				 7 - Julio	| 11
+				 9 - Septiembre	| 5
+				11 - Noviembre	| 7
+
+				------------------------------------------------
+
+				Todos los días registrados a la derecha del mes, son Doomsday, para saber cualquier día
+				del mes, solo basta recordar el día de doomsday base de cada mes y desplazarse.
+
+				------------------------------------------------------------------------------------------------
+
+				Parte 2: Días del Mes.
+
+				Los meses tienen 31, 30, 31, 30, 31, 30 días...
+
+				Enero   31
+				Febrero 28 o 29    <- Siguiendo la secuencia febrero seria 30 pero se pone el correspondiente.
+				Marzo   31
+				Abril   30
+				Mayo    31
+				Junio   30
+				Julio   31
+				---------- <- Reinicio, Ahora se inicia de nuevo con 31.
+				Agosto  31
+				Septiem 30
+				Octubre 31
+				Noviemb 30
+				Diciemb 31
+
+				--------------------------------------------------------------------------------------------
+
+				Parte 3: Qué años son bisiestos?
+
+				Si el año es multiplo de 4 entonces es bisiesto.
+				Los multiplos de 100 no lo son pero de 400 si.
+
+				Entones:
+
+				Los años 4 8 12 16 20... etc., son bisiestos
+				Los años 100, 200, 300, 500, 600, 700, 900, 1000... etc., no lo son.
+				Los años 400, 800, 1200, 1600, 2000, 2400... etc., si son bisiestos.
+
+				por lo tanto como ejemplos los años 2020, 1996, 2012 son bisiestos.
+
+				--------------------------------------------------------------------------------------------
+
+				Una vez dominada esta seccion que es fundamental. Pasaremos a saber cual es el Doomsday 
+				de cualquier año ya sea del pasado o del futuro.
+
+				Practiquemos un poco, estamos en el año 2019 y su Doomsday es Jueves,
+				entoneces la fecha 29 de Septiembre se sacaría de la siguiente manera:
+
+				Sabemos que el día doomsday base de Semptiembre (el mes número 9) es
+				el día 5, lo que significa que el día 5 fue Jueves y los días 12, 19 y 26
+				también lo son, ahora solo nos desplazamos y encontramos que el día 29 es Domingo.
+
+				Ahora que lo comprendemos mejor, hagamos otros.
+
+				* El día 19 de Julio de 2019.
+				Doomsdays de Julio: 4, 11 (Base), 18, 25.
+				Entonces el 19 de Julio fue un día Viernes.
+
+				* El día 23 de Diciembre de 2019.
+				Doomsdays de Abril: 5, 12 (Base), 19, 26.
+				Entonces el 23 de Abril fue un día Lunes.
+
+				* El día 9 de Enero de 2019. No es bisiesto.
+				Doomsdays de Enero: 3 (Base), 10, 17, 24, 31.
+				Entonces el 9 de Enero fue un día Miércoles.
+
+				--------------------------------------------------------------------------------------------
+
+				Sección 2: Como saber el doomsday de cualquier año del pasado o futuro.
+
+				Parte 1: -------------------------------------------
+
+				Se debe tomar el año que se desea analizar, tomemos como ejemplo este año, el 2019.
+
+				lo dividimos en 2 partes, la parte de los siglos y la parte de las décadas por decirlo así.
+
+				Siglo-1  Décadas
+				  20       19
+
+				Tomamos la primera parte (el numero 20) y aplicamos modulo 4 (el modulo es el residuo de una división).
+
+				por ejemplo 13 % 4 (13 modulo 4) su resultado es 1, porque 13 / 4 es = 3 y sobra 1.
+				entones: 20 % 4 (20 modulo 4) su resultado es 0, porque 20 / 4 es = 5 y sobran 0.
+
+				Entonces observemos lo siguiente:
+				Si el modulo da como resultado lo siguiente se tomará como base el día indicado.
+				A esto el podemos llamar Doomsday base del Siglo.
+
+				0 - Martes.
+				1 - Domingo.
+				2 - Viernes.
+				3 - Miércoles.
+
+				Entonces del siglo, obtenemos que su base es Martes.
+
+				Parte 2: -------------------------------------------
+
+				Ahora sacamos el Doomsday base de la década, en este caso es el año 19.
+
+				Primero dividimos el año entre 12 y el resultado se acumula.
+				Segundo acumulamos el residuo.
+				Tercero al residuo le hacemos una división entre 4 y se acumula. 
+
+				Y al resultado de todo lo acumulado le aplicamos modulo 7.
+
+				Ejemplo:
+
+				19 / 12 = 1
+				19 % 12 = 7
+				 7 /  4 = 1
+				Total   = 9
+
+				 9 %  7 = 2
+
+				Ahora que tenemos el resultado 2, este se lo sumamos a el Doomsday base del siglo:
+
+				Base del siglo-1: Martes.
+
+				Martes + 2 días = Jueves.
+
+				Entonces el último día de Febrero del año 2019 fue Jueves.
+
+				Ahora tenemos el Doomsday base del año 2019 para sacar cualquier fecha de ese año.
+
+				--------------------------------------------------------------------------------------------
+				--------------------------------------------------------------------------------------------
+				--------------------------------------------------------------------------------------------
+
+				Ahora veremos ejemplos prácticos utilizando todo el algoritmo:
+
+				--------------------------------------------------
+				* Fecha: 23 de Octubre de 1993.
+
+				19 % 4 = 3 = Miércoles.
+
+				93 / 12 = 7
+				93 % 12 = 9
+				 9 /  4 = 2
+				 Total  = 18
+				18 %  7 = 4
+
+				Miércoles + 4 días = Domingo.
+
+				Doomsday del año 1993: Domingo.
+				Doomsdays de Octubre: 3, 10 (Base), 17, 24, 31.
+
+				El Día 23 de Octubre de 1993 fue Sábado.
+				--------------------------------------------------
+				--------------------------------------------------
+				--------------------------------------------------
+				* Fecha: 5 de Mayo de 2055.
+
+				20 % 4 = 0 = Martes.
+
+				55 / 12 = 4
+				55 % 12 = 7
+				 7 /  4 = 1
+				 Total  = 12
+				12 %  7 = 5
+
+				Martes + 5 días = Domingo.
+
+				Doomsday del año 2055: Domingo.
+				Doomsdays de Mayo: 2, 9 (Base), 16, 23, 30.
+
+				El Día 5 de Mayo de 2055 será Miercoles.
+				--------------------------------------------------
+
+				Así de simple. El Algoritmo Jamás Falla, Haz la prueba. Happy Huntig!
+
+				--------------------------------------------------------------------------------------------
+				'''
+				
+				self.learnToDoItMentally = self.learnToDoItMentally.replace('				', ' ')
+				
+				self.use = '''
+				\r Clase: DoomsdayRule          # Algoritmo de Doomsday (Doomsday Rule)
+				\r |
+				\r + Descripción: 
+				\r |    
+				\r |    Regla del fin del mundo (Doomsday Rule):
+				\r |    
+				\r |    La regla del día del juicio final (Doomsday rule
+				\r |    o Doomsday algorithm, en inglés) es un método
+				\r |    para el cálculo del día de la semana en el que
+				\r |    cae una fecha determinada, optimizado para el
+				\r |    cálculo mental. Se basa principalmente en el
+				\r |    hecho de que ciertos conjuntos de fechas comparten,
+				\r |    dentro de un mismo año, el día de la semana en
+				\r |    el que caen.
+				\r |    
+				\r |    El algoritmo fue creado por el matemático inglés
+				\r |    John Conway y publicado en 1982.
+				\r |    
+				\r |    Este código lo hice en homenaje a 'John Horton Conway'
+				\r |    creador del mismo.
+				\r |    
+				\r |    John Horton Conway ​​​fue un prolífico matemático
+				\r |    británico, especialista en la teoría de grupos,
+				\r |    teoría de nudos, teoría de números, teoría de
+				\r |    juegos y teoría de códigos.
+				\r |    
+				\r |    El 11 de abril de 2020, a los 82 años, murió de
+				\r |    complicaciones por COVID-19.
+				\r |    
+				\r |    Dato curioso: El algoritmo es lo suficientemente
+				\r |    simple como para poder calcularlo mentalmente.
+				\r |    Conway normalmente podía dar la respuesta correcta
+				\r |    en menos de dos segundos. Para mejorar su velocidad,
+				\r |    practicó sus cálculos de calendario en su computadora,
+				\r |    que estaba programada para hacerle preguntas con
+				\r |    fechas aleatorias cada vez que se conectaba. Por
+				\r |    ello y en forma de homenaje replique el algoritmo.
+				\r |    
+				\r + Ejemplo de uso: 
+				\r |    
+				\r |    utils = Utils()
+				\r |    
+				\r |    date = '22/07/2050'
+				\r |    weekday = utils.Utilities.DoomsdayRule.getWeekday(date)
+				\r |    print(date + ': ' + weekday)
+				\r |    
+				\r |    # El resultado es: '22/07/2050: Viernes'
+				\r |    
+				\r |    # Si deseas replicar el algoritmo de forma mental, es
+				\r |    # muy simple, las instrucciones las puedes ver
+				\r |    # con la siguiente función:
+				\r |    utils.Utilities.DoomsdayRule.learnToDoItMentally()
+				\r |    
+				\r |    # Para obtener una fecha aleatoria y prácticar:
+				\r |    utils.Utilities.DoomsdayRule.getRandomDate()
+				\r \\
+				'''
+			
+			def isLeapYear(self, year):									# Analiza si el año es bisiesto.
+				if year % 4 == 0 and year % 100 != 0 or year % 400 == 0:
+					return True
+				return False
+			
+			def getCenturyBaseDay(self, year):							# Obtiene el día base del siglo.
+				century = year // 100
+				if   century % 4 == 0: return 2
+				elif century % 4 == 1: return 0
+				elif century % 4 == 2: return 5
+				elif century % 4 == 3: return 3
+			
+			def getBaseDayOfDecade(self, year):							# Obtiene el día base de la decada.
+				baseDay = year % 100
+				part1 = baseDay // 12
+				part2 = baseDay % 12
+				part3 = part2 // 4
+				parts = part1 + part2 + part3
+				return parts % 7
+			
+			def isValidDate(self, day, month, isLeapYear):					# Comprobamos si la fecha solicitada es valida.
+				if (month == 1  and day >= 1 and day <= 31)\
+				or (month == 2  and day >= 1 and day <=(28 if not isLeapYear else 29))\
+				or (month == 3  and day >= 1 and day <= 31)\
+				or (month == 4  and day >= 1 and day <= 30)\
+				or (month == 5  and day >= 1 and day <= 31)\
+				or (month == 6  and day >= 1 and day <= 30)\
+				or (month == 7  and day >= 1 and day <= 31)\
+				or (month == 8  and day >= 1 and day <= 31)\
+				or (month == 9  and day >= 1 and day <= 30)\
+				or (month == 10 and day >= 1 and day <= 31)\
+				or (month == 11 and day >= 1 and day <= 30)\
+				or (month == 12 and day >= 1 and day <= 31):
+					return True
+				return False
+			
+			def getDateValues(self, date):
+				date = date.replace(' ', '')
+				date = date.replace('-', '/')
+				date = date.replace('.', '/')
+				date = date.replace('_', '/')
+				date = date.replace(',', '/')
+				date = date.replace('|', '/')
+				date = date.replace('\\', '/')
+				date = date.split('/')
+				if len(date) == 3:
+					day, month, year = date
+					return int(day), month, int(year)
+				else:
+					return None, None, None
+			
+			def getMonthValue(self, month):
+				month = month.lower()
+				try:
+					month = int(month)
+					if 1 <= month <= 12:
+						return month
+					else:
+						raise self.MonthDoesNotExist('El mes ' + repr(month) + ' no existe.')
+				except:
+					if   month == 'enero'      or mes == 'ene': return 1
+					elif month == 'febrero'    or mes == 'feb': return 2
+					elif month == 'marzo'      or mes == 'mar': return 3
+					elif month == 'abril'      or mes == 'abr': return 4
+					elif month == 'mayo'       or mes == 'may': return 5
+					elif month == 'junio'      or mes == 'jun': return 6
+					elif month == 'julio'      or mes == 'jul': return 7
+					elif month == 'agosto'     or mes == 'ago': return 8
+					elif month == 'septiembre' or mes == 'sep': return 9
+					elif month == 'octubre'    or mes == 'oct': return 10
+					elif month == 'noviembre'  or mes == 'nov': return 11
+					elif month == 'diciembre'  or mes == 'dic': return 12
+					else:
+						raise self.MonthDoesNotExist('El mes ' + repr(month) + ' no existe.')
+			
+			def calculateWeekday(self, day, month, isLeapYear, doomsday):
+				# Estos dias son doomsdays base de cada mes:
+				# Ene = 3/4		May = 9		Sep = 5
+				# Feb = 28/29	Jun = 6		Oct = 10
+				# Mar = 7		Jul = 11	Nov = 7
+				# Abr = 4		Ago = 8		Dic = 12
+				
+				months = [3, 28, 7, 4, 9, 6, 11, 8, 5, 10, 7, 12]
+				m_pos  = months[month-1] + (1 if isLeapYear and month in [1, 2] else 0)
+				d_sum  = (day - (m_pos))
+				res    = (28 + d_sum)
+				return (doomsday + res) % 7
+			
+			def getWeekday(self, date='31/12/2050', raw=False):
+				
+				day, month, year = self.getDateValues(date)
+				if day == None:
+					raise self.InvalidDate(self.msgError.format(repr(date)))
+				
+				month = self.getMonthValue(month)
+				isLeapYear = self.isLeapYear(year)
+				isValidDate = self.isValidDate(day, month, isLeapYear)
+				
+				if not isValidDate:
+					raise self.InvalidDate(self.msgError.format(repr(date)))
+				
+				BaseC = self.getCenturyBaseDay(year)
+				BaseD = self.getBaseDayOfDecade(year)
+				doomsday = (BaseC + BaseD) % 7
+				weekday = self.calculateWeekday(day, month, isLeapYear, doomsday)
+				
+				if raw:
+					return weekday
+				else:
+					return self.weekdays[weekday]
+			
+			def getRandomDate(self, lvl=0):
+				
+				if lvl == 0: yi, ye = 1900, 2050
+				if lvl == 1: yi, ye = 1800, 2100
+				if lvl == 2: yi, ye = 1500, 2200
+				if lvl == 3: yi, ye = 1000, 2300
+				if lvl == 4: yi, ye =  500, 2500
+				if lvl == 5: yi, ye =    0, 3000
+				
+				day   = random.randint(1, 31)
+				month = random.randint(1, 12)
+				year  = random.randint(yi, ye)
+				isLeapYear = self.isLeapYear(year)
+				
+				while not self.isValidDate(day, month, isLeapYear):
+					day -= 1
+				
+				date = '{:02d}/{:02d}/{:04d}'.format(day, month, year)
+				weekday = self.getWeekday(date, raw=True)
+				response = ''
+				
+				t_init = time.perf_counter()
+				qty = 0
+				weekdays = {
+					'd':0, 'l':1, 'm':2, 'x':3, 'j':4, 'v':5, 's':6,
+					0:'d', 1:'l', 2:'m', 3:'x', 4:'j', 5:'v', 6:'s',
+					'domingo':0, 'lunes':1, 'martes':2, 'miercoles':3, 'miércoles':3,
+					'jueves':4, 'viernes':5, 'sabado':6, 'sábado':6
+				}
+				
+				while True:
+					
+					t = time.perf_counter()
+					
+					if qty == 5:
+						s = self.weekdays[weekday]
+						l = weekdays[weekday]
+						print(' La respuesta era: {} ({})'.format(s, l))
+						print(' Tardaste en responder: {:.2f}'.format(t-t_init))
+						break
+					
+					print(' Fecha: {} Día: '.format(date), end='')
+					res = input().lower()
+					
+					try:
+						wd = weekdays[res]
+					except:
+						qty += 1
+						continue
+					
+					if wd == weekday:
+						print(' Tardaste en responder: {:.2f}'.format(t-t_init))
+						break
+					else:
+						qty += 1
+			
+		class Images:
+			
+			def __init__(self):
+				
+				self.classes   = ObjectClassNames(self)
+				self.functions = None
+				self.functions = ObjectFunctionNames(self)
+			
+			def convertFromCv2ToImage(self, img):
+				# return PIL.Image.fromarray(img)
+				return PIL.Image.fromarray(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
+			
+			def convertFromImageToCv2(self, img):
+				# return numpy.asarray(img)
+				return cv2.cvtColor(numpy.array(img), cv2.COLOR_RGB2BGR)
+			
+			def screenshot(self, img_type=''):
+				ss = PIL.ImageGrab.grab()
+				if img_type.lower() in ['cv2', 'numpy', 'np', 'array', 'cv']:
+					return self.convertFromImageToCv2(ss)
+				else:
+					return ss
+			
+			def cropImage(self, img, pos: dict):
+				# pos = {
+				#	 'x': (340, 420),
+				#	 'y': (810, 840)
+				# }
+				if img.__class__.__name__ == 'Image':
+					return img.crop((
+						pos['x'][0],
+						pos['y'][0],
+						pos['x'][1],
+						pos['y'][1]
+					))
+				elif img.__class__.__name__ == 'ndarray':
+					return img[
+						pos['y'][0] : pos['y'][1],
+						pos['x'][0] : pos['x'][1]
+					]
+			
+			# Devuelve el porcentaje de similitud entre 2 imagenes del mismo tamaño y tipo
+			def compare(self, cv2img1, cv2img2):
+				
+				img1 = self.convertFromCv2ToImage(cv2img1)
+				img2 = self.convertFromCv2ToImage(cv2img2)
+				
+				assert img1.mode == img2.mode, "Different kinds of images."
+				assert img1.size == img2.size, "Different sizes."
+				
+				pairs = zip(img1.getdata(), img2.getdata())
+				
+				if len(img1.getbands()) == 1:
+					# for gray-scale jpegs
+					dif = sum(abs(p1-p2) for p1,p2 in pairs)
+				else:
+					dif = sum(abs(c1-c2) for p1,p2 in pairs for c1,c2 in zip(p1,p2))
+				
+				ncomponents = img1.size[0] * img1.size[1] * 3
+				
+				return round(100 - ((dif / 255.0 * 100) / ncomponents), 2)
+			
+			# get grayscale image
+			def get_grayscale(self, image):
+				return cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+			
+			# noise removal
+			def remove_noise(self, image):
+				return cv2.medianBlur(image,5)
+			
+			# thresholding:
+			def thresholding(self, gray_image):
+				return cv2.threshold(gray_image, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1]
+			
+			# Finding histogram
+			def histogram(self, gray_image):
+				return cv2.calcHist([gray_image], [0],
+									None, [256], [0, 256])
+			
+			#dilation
+			def dilate(self, image):
+				kernel = numpy.ones((5,5),numpy.uint8)
+				return cv2.dilate(image, kernel, iterations = 1)
+			
+			#erosion
+			def erode(self, image):
+				kernel = numpy.ones((5,5),numpy.uint8)
+				return cv2.erode(image, kernel, iterations = 1)
+			
+			#opening - erosion followed by dilation
+			def opening(self, image):
+				kernel = numpy.ones((5,5),numpy.uint8)
+				return cv2.morphologyEx(image, cv2.MORPH_OPEN, kernel)
+			
+			#canny edge detection
+			def canny(self, image):
+				return cv2.Canny(image, 100, 200)
+		
 		class UBZ2:			# Algoritmo de compresión y descompresión de archivos bz2. El nombre se refiere a Utils BZ2.
 			
 			def __init__(self):
@@ -3735,6 +5813,10 @@ STRUCT = '''\
     ║   ║    ├── function getFolderName
     ║   ║    └── function getFileNameSave
     ║   ║
+    ║   ╠══ Class Mouse
+    ║   ║
+    ║   ╠══ Class Keyboard
+    ║   ║
     ║   ╠══ Class VBS
     ║   │    │
     ║   │    │ - Functions: ──────────────────
@@ -3885,6 +5967,8 @@ STRUCT = '''\
     ║   ├── function isWindows
     ║   ├── function currentProcessId
     ║   ├── function cursorPos
+    ║   ├── function currentSystemMetrics
+    ║   ├── function realSystemMetrics
     ║   ├── function displaySettings
     ║   ├── function computerName
     ║   ├── function homeDrive
@@ -3897,6 +5981,7 @@ STRUCT = '''\
     ║   ├── function systemDrive
     ║   ├── function systemRoot
     ║   ├── function systemUptime
+    ║   ├── function userDowntime
     ║   ├── function userName
     ║   ├── function winDir
     ║   └── function collectAll
@@ -3921,6 +6006,8 @@ STRUCT = '''\
         ║    ├── function dobleShorts
         ║    ├── function doble
         ║    └── function rammstein
+        ║
+        ╠══ Class DoomsdayRule
         ║
         ╠══ Class UBZ2
         ║    ║
@@ -3966,11 +6053,58 @@ if __name__ == '__main__':
 	# ~ reg = utils.Utilities.AsciiFont.ansiRegular(__version__)
 	# ~ print('ansiShadow:\n' + reg)
 	
+	# Algoritmo de Doomsday (Doomsday Rule)
+	# ~ date = '22/07/2050'
+	# ~ weekday = utils.Utilities.DoomsdayRule.getWeekday(date)
+	# ~ print(date + ': ' + weekday)
+	
+	# ~ print(utils.Utilities.DoomsdayRule.learnToDoItMentally)
+	
+	# ~ for x in range(3):
+		# ~ utils.Utilities.DoomsdayRule.getRandomDate()
+	
+	# ~ print(utils.EditRegistry.Programs.use)
+	# ~ print(utils.EditRegistry.Programs.enumValues)
+	# ~ utils.EditRegistry.Programs.ProgramsAndFeatures.hide()
+	# ~ utils.EditRegistry.Programs.ProgramsAndFeatures.show()
+	# ~ utils.EditRegistry.Programs.ProgramsAndFeatures.cleanUp()
+	
+	print(utils.EditRegistry.Explorer.ControlPanel.parent.PATH)
+	print(utils.EditRegistry.Explorer.WindowMinimizingShortcuts.parent.PATH)
+	
+	# ~ print(utils.EditRegistry.Explorer.use)
+	# ~ utils.EditRegistry.Explorer.ControlPanel.disable()
+	# ~ utils.EditRegistry.Explorer.ControlPanel.enable()
+	# ~ utils.EditRegistry.Explorer.ControlPanel.cleanUp()
+	
+	
+	# toma una captura de pantalla despues de 5 segundos de inactividad del usuario
+	# ~ while True:
+		# ~ if utils.SystemInfo.userDowntime > 5:
+			# ~ utils.Actions.screenshot()
+			# ~ utils.Actions.beep()
+			# ~ break
+		# ~ time.sleep(.1)
+	
+	# ~ utils.Actions.Mouse.position = (150, 200)
+	# ~ utils.Actions.Mouse.leftClickDown()
+	# ~ utils.Actions.Mouse.position = (150, 300)
+	# ~ utils.Actions.Mouse.leftClickUp()
+	
+	# ~ print(utils.Actions.Mouse.position)
+	# ~ utils.Actions.Mouse.position = (105, 205)
+	# ~ print(utils.Actions.Mouse.position)
+	
+	# ~ utils.Actions.Mouse.leftClick()		# clic
+	# ~ utils.Actions.Mouse.leftClick(2)	# doble clic
+	
+	# ~ utils.Actions.Mouse.rightClick()	# clic derecho
+	
 	# ~ print(utils.Utilities.UBZ2.use)
 	
-	utils.EditRegistry.PhysicalDrivesInWinExplorer.hide('ABCDEFGH')
+	# ~ utils.EditRegistry.PhysicalDrivesInWinExplorer.hide('ABCDEFGH')
 	# ~ utils.EditRegistry.PhysicalDrivesInWinExplorer.show('CFB')
-	print(utils.EditRegistry.PhysicalDrivesInWinExplorer.enumHiddenDrives())
+	# ~ print(utils.EditRegistry.PhysicalDrivesInWinExplorer.enumHiddenDrives())
 	# ~ utils.EditRegistry.PhysicalDrivesInWinExplorer.showAll()
 	# ~ utils.EditRegistry.PhysicalDrivesInWinExplorer.cleanUp()
 	
