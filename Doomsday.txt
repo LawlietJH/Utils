@@ -1,0 +1,283 @@
+
+Regla del fin del mundo (Doomsday Rule).                Domingo, 29 de Septiembre del 2019
+                                                                        Por: LawlietJH
+
+--------------------------------------------------------------------------------------------
+El Algoritmo de Doomsday fue creado por el Matemático John Horton Conway
+(Creador también del Juego de la Vida).
+
+Edit: 25/07/2021 -------
+
+La regla del día del juicio final (Doomsday rule o Doomsday algorithm, en inglés) es un método
+para el cálculo del día de la semana en el que cae una fecha determinada, optimizado para el
+cálculo mental. Se basa principalmente en el hecho de que ciertos conjuntos de fechas comparten,
+dentro de un mismo año, el día de la semana en el que caen.
+
+El algoritmo fue creado por el matemático inglés John Conway y publicado en 1982.
+
+Este código lo hice en homenaje a 'John Horton Conway'
+creador del mismo.
+
+John Horton Conway ​​​fue un prolífico matemático británico, especialista en la teoría de grupos,
+teoría de nudos, teoría de números, teoría de juegos y teoría de códigos.
+
+El 11 de abril de 2020, a los 82 años, murió de complicaciones por COVID-19.
+
+Dato curioso: El algoritmo es lo suficientemente simple como para poder calcularlo mentalmente.
+Conway normalmente podía dar la respuesta correcta en menos de dos segundos. Para mejorar su
+velocidad, practicó sus cálculos de calendario en su computadora, que estaba programada para
+hacerle preguntas con fechas aleatorias cada vez que se conectaba. Por ello y en forma de
+homenaje replique el algoritmo en Python.
+
+--------------------------------------------------------------------------------------------
+
+Este algoritmo nos permite saber en que día de la semana cae cualquier día de cualquier
+año del pasado o del futuro.
+
+Primeramente aprenderemos con este tutorial a hacerlo de forma mental, aunque
+parece complicado, es demasiado sencillo.
+
+Primero aprenderemos a saber en que día de la semana cae cualquier fecha de 1 solo año,
+en este caso nos basaremos en el actual escrito esto, 2019.
+
+Este documento muestra a mi manera como aplicar el algoritmo utilizando cálculos simples
+para poder realizarlo mentalmente y así saber de cualquier fecha del pasado o del futuro,
+rápidamente, en que día de la semana caerá.
+
+--------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------
+
+Sección 1: Aprendiendo a desplazarnos en el año actual para ya
+no necesitar ver un calendario jamás.
+
+--------------------------------------------------------------------------------------------
+
+Parte 1: El Doomsday es el último día de febrero, si el último día de febrero
+(supongamos que es el 28) fue Jueves, entonces todos los Jueves de ese mismo
+año son Doomsday.
+
+El Doomsday de este año, 2019, es Jueves.
+
+--------------------------------------------------
+Calendario de Doomsdays --------------------------
+--------------------------------------------------
+    Mes	        | Día
+ 1- Enero       | 3  o  4 en bisiesto
+ 2- Febrero     | 28 o 29 en bisiesto <- Base
+ 3- Marzo       | 7
+ 4- Abril       | 4
+ 5- Mayo        | 9
+ 6- Junio       | 6
+ 7- Julio       | 11
+ 8- Agosto      | 8
+ 9- Septiembre  | 5
+10- Octubre     | 10
+11- Noviembre   | 7
+12- Diciembre   | 12
+---------------------------------------------------
+
+Para comprenderlo mejor lo dividimos en 3 secciones:
+
+Sección 1: Primeros 3 meses -----------------------
+
+ 1 - Enero      | 3   o  4 en bisiesto
+ 2 - Febrero    | 28  o 29 en bisiesto <- Base
+ 3 - Marzo      | 7
+
+Sección 2: Pares ----------------------------------
+4 -> 4, 6 -> 6, 8 -> 8, 10 -> 10 y 12 -> 12. O sea:
+
+ 4 - Abril      | 4
+ 6 - Junio      | 6
+ 8 - Agosto     | 8
+10 - Octubre    | 10
+12 - Diciembre  | 12
+
+Sección 3: Impares --------------------------------
+5 -> 9, 7 -> 11 y viceversa 9 -> 5 y 11 -> 7. O sea:
+Mes  5 -> Día 9
+Mes  7 -> Día 11
+Mes  9 -> Día 5
+Mes 11 -> Día 7
+
+ 5 - Mayo       | 9
+ 7 - Julio      | 11
+ 9 - Septiembre | 5
+11 - Noviembre  | 7
+
+---------------------------------------------------
+
+Todos los días registrados a la derecha del mes, son Doomsday, para saber cualquier día
+del mes, solo basta recordar el día de doomsday base de cada mes y desplazarse.
+
+------------------------------------------------------------------------------------------------
+
+Parte 2: Días del Mes.
+
+Los meses tienen 31, 30, 31, 30, 31, 30 días...
+
+Enero   31
+Febrero 28 o 29    <- Siguiendo la secuencia febrero seria 30 pero se pone el correspondiente.
+Marzo   31
+Abril   30
+Mayo    31
+Junio   30
+Julio   31
+---------- <- Reinicio, Ahora se inicia de nuevo con 31.
+Agosto  31
+Septiem 30
+Octubre 31
+Noviemb 30
+Diciemb 31
+
+--------------------------------------------------------------------------------------------
+
+Parte 3: Qué años son bisiestos?
+
+Si el año es múltiplo de 4 entonces es bisiesto.
+Los multiplos de 100 no lo son pero de 400 si.
+
+Entones:
+
+Los años 4 8 12 16 20... etc., son bisiestos.
+Los años 100, 200, 300, 500, 600, 700, 900, 1000... etc., no lo son.
+Los años 400, 800, 1200, 1600, 2000, 2400... etc., si son bisiestos.
+
+por lo tanto como ejemplos los años 2020, 1996, 2012 son bisiestos.
+
+--------------------------------------------------------------------------------------------
+
+Una vez dominada esta seccion que es fundamental pasaremos a saber cual es el Doomsday 
+de cualquier año ya sea del pasado o del futuro, por lo tanto, practicaremos primero lo
+antes visto.
+
+Practiquemos un poco, estamos en el año 2019 y su Doomsday es Jueves,
+entoneces la fecha 29 de Septiembre se sacaría de la siguiente manera:
+
+Sabemos que el día doomsday base de Semptiembre (el mes número 9) es
+el día 5, lo que significa que el día 5 fue Jueves y los días 12, 19 y 26
+también lo son, ahora solo nos desplazamos y encontramos que el día 29 es Domingo.
+
+Ahora que lo comprendemos mejor, hagamos otros.
+
+* El día 19 de Julio de 2019.
+Doomsdays de Julio: 4, 11 (Base), 18, 25.
+Entonces el 19 de Julio fue un día Viernes.
+
+* El día 23 de Diciembre de 2019.
+Doomsdays de Abril: 5, 12 (Base), 19, 26.
+Entonces el 23 de Abril fue un día Lunes.
+
+* El día 9 de Enero de 2019. No es bisiesto.
+Doomsdays de Enero: 3 (Base), 10, 17, 24, 31.
+Entonces el 9 de Enero fue un día Miércoles.
+
+--------------------------------------------------------------------------------------------
+
+Sección 2: Como saber el doomsday de cualquier año del pasado o futuro.
+
+Parte 1: -------------------------------------------
+
+Se debe tomar el año que se desea analizar, tomemos como ejemplo este año, el 2019.
+
+lo dividimos en 2 partes, la parte de los siglos y la parte de las décadas por decirlo así.
+
+         Siglo-1  Década
+2019  ->   20       19
+
+Tomamos la primera parte (el número 20) y aplicamos módulo 4 (el módulo es el residuo de una división).
+
+por ejemplo 13 % 4 (13 módulo 4) su resultado es 1, porque 13 / 4 es = 3 y sobra 1.
+entones: 20 % 4 (20 módulo 4) su resultado es 0, porque 20 / 4 es = 5 y sobran 0.
+
+Entonces observemos lo siguiente:
+Si el módulo da como resultado lo siguiente se tomará como base el día indicado.
+A esto el podemos llamar Doomsday base del Siglo.
+
+0 - Martes.
+1 - Domingo.
+2 - Viernes.
+3 - Miércoles.
+
+Entonces del siglo, obtenemos que su base es Martes porque 20 % 4 = 0.
+
+Parte 2: -------------------------------------------
+
+Ahora sacamos el Doomsday base de la década, en este caso es el año 19.
+
+Primero dividimos el año entre 12 y el resultado se acumula.
+Segundo acumulamos el residuo.
+Tercero al residuo le hacemos una división entre 4 y se acumula. 
+
+Y al resultado de todo lo acumulado le aplicamos módulo 7.
+
+Ejemplo:
+
+19 / 12 = 1
+19 % 12 = 7
+ 7 /  4 = 1
+  Total = 1 + 7 + 1 = 9
+
+Resultado = Total % 7 = 2
+
+Ahora que tenemos el resultado 2, este se lo sumamos a el Doomsday base del siglo:
+
+Base del siglo: Martes.
+
+Martes + 2 días = Jueves.
+
+Entonces el último día de Febrero del año 2019 fue Jueves.
+
+Ahora tenemos el Doomsday base del año 2019 para sacar cualquier fecha de ese año.
+
+--------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------
+
+Ahora veremos ejemplos prácticos utilizando todo el algoritmo:
+
+--------------------------------------------------
+* Fecha: 23 de Octubre de 1993.
+
+19 % 4 = 3 = Miércoles.
+
+93 / 12 = 7
+93 % 12 = 9
+ 9 /  4 = 2
+ Total  = 18
+18 %  7 = 4
+
+Miércoles + 4 días = Domingo.
+
+Doomsday del año 1993: Domingo.
+Doomsdays de Octubre: 3, 10 (Base), 17, 24, 31.
+
+El Día 23 de Octubre de 1993 fue Sábado.
+--------------------------------------------------
+--------------------------------------------------
+--------------------------------------------------
+* Fecha: 5 de Mayo de 2055.
+
+20 % 4 = 0 = Martes.
+
+55 / 12 = 4
+55 % 12 = 7
+ 7 /  4 = 1
+ Total  = 12
+12 %  7 = 5
+
+Martes + 5 días = Domingo.
+
+Doomsday del año 2055: Domingo.
+Doomsdays de Mayo: 2, 9 (Base), 16, 23, 30.
+
+El Día 5 de Mayo de 2055 será Miércoles.
+--------------------------------------------------
+
+Así de simple. El Algoritmo Jamás Falla, Haz la prueba. Happy Huntig!
+
+--------------------------------------------------------------------------------------------
+
+Sobre el algoritmo y su creador: https://es.wikipedia.org/wiki/Regla_del_fin_del_mundo
+
