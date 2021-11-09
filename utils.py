@@ -4,10 +4,10 @@
 # Utils v1.0.7
 
 # Banner:
-# ███    █▄      ███      ▄█   ▄█          ▄████████ 
-# ███    ███ ▀█████████▄ ███  ███         ███    ███ 
-# ███    ███    ▀███▀▀██ ███▌ ███         ███    █▀  
-# ███    ███     ███   ▀ ███▌ ███         ███        
+# ███    █▄      ███      ▄█   ▄█          ▄████████    
+# ███    ███ ▀█████████▄ ███  ███         ███    ███    █▄▄ █▄█ ▀   █   ▄▀█ █ █ █ █   █ █▀▀ ▀█▀   █ █ █
+# ███    ███    ▀███▀▀██ ███▌ ███         ███    █▀     █▄█  █  ▄   █▄▄ █▀█ ▀▄▀▄▀ █▄▄ █ ██▄  █  █▄█ █▀█
+# ███    ███     ███   ▀ ███▌ ███         ███           
 # ███    ███     ███     ███▌ ███       ▀███████████    ██    ██  ██     ██████     ███████
 # ███    ███     ███     ███  ███                ███    ██    ██ ███    ██  ████         ██
 # ███    ███     ███     ███  ███▌    ▄    ▄█    ███    ██    ██  ██    ██ ██ ██        ██
@@ -53,7 +53,8 @@ import ctypes
 #=======================================================================
 
 # pip install pywin32 ==================================================
-from win32com.shell import shell, shellcon
+from win32com.shell  import shell, shellcon
+from win32com.client import Dispatch
 import win32api			as WA
 import win32con			as WC		# All Constants
 import win32gui			as WG
@@ -161,18 +162,33 @@ class ObjectClassNames: #Use    # Obtiene todos los nombres de las clases en los
 		\r \\
 		'''
 		list_ = [
-			a for a in dir(obj) 
+			a for a in dir(obj)
 			if a[0] == a[0].upper()
 			and not a[0] == '_'
 			and not a.startswith('not_')
+			and not self.isException(obj, a)
 		]
+		error_list = [
+			a for a in dir(obj)
+			if a[0] == a[0].upper()
+			and not a[0] == '_'
+			and not a.startswith('not_')
+			and self.isException(obj, a)
+		]
+		self.error_list = ObjectList(error_list)
 		self.list = ObjectList(list_)
 		self.qty  = ObjectInt(len(list_))
 		self.cls  = obj.__class__.__name__
 	
 	def __str__(self):
-		output = '<{}: '+repr(self.cls) + ', {}: '+str(self.list) + ', {}: '+str(self.qty) + '>'
-		return output.format(repr('class'), repr('list'), repr('qty'))
+		output = '<{}: '+repr(self.cls) + ', {}: '+str(self.list) + ', {}: '+str(self.error_list) + ', {}: '+str(self.qty) + '>'
+		return output.format(repr('class'), repr('list'), repr('error_list'), repr('qty'))
+	
+	def isException(self, obj, class_name):
+		try:
+			return isinstance(eval('obj.'+class_name+'(error_msg="")'), Exception)
+		except:
+			return False
 	
 	@property
 	def dict(self):
@@ -461,6 +477,7 @@ class Utils:
 				self.functions = ObjectFunctionNames(self)
 				
 				# Giant dictonary to hold key name and VK value
+				# http://www.kbdedit.com/manual/low_level_vk_list.html
 				# https://gist.github.com/chriskiehl/2906125
 				self.VK = {
 					'left button': 0x01,
@@ -495,6 +512,8 @@ class Utils:
 					'ins': 0x2D,
 					'del': 0x2E,
 					'help': 0x2F,
+					'windows': 0x5B,
+					'sleep': 0x5F,
 					'0': 0x30,
 					'1': 0x31,
 					'2': 0x32,
@@ -547,30 +566,30 @@ class Utils:
 					'subtract key': 0x6D,
 					'decimal key': 0x6E,
 					'divide key': 0x6F,
-					'F1': 0x70,
-					'F2': 0x71,
-					'F3': 0x72,
-					'F4': 0x73,
-					'F5': 0x74,
-					'F6': 0x75,
-					'F7': 0x76,
-					'F8': 0x77,
-					'F9': 0x78,
-					'F10': 0x79,
-					'F11': 0x7A,
-					'F12': 0x7B,
-					'F13': 0x7C,
-					'F14': 0x7D,
-					'F15': 0x7E,
-					'F16': 0x7F,
-					'F17': 0x80,
-					'F18': 0x81,
-					'F19': 0x82,
-					'F20': 0x83,
-					'F21': 0x84,
-					'F22': 0x85,
-					'F23': 0x86,
-					'F24': 0x87,
+					'f1': 0x70,
+					'f2': 0x71,
+					'f3': 0x72,
+					'f4': 0x73,
+					'f5': 0x74,
+					'f6': 0x75,
+					'f7': 0x76,
+					'f8': 0x77,
+					'f9': 0x78,
+					'f10': 0x79,
+					'f11': 0x7A,
+					'f12': 0x7B,
+					'f13': 0x7C,
+					'f14': 0x7D,
+					'f15': 0x7E,
+					'f16': 0x7f,
+					'f17': 0x80,
+					'f18': 0x81,
+					'f19': 0x82,
+					'f20': 0x83,
+					'f21': 0x84,
+					'f22': 0x85,
+					'f23': 0x86,
+					'f24': 0x87,
 					'num lock': 0x90,
 					'scroll lock': 0x91,
 					'left shift': 0xA0,
@@ -603,19 +622,88 @@ class Utils:
 					'play key': 0xFA,
 					'zoom key': 0xFB,
 					'clear key': 0xFE,
+					'<': 0xE2,
+					# Por Defecto:
+					# ~ '+': 0xBB,
+					# ~ ',': 0xBC,
+					# ~ '-': 0xBD,
+					# ~ '.': 0xBE,
+					# ~ '/': 0xBF,
+					# ~ '`': 0xC0,
+					# ~ ';': 0xBA,
+					# ~ '[': 0xDB,
+					# ~ '\\': 0xDC,
+					# ~ ']': 0xDD,
+					# ~ "'": 0xDE
+					# Teclado: Español (España)
+					'º': 0xDC,
+					'\'': 0xDB,
+					'¡': 0xDD,
+					'`': 0xBA,
 					'+': 0xBB,
+					'ç': 0xBF,
+					'ñ': 0xC0,
+					'´': 0xDE,
 					',': 0xBC,
-					'-': 0xBD,
 					'.': 0xBE,
-					'/': 0xBF,
-					'`': 0xC0,
-					';': 0xBA,
-					'[': 0xDB,
-					'\\': 0xDC,
-					']': 0xDD,
-					"'": 0xDE,
-					'`': 0xC0
+					'-': 0xBD
+					# Teclado: Español (México)
+					# ~ '|': 0xDC,
+					# ~ '\'': 0xDB,
+					# ~ '¿': 0xDD,
+					# ~ '´': 0xBA,
+					# ~ '+': 0xBB,
+					# ~ '}': 0xBF,
+					# ~ 'ñ': 0xC0,
+					# ~ '{': 0xDE,
+					# ~ ',': 0xBC,
+					# ~ '.': 0xBE,
+					# ~ '-': 0xBD
 				}
+				
+				
+				self.use = '''
+				\r Clase: Keyboard
+				\r │ 
+				\r │ # Descripción: Permite manipular los eventos del
+				\r │ teclado. Permite presionar teclas, mantenerlas
+				\r │ cuanto tiempo se desee y soltarla cuando se indique.
+				\r │ 
+				\r │ # Default params:
+				\r │ 
+				\r ├─ getKeyState(
+				\r │    vk = ''         # Se indica el nombre de alguna tecla listada en Keyboard.VK
+				\r │  )
+				\r | 
+				\r + Ejemplos de uso:
+				\r |    
+				\r |    utils = Utils()
+				\r |    
+				\r |    # Presiona y suelta de inmediato cada tecla. Simula pulsaciones típicas.
+				\r |    # Acepta tantas teclas como desee. Pueden ser una sola o varias teclas:
+				\r |    utils.Actions.Keyboard.press('Left Arrow', 'A','B')
+				\r |    
+				\r |    # Presiona y mantiene la combinación de teclas pero no las suelta.
+				\r |    # Acepta tantas teclas como desee. Pueden ser una sola o varias teclas:
+				\r |    utils.Actions.Keyboard.pressAndHold('Left Arrow', 'A','B')
+				\r |    
+				\r |    # Suelta la combinación de teclas presionadas.
+				\r |    # Acepta tantas teclas como desee. Pueden ser una sola o varias teclas:
+				\r |    utils.Actions.Keyboard.release('Left Arrow', 'A','B')
+				\r |    
+				\r |    # Presiona y mantiene la combinación de teclas, después las suelta en el mismo orden.
+				\r |    # Acepta tantas teclas como desee. Pueden ser una sola o varias teclas:
+				\r |    utils.Actions.Keyboard.pressHoldRelease('Ctrl', 'Alt', 'Del')
+				\r |    # También sirve para poner mayúsculas:
+				\r |    utils.Actions.Keyboard.pressHoldRelease('Shift','A')
+				\r |    
+				\r |    # Una forma más sencilla para poner mayúsculas o cualquier combinación con mayus izquierdo:
+				\r |    utils.Actions.Keyboard.typeWithShift('A')
+				\r |    
+				\r |    # Para escribir en automático todo un texto:
+				\r |    utils.Actions.Keyboard.typer('Hola Mundo!')
+				\r \\    
+				'''
 			
 			def getVK(self, vk=''):
 				try:
@@ -626,17 +714,20 @@ class Utils:
 			def getKeyState(self, vk=''):
 				return WA.GetKeyState(self.VK[vk.lower()])
 			
-			def press(self, *args):
+			def getAsyncKeyState(self, vk=''):
+				return WA.GetAsyncKeyState(self.VK[vk.lower()])
+			
+			def press(self, *args, sleep=.05):
 				'''
 				one press, one release.
 				accepts as many arguments as you want. e.g. press('left arrow', 'a','b').
 				'''
 				for char in args:
 					WA.keybd_event(self.VK[char.lower()], 0, 0, 0)
-					time.sleep(.05)
+					time.sleep(sleep)
 					WA.keybd_event(self.VK[char.lower()], 0, WC.KEYEVENTF_KEYUP, 0)
 			
-			def pressAndHold(self, *args):
+			def pressAndHold(self, *args, sleep=.05):
 				'''
 				press and hold. Do NOT release.
 				accepts as many arguments as you want.
@@ -644,9 +735,19 @@ class Utils:
 				'''
 				for char in args:
 					WA.keybd_event(self.VK[char.lower()], 0, 0, 0)
-					time.sleep(.05)
+					time.sleep(sleep)
 			
-			def pressHoldRelease(self, *args):
+			def release(self, *args, sleep=.05):
+				'''
+				release depressed keys
+				accepts as many arguments as you want.
+				e.g. release('left arrow', 'a','b').
+				'''
+				for char in args:
+					WA.keybd_event(self.VK[char.lower()], 0, WC.KEYEVENTF_KEYUP, 0)
+					time.sleep(sleep)
+			
+			def pressHoldRelease(self, *args, sleep=.05):
 				'''
 				press and hold passed in strings. Once held, release
 				accepts as many arguments as you want.
@@ -657,56 +758,45 @@ class Utils:
 				'''
 				for char in args:
 					WA.keybd_event(self.VK[char.lower()], 0, 0, 0)
-					time.sleep(.05)
+					time.sleep(sleep)
 						
-				for char in args:
+				for char in args[::-1]:
 					WA.keybd_event(self.VK[char.lower()], 0, WC.KEYEVENTF_KEYUP, 0)
-					time.sleep(.1)
+					time.sleep(sleep)
 			
-			def release(self, *args):
-				'''
-				release depressed keys
-				accepts as many arguments as you want.
-				e.g. release('left arrow', 'a','b').
-				'''
-				for char in args:
-					WA.keybd_event(self.VK[char.lower()], 0, WC.KEYEVENTF_KEYUP, 0)
-			
-			def typeWithShift(self, vk=''):
+			def typeWithShift(self, char='', sleep=.05):
 				WA.keybd_event(self.VK['left shift'], 0, 0, 0)
-				WA.keybd_event(self.VK[vk], 0, 0, 0)
-				time.sleep(.05)
+				WA.keybd_event(self.VK[char.lower()], 0, 0, 0)
+				time.sleep(sleep)
 				WA.keybd_event(self.VK['left shift'], 0, WC.KEYEVENTF_KEYUP, 0)
-				WA.keybd_event(self.VK[vk], 0, WC.KEYEVENTF_KEYUP, 0)
+				WA.keybd_event(self.VK[char.lower()], 0, WC.KEYEVENTF_KEYUP, 0)
 			
-			def typer(self, string=''):
+			def typer(self, string='', sleep=.05):
 				for char in string:
-					if   char == '!': self.typeWithShift('1')
-					elif char == '@': self.typeWithShift('2')
-					elif char == '{': self.typeWithShift('[')
-					elif char == '?': self.typeWithShift('/')
-					elif char == ':': self.typeWithShift(';')
-					elif char == '"': self.typeWithShift('\'')
-					elif char == '}': self.typeWithShift(']')
-					elif char == '#': self.typeWithShift('3')
-					elif char == '$': self.typeWithShift('4')
-					elif char == '%': self.typeWithShift('5')
-					elif char == '^': self.typeWithShift('6')
-					elif char == '&': self.typeWithShift('7')
-					elif char == '*': self.typeWithShift('8')
-					elif char == '(': self.typeWithShift('9')
-					elif char == ')': self.typeWithShift('0')
-					elif char == '_': self.typeWithShift('-')
-					elif char == '=': self.typeWithShift('+')
-					elif char == '~': self.typeWithShift('`')
-					elif char == '<': self.typeWithShift(',')
-					elif char == '>': self.typeWithShift('.')
+					if   char == '!': self.typeWithShift('1', sleep=sleep)
+					elif char == '@': self.typeWithShift('2', sleep=sleep)
+					elif char == '{': self.typeWithShift('[', sleep=sleep)
+					elif char == '?': self.typeWithShift('/', sleep=sleep)
+					elif char == ':': self.typeWithShift(';', sleep=sleep)
+					elif char == '"': self.typeWithShift('\'', sleep=sleep)
+					elif char == '}': self.typeWithShift(']', sleep=sleep)
+					elif char == '#': self.typeWithShift('3', sleep=sleep)
+					elif char == '$': self.typeWithShift('4', sleep=sleep)
+					elif char == '%': self.typeWithShift('5', sleep=sleep)
+					elif char == '^': self.typeWithShift('6', sleep=sleep)
+					elif char == '&': self.typeWithShift('7', sleep=sleep)
+					elif char == '*': self.typeWithShift('8', sleep=sleep)
+					elif char == '(': self.typeWithShift('9', sleep=sleep)
+					elif char == ')': self.typeWithShift('0', sleep=sleep)
+					elif char == '_': self.typeWithShift('-', sleep=sleep)
+					elif char == '=': self.typeWithShift('+', sleep=sleep)
+					elif char == '~': self.typeWithShift('`', sleep=sleep)
+					elif char == '<': self.typeWithShift(',', sleep=sleep)
+					elif char == '>': self.typeWithShift('.', sleep=sleep)
 					elif char in 'ABCDEFGHIJKLMNOPQRSTUVWXYZ':
-						self.typeWithShift(char.lower())
+						self.typeWithShift(char, sleep=sleep)
 					else:
-						WA.keybd_event(self.VK[char.lower()], 0, 0, 0)
-						time.sleep(.05)
-						WA.keybd_event(self.VK[char.lower()], 0, WC.KEYEVENTF_KEYUP, 0)
+						self.press(char, sleep=sleep)
 		
 		#---------------------------------------------------------------
 		
@@ -1334,6 +1424,31 @@ class Utils:
 				text += "\n\n [+] Tipos de Salida Validas:\n\n\t 0: 'LogOff'.\n\t 1: 'ShutDown'.\n\t 2: 'ReBoot'."
 				raise self.ExitWindowsError(text)
 		
+		def getActiveWindow(self):										# Obtiene el proceso de la ventana activa
+			hWndList = []
+			hWndChildList = []
+			WG.EnumWindows(lambda hWnd, param: param.append((hWnd, WG.GetWindowText(hWnd), WG.GetClassName(hWnd))), hWndList)
+			activeWin = WG.GetWindowText(WG.GetForegroundWindow()) 
+			for hwnd, title, classname in hWndList: 
+				if title == activeWin:
+					# ~ WG.EnumChildWindows(hwnd, lambda hWnd, param: param.append((hWnd, WG.GetWindowText(hWnd), WG.GetClassName(hWnd))), hWndChildList)
+					# ~ print(hWndChildList)
+					# ~ if hWndChildList:
+						# ~ for h in hWndChildList:
+							# ~ hWndChildList2 = []
+							# ~ WG.EnumChildWindows(h[0], lambda hWnd, param: param.append((hWnd, WG.GetWindowText(hWnd), WG.GetClassName(hWnd))), hWndChildList2)
+							# ~ print(hWndChildList2)
+					return hwnd
+		
+		def getNameActiveWindow(self):									# Obtiene el nombre de la ventana activa
+			return WG.GetWindowText(WG.GetForegroundWindow())
+		
+		def getPathFromWinExplorer(self):								# Obtiene la ruta actual del explorador de archivos abierto
+			shell = WCM.client.Dispatch("Shell.Application")
+			for win in shell.Windows():
+				if win.Name == 'Explorador de archivos':
+					return (win.LocationURL, win.LocationName, win.ReadyState)
+		
 		def getPrivileges(self): # IMPORTANTE: Ver el ejemplo de uso.	# Corre de nuevo el programa pero obteniendo permisos de administrador.
 			'''
 			# if not utils.SystemInfo.isUserAnAdmin: ...
@@ -1383,7 +1498,7 @@ class Utils:
 			
 			return privlist
 		
-		def getWindowRect(self, hwnd):
+		def getWindowRect(self, hwnd):									# Obtiene las dimensiones y posicion de la ventana
 			rect = WG.GetWindowRect(hwnd)
 			x, y = rect[:2]
 			w = rect[2] - x
@@ -1431,6 +1546,9 @@ class Utils:
 				
 			if visible: hide_cursor()
 			else: show_cursor()
+		
+		def hideWindow(self, hide=True, hwnd=WG.GetForegroundWindow()):	# Oculta/Desoculta la consola de comandos
+			WG.ShowWindow(hwnd, not hide)
 		
 		def killProcess(self, PID): #Use								# Termina un proceso mediante su PID
 			if PID != None:
@@ -1543,8 +1661,35 @@ class Utils:
 		def setCursorPos(self, posX, posY):								# Posiciona el cursor en (X, Y)
 			WA.SetCursorPos((posX, posY))
 		
-		def setTopMostWindow(self, hwnd=WG.GetForegroundWindow()):
-			WG.SetWindowPos(hwnd, WC.HWND_TOPMOST, *self.getWindowRect(hwnd), 0)
+		def setTopMostConsole(self, topMost=True):						# Coloca al frente la consola de comandos y la fija.
+			hwnd = WCS.GetConsoleWindow()
+			if topMost:
+				WG.SetWindowPos(hwnd, WC.HWND_TOPMOST, *self.getWindowRect(hwnd), 0)
+			else:
+				WG.SetWindowPos(hwnd, WC.HWND_NOTOPMOST, *self.getWindowRect(hwnd), 0)
+		
+		def setTopMostWindow(self, topMost=True, hwnd=WG.GetForegroundWindow()):	# Coloca al frente la ventana seleccionada y la fija. Se puede pasar el hwnd para seleccionar una ventana especifica.
+			if topMost:
+				WG.SetWindowPos(hwnd, WC.HWND_TOPMOST, *self.getWindowRect(hwnd), 0)
+			else:
+				WG.SetWindowPos(hwnd, WC.HWND_NOTOPMOST, *self.getWindowRect(hwnd), 0)
+		
+		# ~ def setTopMostWindowName(targetTitle=''):
+			# ~ hWndList = []
+			# ~ WG.EnumWindows(lambda hWnd, param: param.append(hWnd), hWndList)  
+			# ~ for hwnd in hWndList:
+				# ~ clsname = WG.GetClassName(hwnd)
+				# ~ title = WG.GetWindowText(hwnd)
+				# ~ print(clsname, [title], ' <--- Here!' if title.endswith('cmd.exe') else '')
+				# ~ if (title.find (targetTitle)> = 0): #Adjust the target window to coordinates (600,300), the size is set to (600,600)
+					# ~ WG.SetWindowPos(hwnd, WC.HWND_TOPMOST, 600,300,600,600, WC.SWP_SHOWWINDOW)
+		
+		def setTopConsole(self):										# Coloca al frente la consola de comandos.
+			hwnd   = WCS.GetConsoleWindow()
+			title  = WG.GetWindowText(hwnd)
+			PyCWnd = WU.FindWindow(None, title)
+			PyCWnd.SetForegroundWindow()
+			PyCWnd.SetFocus()
 		
 		def setTopWindow(self, proc_name='Administrador de tareas'):	# Coloca al frente una ventana, la busca por nombre.
 			
@@ -1879,6 +2024,10 @@ class Utils:
 			
 				def __init__(self, parent):
 					
+					self.classes   = ObjectClassNames(self)
+					self.functions = None
+					self.functions = ObjectFunctionNames(self)
+					
 					self.description = '''
 					\r 
 					'''
@@ -1902,6 +2051,10 @@ class Utils:
 			class PropertiesRecycleBin:
 			
 				def __init__(self, parent):
+					
+					self.classes   = ObjectClassNames(self)
+					self.functions = None
+					self.functions = ObjectFunctionNames(self)
 					
 					self.description = '''
 					\r Quitar Propiedades del menú contextual de
@@ -1938,6 +2091,10 @@ class Utils:
 			class WindowMinimizingShortcuts:
 			
 				def __init__(self, parent):
+					
+					self.classes   = ObjectClassNames(self)
+					self.functions = None
+					self.functions = ObjectFunctionNames(self)
 					
 					self.description = '''
 					\r Desactivar el gesto del mouse de minimización de
@@ -1979,6 +2136,10 @@ class Utils:
 			class ControlPanel:
 			
 				def __init__(self, parent):
+					
+					self.classes   = ObjectClassNames(self)
+					self.functions = None
+					self.functions = ObjectFunctionNames(self)
 					
 					self.description = '''
 					\r Prohibir el acceso a Configuración de PC y a
@@ -2031,6 +2192,10 @@ class Utils:
 			
 				def __init__(self, parent):
 					
+					self.classes   = ObjectClassNames(self)
+					self.functions = None
+					self.functions = ObjectFunctionNames(self)
+					
 					self.description = '''
 					\r Deshabilita el menú contextual en el explorador
 					\r de Windows.
@@ -2074,6 +2239,10 @@ class Utils:
 				
 				def __init__(self, parent):
 					
+					self.classes   = ObjectClassNames(self)
+					self.functions = None
+					self.functions = ObjectFunctionNames(self)
+					
 					self.description = '''
 					\r Oculta el reloj de la barra de tareas
 					'''
@@ -2097,6 +2266,10 @@ class Utils:
 			class SCAHealth:
 				
 				def __init__(self, parent):
+					
+					self.classes   = ObjectClassNames(self)
+					self.functions = None
+					self.functions = ObjectFunctionNames(self)
 					
 					self.description = '''
 					\r Oculta el estado de x de la barra de tareas
@@ -2122,6 +2295,10 @@ class Utils:
 				
 				def __init__(self, parent):
 					
+					self.classes   = ObjectClassNames(self)
+					self.functions = None
+					self.functions = ObjectFunctionNames(self)
+					
 					self.description = '''
 					\r Oculta el estado de red de la barra de tareas
 					'''
@@ -2145,6 +2322,10 @@ class Utils:
 			class SCAPower:
 				
 				def __init__(self, parent):
+					
+					self.classes   = ObjectClassNames(self)
+					self.functions = None
+					self.functions = ObjectFunctionNames(self)
 					
 					self.description = '''
 					\r Oculta el estado de la batería de la barra de tareas
@@ -2170,6 +2351,10 @@ class Utils:
 				
 				def __init__(self, parent):
 					
+					self.classes   = ObjectClassNames(self)
+					self.functions = None
+					self.functions = ObjectFunctionNames(self)
+					
 					self.description = '''
 					\r Oculta el estado del volumen de la barra de tareas
 					'''
@@ -2193,6 +2378,10 @@ class Utils:
 			class ActiveDesktop:
 				
 				def __init__(self, parent):
+					
+					self.classes   = ObjectClassNames(self)
+					self.functions = None
+					self.functions = ObjectFunctionNames(self)
 					
 					self.description = '''
 					\r 
@@ -2218,6 +2407,10 @@ class Utils:
 				
 				def __init__(self, parent):
 					
+					self.classes   = ObjectClassNames(self)
+					self.functions = None
+					self.functions = ObjectFunctionNames(self)
+					
 					self.description = '''
 					\r 
 					'''
@@ -2241,6 +2434,10 @@ class Utils:
 			class DrivesInSendToMenu:
 				
 				def __init__(self, parent):
+					
+					self.classes   = ObjectClassNames(self)
+					self.functions = None
+					self.functions = ObjectFunctionNames(self)
 					
 					self.description = '''
 					\r 
@@ -2266,6 +2463,10 @@ class Utils:
 				
 				def __init__(self, parent):
 					
+					self.classes   = ObjectClassNames(self)
+					self.functions = None
+					self.functions = ObjectFunctionNames(self)
+					
 					self.description = '''
 					\r 
 					'''
@@ -2289,6 +2490,10 @@ class Utils:
 			class InternetOpenWith:
 				
 				def __init__(self, parent):
+					
+					self.classes   = ObjectClassNames(self)
+					self.functions = None
+					self.functions = ObjectFunctionNames(self)
 					
 					self.description = '''
 					\r 
@@ -2314,6 +2519,10 @@ class Utils:
 				
 				def __init__(self, parent):
 					
+					self.classes   = ObjectClassNames(self)
+					self.functions = None
+					self.functions = ObjectFunctionNames(self)
+					
 					self.description = '''
 					\r 
 					'''
@@ -2337,6 +2546,10 @@ class Utils:
 			class Run:
 				
 				def __init__(self, parent):
+					
+					self.classes   = ObjectClassNames(self)
+					self.functions = None
+					self.functions = ObjectFunctionNames(self)
 					
 					self.description = '''
 					\r Deshabilita la ventana de 'Ejecutar...' (Win+R)
@@ -2362,6 +2575,10 @@ class Utils:
 				
 				def __init__(self, parent):
 					
+					self.classes   = ObjectClassNames(self)
+					self.functions = None
+					self.functions = ObjectFunctionNames(self)
+					
 					self.description = '''
 					\r 
 					'''
@@ -2386,6 +2603,10 @@ class Utils:
 				
 				def __init__(self, parent):
 					
+					self.classes   = ObjectClassNames(self)
+					self.functions = None
+					self.functions = ObjectFunctionNames(self)
+					
 					self.description = '''
 					\r 
 					'''
@@ -2409,6 +2630,10 @@ class Utils:
 			class ClassicShell:
 				
 				def __init__(self, parent):
+					
+					self.classes   = ObjectClassNames(self)
+					self.functions = None
+					self.functions = ObjectFunctionNames(self)
 					
 					self.description = '''
 					\r 
@@ -4171,6 +4396,7 @@ class Utils:
 			self.AsciiFont = self.AsciiFont()
 			self.DoomsdayRule = self.DoomsdayRule()
 			self.Images = self.Images()
+			self.NumberSystems = self.NumberSystems()
 			self.UBZ2 = self.UBZ2()
 		
 		class AsciiFont:	# Clase que permite convertir un texto a un tipo de ASCII FONT
@@ -5429,6 +5655,47 @@ class Utils:
 			def canny(self, image):
 				return cv2.Canny(image, 100, 200)
 		
+		class NumberSystems:	# Permite hacer conversiones entre distintos sistemas numericos.
+			
+			def __init__(self):
+				
+				self.classes   = ObjectClassNames(self)
+				self.functions = None
+				self.functions = ObjectFunctionNames(self)
+			
+			def decimalToBinary(self, decimal, raw=False):
+				#------------------------
+				# Método Manual:
+				#out = ''
+				#res = decimal
+				#while res > 0:
+				#	bit  = res%2
+				#	out += str(bit)
+				#	res  = (res//2)
+				#if not out: out = '0'
+				#return out[::-1]
+				#------------------------
+				# Método Python:
+				binary = bin(decimal)
+				if raw: binary = str(binary)[2:]
+				return binary
+			
+			def binaryToDecimal(self, binary):
+				#------------------------
+				# Método Manual:
+				print(binary.__class__.__name__)
+				# ~ if binary.__class__.__name__:
+					
+				# ~ for bit in binary:
+					
+				#------------------------
+				# Método Python:
+				# ~ try:
+					# ~ decimal = int(binary, 2)
+				# ~ except:
+					# ~ decimal = int(str(binary), 2)
+				''# ~ return decimal
+		
 		class UBZ2:			# Algoritmo de compresión y descompresión de archivos bz2. El nombre se refiere a Utils BZ2.
 			
 			def __init__(self):
@@ -5739,6 +6006,106 @@ class Utils:
 			\r \\
 			'''
 		
+		# Math -------------------------------------------------------
+		def cos(self, deg=45):											# Obtiene el Coseno de X grados
+			rad = math.radians(deg)
+			return math.cos(rad)
+		
+		def sin(self, deg=45):											# Obtiene el Seno de X grados
+			rad = math.radians(deg)
+			return math.sin(rad)
+		
+		def diagonal(self, h, deg=45, rounded=True):					# Obtiene los catetos (cateto opuesto y adyacente) usando la hipotenusa y un angulo
+			
+			inv = True if deg//90 in [1,-1,3,-3] else False 
+			deg = deg%90
+			
+			if inv:
+				co = h * self.cos(deg)
+				ca = h * self.sin(deg)
+			else:
+				ca = h * self.cos(deg)
+				co = h * self.sin(deg)
+			
+			if rounded:
+				if str(rounded).isnumeric():
+					return {'x': round(ca, rounded), 'y': round(co, rounded)}
+				else:
+					return {'x': round(ca, 2), 'y': round(co, 2)}
+			else:
+				return {'x': ca, 'y': co}
+		
+		def euclideanDistance(self, A, B):								# Obtiene la distancia entre 2 putnos del plano cartesiano.
+			''' Formula: d(A,B) = sqrt( (Xb-Xa)^2 + (Yb-Ya)^2 )
+			Donde: A=(Xa,Ya), B=(Xb,Yb)
+			'''
+			Xa, Ya = A
+			Xb, Yb = B
+			X = (Xb-Xa)**2
+			Y = (Yb-Ya)**2
+			d = math.sqrt(X+Y)
+			return d
+		
+		def getAngle(self, A, B):										# Obtiene el angulo que genera una linea entre 2 puntos del plano cartesiano.
+			''' Donde: A=(Xa,Ya), B=(Xb,Yb) '''
+			Xa, Ya = A
+			Xb, Yb = B
+			X = (Xb-Xa)
+			Y = (Yb-Ya)
+			atan2 = math.atan2(Y, X)
+			angle = math.degrees(atan2)
+			return angle
+		
+		# Pygame -------------------------------------------------------
+		def moveWindow(self, win_x, win_y, win_w, win_h):
+			from ctypes import windll
+			hwnd = pygame.display.get_wm_info()['window']
+			windll.user32.MoveWindow(hwnd, win_x, win_y, win_w, win_h, False)
+		
+		@property
+		def curWinRect(self):
+			from ctypes import POINTER, WINFUNCTYPE, windll
+			from ctypes.wintypes import BOOL, HWND, RECT
+			
+			hwnd = pygame.display.get_wm_info()['window']
+			prototype = WINFUNCTYPE(BOOL, HWND, POINTER(RECT))
+			paramflags = (1, 'hwnd'), (2, 'lprect')
+			GetWindowRect = prototype(('GetWindowRect', windll.user32), paramflags)
+			rect = GetWindowRect(hwnd)
+			return [rect.left, rect.top, rect.right, rect.bottom]
+		
+		@property
+		def curWinSize(self):
+			info = pygame.display.Info()
+			return [info.current_w, info.current_h]
+		
+		# Otros --------------------------------------------------------
+		def splitText(self, text, chunk_size=32):						# Divide un texto por palabras en lineas de tamaño limite indicado.
+			
+			output = []
+			chunks  = len(text)//chunk_size
+			chunks += 1 if len(text)%chunk_size > 0 else 1
+			
+			while text:
+				
+				p = chunk_size
+				br = 1
+				
+				try:
+					while not text[p] == ' ':
+						p -= 1
+						if p == 0:
+							br = 0
+							p = chunk_size
+							break
+				except: pass
+				
+				chunk = text[:p]
+				text = text[p+br:]
+				output.append(chunk)
+			
+			return output
+		
 		def hash(self, text, algo='sha1'): #Use							# Devuelve el Hash del texto con el algoritmo seleccionado.
 			algo = algo.lower()
 			hash_ = text.encode()
@@ -5760,10 +6127,8 @@ class Utils:
 			return _GetLastError()
 		
 		def writeHiddenText(self, text_to_print):						# Muestra el text_to_print en pantalla y pide capturar texto, el texto capturado no se mostraá pero será devuelto por la función.
-			'''
-				passwd = utils.Utilities.writeHiddenText('Password: ')
-				print(f'La contraseña escrita fue: {passwd}')
-			'''
+			''' passwd = utils.Utilities.writeHiddenText('Password: ')
+				print(f'La contraseña escrita fue: {passwd}') '''
 			from getpass import getpass
 			return getpass(text_to_print)
 		
@@ -5813,9 +6178,9 @@ STRUCT = '''\
     ║   ║    ├── function getFolderName
     ║   ║    └── function getFileNameSave
     ║   ║
-    ║   ╠══ Class Mouse
-    ║   ║
     ║   ╠══ Class Keyboard
+    ║   ║
+    ║   ╠══ Class Mouse
     ║   ║
     ║   ╠══ Class VBS
     ║   │    │
@@ -5832,17 +6197,22 @@ STRUCT = '''\
     ║   ├── function cleanRecyclerBin
     ║   ├── function displaySwitch
     ║   ├── function exitWindows
+    ║   ├── function getActiveWindow
+    ║   ├── function getNameActiveWindow
+    ║   ├── function getPathFromWinExplorer
     ║   ├── function getPrivileges
     ║   ├── function getProcessPrivileges
     ║   ├── function getWindowRect
     ║   ├── function hideConsole
     ║   ├── function hideCursor
+    ║   ├── function hideWindow
     ║   ├── function killProcess
     ║   ├── function lockWorkStation
     ║   ├── function messageBox
     ║   ├── function minimizeWindowCMD
     ║   ├── function screenshot
     ║   ├── function setCursorPos
+    ║   ├── function setTopMostConsole
     ║   ├── function setTopMostWindow
     ║   ├── function setTopWindow
     ║   ├── function setPriorityPID
@@ -6067,6 +6437,15 @@ STRUCT = '''\
         ╠══ Class Hash
         │
         │ - Functions: ───────────────────────
+        ├── function cos
+		├── function sin
+		├── function diagonal
+		├── function euclideanDistance
+		├── function getAngle
+		├── function moveWindow
+		├── function curWinRect
+		├── function curWinSize
+        ├── function splitText
         ├── function hash
         ├── function getLastError
         ├── function writeHiddenText
@@ -6092,13 +6471,211 @@ if __name__ == '__main__':
 	# ~ print(struct)
 	
 	utils = Utils()
-	# ~ reg = utils.Utilities.AsciiFont.ansiRegular(__version__)
-	# ~ print('ansiShadow:\n' + reg)
+	# ~ utils.Actions.setTopMostWindow()
+	# ~ name = utils.Utilities.AsciiFont.deltaCorpsPriest(__title__)
+	# ~ ver = utils.Utilities.AsciiFont.ansiRegular(__version__)
+	# ~ print('\n\n Delta Corps Priest:\n\n' + name + '\n\n Ansi Regular:\n\n' + ver)
+	
+	text = 'Hola mundo! xD Soy el creador de estas hermosas funciones.'
+	text_list = utils.Utilities.splitText(text, 20)
+	print(text_list)
+	
+	# ~ out = utils.Utilities.NumberSystems.decimalToBinary(128, True)
+	# ~ print(out)
+	# ~ out = utils.Utilities.NumberSystems.binaryToDecimal(out)
+	# ~ print(out)
+	
+	#-------------------------------------------------------------------
+	
+	# ~ for a in utils.Actions.classes.list:
+		# ~ try:
+			# ~ print(a, isinstance(eval('utils.Actions.'+a+'("")'), Exception))
+		# ~ except: pass
+	
+	# ~ print(utils.Actions.classes)
+	# ~ list_ = [
+		# ~ a for a in dir(utils.Actions)
+		# ~ if a[0] == a[0].upper()
+		# ~ and not a[0] == '_'
+		# ~ and not a.startswith('not_')
+	# ~ ]
+	# ~ print(list_)
+	# ~ print(utils.Actions.classes)
+	# ~ print(utils.Actions.functions)
+	
+	#-------------------------------------------------------------------
+	'''
+	def bucle(base='utils', deep=0, spa2='', data=False):
+		print()
+		print(base, deep)
+		out_main = ''
+		
+		cls_list = '.classes.list'
+		cls_list_err = '.classes.error_list'
+		fn_list = '.functions.list'
+		
+		spa  = spa2 if deep > 0 else '    '
+		swb  = ' ║  '
+		sbg  = ' ║ -'
+		swb2 = ' │  '
+		sbg2 = ' │ -'
+		brk  = '\n'
+		
+		# ~ if deep == 0:
+		values = eval(base+cls_list)[:1]
+		# ~ else:
+			# ~ values = eval(base+cls_list)
+		
+		for i1, cls in enumerate(values):
+			
+			sub_cls = base+'.'+cls
+			print(sub_cls)
+			sub_cls_list    = cls+'_list'
+			sub_errcls_list = cls+'_list_err'
+			sub_fn_list     = cls+'fn_list'
+			
+			exec(sub_cls_list    + ' = ' + sub_cls + cls_list)
+			exec(sub_errcls_list + ' = ' + sub_cls + cls_list_err)
+			exec(sub_fn_list     + ' = ' + sub_cls + fn_list)
+			
+			out_main_class = ''
+			
+			if deep == 0:
+				if i1 == len(values)-1:
+					if not i1 == 0:
+						out_main_class += spa + swb*(deep+1) + brk
+					out_main_class += spa + swb*deep + ' ╚══ Class ' + cls + brk
+					spa = spa*2
+					deep -= 1
+				elif i1 == 0:
+					out_main_class += spa + swb*deep + ' ╠══ Class ' + cls + brk
+				else:
+					out_main_class += spa + swb*deep + brk
+					out_main_class += spa + swb*deep + ' ╠══ Class ' + cls + brk
+			else:
+				deep -= 1
+				if i1 == len(values)-1:
+					if not i1 == 0:
+						out_main_class += spa + swb*(deep+1) + brk
+					if data:
+						out_main_class += spa + swb*deep + ' ╠══ Class ' + cls + brk
+					else:
+						out_main_class += spa + swb*deep + ' ╚══ Class ' + cls + brk
+					spa = spa2 + '    '*2
+					deep -= 1
+				elif i1 == 0:
+					out_main_class += spa + swb*deep + ' ╠══ Class ' + cls + brk
+				else:
+					out_main_class += spa + swb*deep + brk
+					out_main_class += spa + swb*deep + ' ╠══ Class ' + cls + brk
+				
+			
+			
+			deep += 1
+			
+			methods = []
+			others = []
+			
+			for cls in eval(sub_fn_list):
+				sub_cls2 = sub_cls+'.'+cls
+				type_obj = type(eval(sub_cls2)).__name__
+				if type_obj == 'method':
+					methods.append(cls)
+				else:
+					others.append((cls, type_obj))
+			
+			others_data = False
+			out_others = ''
+			if others:
+				print(others)
+				out_others += spa + swb*deep + swb2 + brk
+				out_others += spa + swb*deep + sbg2 + ' Others:' + brk
+				for i5, (name, _type) in enumerate(others):
+					others_data = True
+					if i5 == len(others)-1:
+						out_others += spa + swb*deep + ' └── ' + _type + ' ' + name + brk
+					else:
+						out_others += spa + swb*deep + ' ├── ' + _type + ' ' + name + brk
+			
+			methods_data = False
+			out_methods = ''
+			if methods:
+				out_methods += spa + swb*deep + swb2 + brk
+				out_methods += spa + swb*deep + sbg2 + ' Methods:' + brk
+				for i4, name in enumerate(methods):
+					methods_data = True
+					if others_data:
+						out_methods += spa + swb*deep + ' ├── Function ' +  name + brk
+					else:
+						if i4 == len(methods)-1:
+							out_methods += spa + swb*deep + ' └── Function ' +  name + brk
+						else:
+							out_methods += spa + swb*deep + ' ├── Function ' +  name + brk
+			
+			classes_data = False
+			val = eval(sub_cls_list)
+			out_classes = ''
+			if val:
+				out_classes += spa + swb*deep + swb + brk
+				out_classes += spa + swb*deep + sbg + ' Classes:' + brk
+				# ~ for i3, cls in enumerate(val):
+					# ~ classes_data = True
+					# ~ if methods_data or others_data:
+						# ~ out_classes += spa + swb*deep + ' ╠══ Class ' + cls + brk
+					# ~ else:
+						# ~ if i3 == len(val)-1:
+							# ~ out_classes += spa + swb*deep + ' ╚══ Class ' + cls + brk
+						# ~ else:
+							# ~ out_classes += spa + swb*deep + ' ╠══ Class ' + cls + brk
+				classes_data = True
+				data = methods_data or others_data
+				out_classes += bucle(sub_cls, deep+1, spa + swb*deep, data)
+			
+			val = eval(sub_errcls_list)
+			out_error_classes = ''
+			if val:
+				out_error_classes += spa + swb*deep + swb + brk
+				out_error_classes += spa + swb*deep + sbg + ' Error Classes:' + brk
+				for i2, cls in enumerate(val):
+					if classes_data or methods_data or others_data:
+						out_error_classes += spa + swb*deep + ' ╠══ Class ' + cls + brk
+					else:
+						if i2 == len(val)-1:
+							out_error_classes += spa + swb*deep + ' ╚══ Class ' + cls + brk
+						else:
+							out_error_classes += spa + swb*deep + ' ╠══ Class ' + cls + brk
+			
+			deep -= 1
+			
+			out_main += out_main_class + out_error_classes + out_classes + out_methods + out_others
+		
+		return out_main
+	
+	spa  = '    '
+	swb  = ' ║  '
+	sbg  = ' ║ -'
+	brk  = '\n'
+	
+	out_main  = '■■■ Class Utils ({})'.format(__version__) + brk
+	out_main += spa + swb + brk
+	out_main += spa + sbg + ' Main Classes:' + brk
+	out_main += bucle()
+	
+	print('\n\n',out_main)
+	'''
+	#-------------------------------------------------------------------
+	#-------------------------------------------------------------------
+	#-------------------------------------------------------------------
 	
 	# Algoritmo de Doomsday (Doomsday Rule)
 	# ~ date = '22/07/2050'
 	# ~ weekday = utils.Utilities.DoomsdayRule.getWeekday(date)
 	# ~ print(date + ': ' + weekday)
+	
+	
+	# ~ time.sleep(3)
+	# ~ utils.Actions.Keyboard.typer('Hola Mundo!', sleep=.01)
+	
 	
 	# ~ print(utils.Utilities.DoomsdayRule.learnToDoItMentally)
 	
@@ -6110,9 +6687,6 @@ if __name__ == '__main__':
 	# ~ utils.EditRegistry.Programs.ProgramsAndFeatures.hide()
 	# ~ utils.EditRegistry.Programs.ProgramsAndFeatures.show()
 	# ~ utils.EditRegistry.Programs.ProgramsAndFeatures.cleanUp()
-	
-	print(utils.EditRegistry.Explorer.ControlPanel.parent.PATH)
-	print(utils.EditRegistry.Explorer.WindowMinimizingShortcuts.parent.PATH)
 	
 	# ~ print(utils.EditRegistry.Explorer.use)
 	# ~ utils.EditRegistry.Explorer.ControlPanel.disable()
@@ -6142,14 +6716,14 @@ if __name__ == '__main__':
 	
 	# ~ utils.Actions.Mouse.rightClick()	# clic derecho
 	
-	# ~ print(utils.Utilities.UBZ2.use)
-	
 	# ~ utils.EditRegistry.PhysicalDrivesInWinExplorer.hide('ABCDEFGH')
 	# ~ utils.EditRegistry.PhysicalDrivesInWinExplorer.show('CFB')
 	# ~ print(utils.EditRegistry.PhysicalDrivesInWinExplorer.enumHiddenDrives())
 	# ~ utils.EditRegistry.PhysicalDrivesInWinExplorer.showAll()
 	# ~ utils.EditRegistry.PhysicalDrivesInWinExplorer.cleanUp()
 	
+	# UBZ2 -------------------------------------------------------------
+	# ~ print(utils.Utilities.UBZ2.use)
 	# ~ utils.Utilities.UBZ2.addIconToFileExtension()
 	
 	# ~ fileName = utils.Actions.Explorer.getFileName(topmost=False)
@@ -6157,6 +6731,7 @@ if __name__ == '__main__':
 		# ~ utils.Utilities.UBZ2.compress(fileName)
 		# ~ utils.Utilities.UBZ2.decompress(fileName)
 		# ~ print(utils.Utilities.UBZ2.getDataFromUBZ2File(fileName))
+	#-------------------------------------------------------------------
 	
 	# ~ utils.EditRegistry.ContextMenu.disable()
 	# ~ utils.EditRegistry.TaskManager.disable()
@@ -6213,7 +6788,7 @@ if __name__ == '__main__':
 	
 	# ~ print('\n\n Ascii Font functions availables: '+utils.Utilities.AsciiFont.functions.list)
 	
-	# ~ text = 'By LawlietJH'
+	# ~ text = 'By: LawlietJH'
 	
 	# ~ cal = utils.Utilities.AsciiFont.calvinS(text)
 	# ~ sha = utils.Utilities.AsciiFont.ansiShadow(text)
