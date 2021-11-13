@@ -17,8 +17,7 @@
 
 ![Icon](ubz2file.ico "Icono de archivos ubz2")
 
-```
-
+```php
 ■■■ Class Utils (v1.0.8)
     ║
     ║ - Main Classes:
