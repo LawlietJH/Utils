@@ -1,5 +1,5 @@
 # Utilidades
- Un módulo recopilatorio con decenas de funciones que he hecho a lo largo del tiempo, utilidades de todo tipo, desde usar funciones simples como hash o comprimir archivos de texto plano con hasta 99% de compresión en algunos casos, editar los registros de windows para personalizar el sistema o manejar la API de windows para manipular el mouse, la pantalla, el telcado, vaciar la papelera de forma silenciosa o esconderle archivos dentro inborrables, obtener información de dispositivos bluetooth previamente vinculados o de conexiones wi-fi y mucho, mucho más...
+ Un módulo recopilatorio con decenas de funciones que he hecho a lo largo del tiempo, utilidades de todo tipo, desde usar funciones simples como hash o comprimir archivos de texto plano con hasta 99% de compresión en algunos casos, editar los registros de Windows para personalizar el sistema o manejar la API de Windows para manipular el mouse, la pantalla, el teclado, vaciar la papelera de forma silenciosa o esconderle archivos dentro y que sean imborrables, obtener información de dispositivos bluetooth previamente vinculados o de conexiones wi-fi y mucho, mucho más...
 ```
 ███    █▄      ███      ▄█   ▄█          ▄████████    
 ███    ███ ▀█████████▄ ███  ███         ███    ███    █▄▄ █▄█ ▀   █   ▄▀█ █ █ █ █   █ █▀▀ ▀█▀   █ █ █
