@@ -1,20 +1,20 @@
 
 # Tested in: Python 3.8.8 - Windows
 # By: LawlietJH
-# Utils v1.0.7
+# Utils v1.0.8
 
 # Banner:
 # ███    █▄      ███      ▄█   ▄█          ▄████████    
 # ███    ███ ▀█████████▄ ███  ███         ███    ███    █▄▄ █▄█ ▀   █   ▄▀█ █ █ █ █   █ █▀▀ ▀█▀   █ █ █
 # ███    ███    ▀███▀▀██ ███▌ ███         ███    █▀     █▄█  █  ▄   █▄▄ █▀█ ▀▄▀▄▀ █▄▄ █ ██▄  █  █▄█ █▀█
 # ███    ███     ███   ▀ ███▌ ███         ███           
-# ███    ███     ███     ███▌ ███       ▀███████████    ██    ██  ██     ██████     ███████
-# ███    ███     ███     ███  ███                ███    ██    ██ ███    ██  ████         ██
-# ███    ███     ███     ███  ███▌    ▄    ▄█    ███    ██    ██  ██    ██ ██ ██        ██
-# ████████▀     ▄████▀   █▀   █████▄▄██  ▄████████▀      ██  ██   ██    ████  ██       ██
-#                             ▀                           ████    ██ ██  ██████  ██    ██
+# ███    ███     ███     ███▌ ███       ▀███████████    ██    ██  ██     ██████      █████
+# ███    ███     ███     ███  ███                ███    ██    ██ ███    ██  ████    ██   ██
+# ███    ███     ███     ███  ███▌    ▄    ▄█    ███    ██    ██  ██    ██ ██ ██     █████
+# ████████▀     ▄████▀   █▀   █████▄▄██  ▄████████▀      ██  ██   ██    ████  ██    ██   ██
+#                             ▀                           ████    ██ ██  ██████  ██  █████
 
-from datetime import datetime
+from datetime import datetime, timedelta
 import pywintypes
 import binascii
 import requests						# python -m pip install requests
@@ -71,7 +71,7 @@ import winreg			as WR
 #=======================================================================
 __author__  = 'LawlietJH'	# Desarrollador
 __title__   = 'Utils'		# Nombre
-__version__ = 'v1.0.7'		# Version
+__version__ = 'v1.0.8'		# Version
 #=======================================================================
 #=======================================================================
 # Constants ============================================================
@@ -5683,18 +5683,18 @@ class Utils:
 			def binaryToDecimal(self, binary):
 				#------------------------
 				# Método Manual:
-				print(binary.__class__.__name__)
+				# ~ print(binary.__class__.__name__)
 				# ~ if binary.__class__.__name__:
 					
 				# ~ for bit in binary:
 					
 				#------------------------
 				# Método Python:
-				# ~ try:
-					# ~ decimal = int(binary, 2)
-				# ~ except:
-					# ~ decimal = int(str(binary), 2)
-				''# ~ return decimal
+				try:
+					decimal = int(binary, 2)
+				except:
+					decimal = int(str(binary), 2)
+				return decimal
 		
 		class UBZ2:			# Algoritmo de compresión y descompresión de archivos bz2. El nombre se refiere a Utils BZ2.
 			
@@ -6079,6 +6079,287 @@ class Utils:
 			info = pygame.display.Info()
 			return [info.current_w, info.current_h]
 		
+		# Bluetooth ----------------------------------------------------
+		# Reference: Baseband (Complete) - https://btprodspecificationrefs.blob.core.windows.net/assigned-numbers/Assigned%20Number%20Types/Baseband.pdf
+		# Other Reference (Incomplete Info): Class of Device/Service fields: https://www.ampedrftech.com/datasheets/cod_definition.pdf
+		
+		def getMajorServiceClass(self, CoD: [hex, int]) -> str:			# Devuelve el "Major Service Class" de un formato CoD (Class of Device/Service) de Bluetooth.
+			# Assigned Numbers for Baseband
+			if CoD.__class__ == int:
+				binary = str(CoD).zfill(24)
+			elif CoD.__class__ == str and not CoD.startswith('0x'):
+				CoD = CoD.replace('0b', '')
+				binary = CoD.zfill(24)
+			else:
+				binary = bin(int(CoD, 16))[2:].zfill(24)
+			
+			binary = binary[::-1]
+			s_ini = 13
+			s_end = 23
+			
+			section = binary[s_ini:s_end+1]
+			section = section[::-1]
+			
+			masc = ''
+			
+			if section[10] == '1': masc += 'Limited Discoverable Mode, '
+			if section[9]  == '1': masc += 'LE audio, '
+			if section[8]  == '1': masc += '(reserved), '
+			if section[7]  == '1': masc += 'Positioning (Location identification), '
+			if section[6]  == '1': masc += 'Networking, '
+			if section[5]  == '1': masc += 'Rendering, '
+			if section[4]  == '1': masc += 'Capturing, '
+			if section[3]  == '1': masc += 'Object Transfer, '
+			if section[2]  == '1': masc += 'Audio, '
+			if section[1]  == '1': masc += 'Telephony, '
+			if section[0]  == '1': masc += 'Information'
+			if masc.endswith(', '): masc = masc[:-2]
+			
+			return masc
+			
+		def getMajorDeviceClass(self, CoD: [hex, int]) -> str:			# Devuelve el "Major Device Class" de un formato CoD (Class of Device/Service) de Bluetooth.
+			# Assigned Numbers for Baseband
+			if CoD.__class__ == int:
+				binary = str(CoD).zfill(24)
+			elif CoD.__class__ == str and not CoD.startswith('0x'):
+				CoD = CoD.replace('0b', '')
+				binary = CoD.zfill(24)
+			else:
+				binary = bin(int(CoD, 16))[2:]
+			
+			binary = binary[::-1]
+			s_ini = 8
+			s_end = 12
+			
+			section = binary[s_ini:s_end+1]
+			section = section[::-1]
+			
+			major_device_class = {
+				'00000': 'Miscellaneous',
+				'00001': 'Computer',
+				'00010': 'Phone',
+				'00011': 'LAN/Network Access Point',
+				'00100': 'Audio', #Audio/Video
+				'00101': 'Peripheral',
+				'00110': 'Imaging',
+				'00111': 'Wearable',
+				'01000': 'Toy',
+				'01001': 'Health',
+				'11111': 'Uncategorized: device code not specified'
+				#XXXXX#: 'All other values reserved'
+			}
+			
+			madc = major_device_class.get(section)
+			
+			if not madc:
+				madc = 'Uncategorized'
+			
+			return madc
+		
+		def getMinorDeviceClass(self, CoD: [hex, int], ret_madc=False) -> str:	# Devuelve el "Minor Device Class" de un formato CoD (Class of Device/Service) de Bluetooth.
+			# Assigned Numbers for Baseband
+			madc = self.getMajorDeviceClass(CoD)
+			
+			if CoD.__class__ == int:
+				binary = str(CoD).zfill(24)
+			elif CoD.__class__ == str and not CoD.startswith('0x'):
+				CoD = CoD.replace('0b', '')
+				binary = CoD.zfill(24)
+			else:
+				binary = bin(int(CoD, 16))[2:]
+			
+			binary = binary[::-1]
+			s_ini = 2
+			s_end = 7
+			
+			section = binary[s_ini:s_end+1]
+			section = section[::-1]
+			
+			if madc == 'Computer':						#Sub Device Class field for the 'Computer' Major Class
+				minor_device_class = {
+					'000000': 'Uncategorized, code for device not assigned',
+					'000001': 'Desktop Workstation',
+					'000010': 'Server-class Computer',
+					'000011': 'Laptop',
+					'000100': 'Handheld PC/PDA (Clamshell)',
+					'000101': 'Palm-sized PC/PDA',
+					'000110': 'Wearable Computer (Watch Size)',
+					'000111': 'Tablet'
+					#XXXXXX#: 'All other values reserved'
+				}
+				midc = minor_device_class.get(section)
+			elif madc == 'Phone':						#Sub Device Classes for the 'Phone' Major Class
+				minor_device_class = {
+					'000000': 'Uncategorized, code for device not assigned',
+					'000001': 'Cellular',
+					'000010': 'Cordless',
+					'000011': 'Smart Phone',
+					'000100': 'Wired Modem or Voice Gateway',
+					'000101': 'Common ISDN Access'
+					#XXXXXX#: 'All other values reserved'
+				}
+				midc = minor_device_class.get(section)
+			elif madc == 'LAN/Network Access Point':	#The LAN/Network Access Point Load Factor field
+				minor_device_class = {
+					'000000': 'Fully available',
+					'001000': '1 - 17% utilized',
+					'010000': '17 - 33% utilized',
+					'011000': '33 - 50% utilized',
+					'100000': '50 - 67% utilized',
+					'101000': '67 - 83% utilized',
+					'110000': '83 - 99% utilized',
+					'111000': 'No service available'
+					#XXXXXX#: 'All other values reserved'
+				}
+				midc = minor_device_class.get(section)
+			elif madc == 'Audio':						#Sub Device Classes for the 'Audio/Video' Major Class
+				minor_device_class = {
+					'000000': 'Uncategorized, code not assigned',
+					'000001': 'Wearable Headset Device',
+					'000010': 'Hands-free Device',
+					'000011': '(Reserved)',
+					'000100': 'Microphone',
+					'000101': 'Loudspeaker',
+					'000110': 'Headphones',
+					'000111': 'Portable Audio',
+					'001000': 'Car Audio',
+					'001001': 'Set-top Box',
+					'001010': 'HiFi Audio Device',
+					'001011': 'VCR',
+					'001100': 'Video Camera',
+					'001101': 'Camcorder',
+					'001110': 'Video Monitor',
+					'001111': 'Video Display and Loudspeaker',
+					'010000': 'Video Conferencing',
+					'010001': '(Reserved)',
+					'010010': 'Gaming/Toy'
+					#XXXXXX#: 'All other values reserved'
+				}
+				midc = minor_device_class.get(section)
+			elif madc == 'Peripheral':					#The Peripheral Major Class keyboard/pointing device field
+				minor_device_class = {
+					'00': 'Not Keyboard/Not Pointing Device',
+					'01': 'Keyboard',
+					'10': 'Pointing Device',
+					'11': 'Combo Keyboard/Pointing Device'
+					#XXXXXX#: 'All other values reserved'
+				}
+				device_type = {							#Reserved sub-field for the device type
+					'0000': 'Uncategorized device',
+					'0001': 'Joystick',
+					'0010': 'Gamepad',
+					'0011': 'Remote Control',
+					'0100': 'Sensing Device',
+					'0101': 'Digitizer Tablet',
+					'0110': 'Card Reader',
+					'0111': 'Digital Pen',
+					'1000': 'Handheld scanner for bar-codes, RFID, etc.',
+					'1001': 'Handheld gestural input device'
+					#XXXX#: 'All other values reserved'
+				}
+				midc = minor_device_class.get(section[:2])
+				if device_type.get(section[2:]):
+					midc += ': ' + device_type.get(section[2:])
+				else:
+					midc += ': Uncategorized'
+			elif madc == 'Imaging':						#The Imaging Major Class
+				midc = ''
+				if section[2] == '1':
+					midc += 'Display, '
+				if section[3] == '1':
+					midc += 'Camera, '
+				if section[4] == '1':
+					midc += 'Scanner, '
+				if section[5] == '1':
+					midc += 'Printer'
+				if midc.endswith(', '):
+					midc = midc[:-2]
+			elif madc == 'Wearable':					#Minor Device Class field - Wearable Major Class
+				minor_device_class = {
+					'000001': 'Wrist Watch',
+					'000010': 'Pager',
+					'000011': 'Jacket',
+					'000100': 'Helmet',
+					'000101': 'Glasses'
+					#XXXXXX#: 'All other values reserved'
+				}
+				midc = minor_device_class.get(section)
+			elif madc == 'Toy':							#Minor Device Class field - Toy Major Class
+				minor_device_class = {
+					'000001': 'Robot',
+					'000010': 'Vehicle',
+					'000011': 'Doll / Action Figure',
+					'000100': 'Controller',
+					'000101': 'Game'
+					#XXXXXX#: 'All other values reserved'
+				}
+				midc = minor_device_class.get(section)
+			elif madc == 'Health':						#Minor Device Class field - Health
+				minor_device_class = {
+					'000000': 'Undefined',
+					'000001': 'Blood Pressure Monitor',
+					'000010': 'Thermometer',
+					'000011': 'Weighing Scale',
+					'000100': 'Glucose Meter',
+					'000101': 'Pulse Oximeter',
+					'000110': 'Heart/Pulse Rate Monitor',
+					'000111': 'Health Data Display',
+					'001000': 'Step Counter',
+					'001001': 'Body Composition Analyzer',
+					'001010': 'Peak Flow Monitor',
+					'001011': 'Medication Monitor',
+					'001100': 'Knee Prosthesis',
+					'001101': 'Ankle Prosthesis',
+					'001110': 'Generic Health Manager',
+					'001111': 'Personal Mobility Device'
+					#XXXXXX#: 'All other values reserved'
+				}
+				midc = minor_device_class.get(section)
+			else:
+				midc = None
+			
+			if not midc:
+				midc = 'Uncategorized'
+			
+			if ret_madc:
+				return midc, madc
+			else:
+				return midc
+		
+		def getSavedBTHDevices(self, jsonify=False) -> dict:			# Devuelve un diccionario con la información de los Dispositivos Bluetooth que estan vinculados.
+			
+			aReg = WR.ConnectRegistry(None, WR.HKEY_LOCAL_MACHINE)
+			aKey = WR.OpenKey(aReg, r'SYSTEM\CurrentControlSet\Services\BTHPORT\Parameters\Devices')
+			
+			devices = {}
+			
+			for i in range(128):
+				try:
+					keyname = WR.EnumKey(aKey, i).upper()
+					asubkey = WR.OpenKey(aKey, keyname)
+					name = WR.QueryValueEx(asubkey, 'Name')[0][:-1].decode()
+					lastConn = WR.QueryValueEx(asubkey, 'LastConnected')[0]
+					lastSeen = WR.QueryValueEx(asubkey, 'lastSeen')[0]
+					CoD = hex(WR.QueryValueEx(asubkey, 'COD')[0])
+					masc = self.getMajorServiceClass(CoD)
+					midc, madc = self.getMinorDeviceClass(CoD, ret_madc=True)
+					devices[i] = {
+						'name': name,
+						'address': keyname,
+						'lastConnected': str(self.getFiletime(lastConn)),
+						'lastSeen': str(self.getFiletime(lastSeen)),
+						'majorServiceClass': masc,
+						'majorDeviceClass': madc,
+						'minorDeviceClass': midc
+					}
+				except WindowsError:
+					break
+			
+			if jsonify:
+				devices = json.dumps(devices, indent=4)
+			
+			return devices
+		
 		# Otros --------------------------------------------------------
 		def splitText(self, text, chunk_size=32):						# Divide un texto por palabras en lineas de tamaño limite indicado.
 			
@@ -6118,6 +6399,24 @@ class Utils:
 			else: return None
 			hash_ = hash_.hexdigest()
 			return self.Hash(hash_, text, algo)
+		
+		def getFiletime(self, time: [hex, int]) -> datetime:			# Convierte de formato Filetime (Win 64-bit value) a Datetime
+			'''
+				Win32 FILETIME:
+					Contains a 64-bit value representing the number of
+					100-nanosecond intervals since January 1, 1601 (UTC).
+				Example:
+					time = '0x1d7d7583c54c000' (hex) or 132811488000000000 (int)
+					Return: '2021-11-12 00:00:00' (datetime)
+			'''
+			if time.__class__ in [int, float]:
+				microsecs = int(time)/10
+			else:
+				microsecs = int(time, 16)/10
+			secs, microsecs = divmod(microsecs, 1000000)
+			days, secs = divmod(secs, 86400)
+			dt = datetime(1601, 1, 1) + timedelta(days, secs, microsecs)
+			return dt
 		
 		def getLastError(self) -> int:									# DWORD WINAPI GetLastError(void);
 			DWORD = ctypes.c_uint32
@@ -6179,16 +6478,39 @@ STRUCT = '''\
     ║   ║    └── function getFileNameSave
     ║   ║
     ║   ╠══ Class Keyboard
+    ║   │    │
+    ║   │    │ - Functions: ──────────────────
+    ║   │    ├── function getVK
+    ║   │    ├── function getKeyState
+    ║   │    ├── function getAsyncKeyState
+    ║   │    ├── function press
+    ║   │    ├── function pressAndHold
+    ║   │    ├── function release
+    ║   │    ├── function pressHoldRelease
+    ║   │    ├── function typeWithShift
+    ║   │    └── function typer
     ║   ║
     ║   ╠══ Class Mouse
+    ║   ║    │
+    ║   ║    │ - Functions: ──────────────────
+    ║   ║    ├── property position (get, set)
+    ║   ║    ├── function leftClick
+    ║   ║    ├── function leftClickDown
+    ║   ║    ├── function leftClickUp
+    ║   ║    ├── function rightClick
+    ║   ║    ├── function rightClickDown
+    ║   ║    ├── function rightClickUp
+    ║   ║    ├── function middleClick
+    ║   ║    ├── function middleClickDown
+    ║   ║    └── function middleClickUp
     ║   ║
     ║   ╠══ Class VBS
     ║   │    │
     ║   │    │ - Functions: ──────────────────
+    ║   │    ├── function runScriptVBS
+    ║   │    ├── function minimizeAll
     ║   │    ├── function ejectCDROM
     ║   │    ├── function getWindowsProductKey
-    ║   │    ├── function minimizeAll
-    ║   │    ├── function runScriptVBS
     ║   │    └── function setVolume
     ║   │
     ║   │ - Functions: ───────────────────────
@@ -6210,10 +6532,14 @@ STRUCT = '''\
     ║   ├── function lockWorkStation
     ║   ├── function messageBox
     ║   ├── function minimizeWindowCMD
+    ║   ├── function runAsAdmin
+    ║   ├── function runProgram
     ║   ├── function screenshot
+    ║   ├── function setConsoleSize
     ║   ├── function setCursorPos
     ║   ├── function setTopMostConsole
     ║   ├── function setTopMostWindow
+    ║   ├── function setTopConsole
     ║   ├── function setTopWindow
     ║   ├── function setPriorityPID
     ║   └── function startApp
@@ -6230,6 +6556,8 @@ STRUCT = '''\
     ║   ╠══ Class Explorer
     ║   ║    ║
     ║   ║    ║ - Classes: ────────────────────
+    ║   ║    ╠══ Class Close
+    ║   ║    ╠══ Class PropertiesRecycleBin
     ║   ║    ╠══ Class ControlPanel
     ║   ║    ╠══ Class ContextMenu
     ║   ║    ╠══ Class Clock
@@ -6247,8 +6575,8 @@ STRUCT = '''\
     ║   ║    ╠══ Class SaveSettings
     ║   ║    ╠══ Class TrayItemsDisplay
     ║   ║    ╠══ Class ClassicShell
-    ║   ║    ╠══ Class PropertiesRecycleBin
-    ║   ║    ╚══ Class Close
+    ║   ║    ║ #Modificadas:
+    ║   ║    ╚══ Class WindowMinimizingShortcuts
     ║   ║
     ║   ╠══ Class FoldersOnThisPC
     ║   ║    ║
@@ -6320,6 +6648,9 @@ STRUCT = '''\
     ║   ║
     ║   ║ - Classes: ─────────────────────────
     ║   ╠══ Class GetIP
+    ║   │    │
+    ║   │    │ - Functions: ──────────────────
+    ║   │    └── property only_local (get, set)
     ║   │
     ║   │ - Functions: ───────────────────────
     ║   ├── function latin1_encoding
@@ -6333,35 +6664,35 @@ STRUCT = '''\
     ║   ├── function enumLocalDisk
     ║   ├── function enumLocalUsersAndGroups
     ║   ├── function enumProcess
-    ║   ├── function isCapsLockActive
-    ║   ├── function isLinux
-    ║   ├── function isMouseInstalled
-    ║   ├── function isPythonV2
-    ║   ├── function isPythonV3
-    ║   ├── function isSlowMachine
-    ║   ├── function isUserAnAdmin
+    ║   ├── property isCapsLockActive      (get)
+    ║   ├── property isLinux               (get)
+    ║   ├── property isMouseInstalled      (get)
+    ║   ├── property isPythonV2            (get)
+    ║   ├── property isPythonV3            (get)
+    ║   ├── property isSlowMachine         (get)
+    ║   ├── property isUserAnAdmin         (get)
     ║   ├── function isUserPasswordValid
-    ║   ├── function isWindows
-    ║   ├── function currentProcessId
-    ║   ├── function cursorPos
-    ║   ├── function currentSystemMetrics
-    ║   ├── function realSystemMetrics
-    ║   ├── function displaySettings
-    ║   ├── function computerName
-    ║   ├── function homeDrive
-    ║   ├── function numberOfMonitors
-    ║   ├── function numberOfProcessors
-    ║   ├── function os
-    ║   ├── function processorArchitecture
-    ║   ├── function processorIdentifier
-    ║   ├── function screenSize
-    ║   ├── function systemDrive
-    ║   ├── function systemRoot
+    ║   ├── property isWindows             (get)
+    ║   ├── property currentProcessId      (get)
+    ║   ├── property cursorPos             (get)
+    ║   ├── property currentSystemMetrics  (get)
+    ║   ├── property realSystemMetrics     (get)
+    ║   ├── property displaySettings       (get)
+    ║   ├── property computerName          (get)
+    ║   ├── property homeDrive             (get)
+    ║   ├── property numberOfMonitors      (get)
+    ║   ├── property numberOfProcessors    (get)
+    ║   ├── property os                    (get)
+    ║   ├── property processorArchitecture (get)
+    ║   ├── property processorIdentifier   (get)
+    ║   ├── property screenSize            (get)
+    ║   ├── property systemDrive           (get)
+    ║   ├── property systemRoot            (get)
     ║   ├── function systemUptime
-    ║   ├── function userDowntime
-    ║   ├── function userName
-    ║   ├── function winDir
-    ║   └── function collectAll
+    ║   ├── property userDowntime          (get)
+    ║   ├── property userName              (get)
+    ║   ├── property winDir                (get)
+    ║   └── property collectAll            (get)
     ║
     ╚═ Class Utilities
         ║
@@ -6402,9 +6733,6 @@ STRUCT = '''\
         ║    └── function calculateWeekday
         ║
         ╠══ Class Images
-        ║    ║
-        ║    ║ - Error Classes: ──────────────
-        ║    ╠══ Class MonthDoesNotExist
         ║    │
         ║    │ - Functions: ──────────────────
         ║    ├── function convertFromCv2ToImage
@@ -6421,11 +6749,13 @@ STRUCT = '''\
         ║    ├── function opening
         ║    └── function canny
         ║
+        ╠══ Class NumberSystems
+        ║    │
+        ║    │ - Functions: ──────────────────
+        ║    ├── function decimalToBinary
+        ║    └── function binaryToDecimal
+        ║
         ╠══ Class UBZ2
-        ║    ║
-        ║    ║ - Error Classes: ──────────────
-        ║    ╠══ Class NotSupportedError
-        ║    ╠══ Class TypeError
         ║    │
         ║    │ - Functions: ──────────────────
         ║    ├── function addIconToFileExtension
@@ -6435,18 +6765,34 @@ STRUCT = '''\
         ║    └── function getDataFromUBZ2File
         ║
         ╠══ Class Hash
+        │    ║
+        │    ║ - Error Classes: ──────────────
+        │    ╠══ Class HashNotAvailableError
+        │    │
+        │    │ - Functions: ──────────────────
+        │    ├── function update
+        │    └── function f_hash
         │
         │ - Functions: ───────────────────────
+		│ #Math:
         ├── function cos
 		├── function sin
 		├── function diagonal
 		├── function euclideanDistance
 		├── function getAngle
+		│ #Pygame:
 		├── function moveWindow
 		├── function curWinRect
 		├── function curWinSize
+		│ #Bluetooth:
+        ├── function getMajorServiceClass
+        ├── function getMajorDeviceClass
+        ├── function getMinorDeviceClass
+        ├── function getSavedBTHDevices
+		│ #Otros:
         ├── function splitText
         ├── function hash
+        ├── function getFiletime
         ├── function getLastError
         ├── function writeHiddenText
         └── function flushBuffer
@@ -6476,10 +6822,16 @@ if __name__ == '__main__':
 	# ~ ver = utils.Utilities.AsciiFont.ansiRegular(__version__)
 	# ~ print('\n\n Delta Corps Priest:\n\n' + name + '\n\n Ansi Regular:\n\n' + ver)
 	
-	text = 'Hola mundo! xD Soy el creador de estas hermosas funciones.'
-	text_list = utils.Utilities.splitText(text, 20)
-	print(text_list)
+	# Bluetooth: Obtiene los dispositivos que estan vinculados e información sobre estos:
+	devices = utils.Utilities.getSavedBTHDevices(jsonify=True)
+	print(devices)
 	
+	# Cortador de cadenas, limita las lineas a un maximo de caracteres pero sin cortar las palabras.
+	# ~ text = 'Hola mundo! xD Soy el creador de estas hermosas funciones.'
+	# ~ text_list = utils.Utilities.splitText(text, 20)
+	# ~ print(text_list)
+	
+	# Conversiones de Sistemas Numericos
 	# ~ out = utils.Utilities.NumberSystems.decimalToBinary(128, True)
 	# ~ print(out)
 	# ~ out = utils.Utilities.NumberSystems.binaryToDecimal(out)
