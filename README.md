@@ -363,4 +363,9 @@
         └── function flushBuffer
 
  All Classes Have a 'use', 'classes' and 'functions' variables.
+ 
+ *Classes:    71
+ *Functions:  141
+ *Properties: 32
+
 ```
