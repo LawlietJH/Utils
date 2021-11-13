@@ -18,7 +18,8 @@
 ![Icon](ubz2file.ico "Icono de archivos ubz2")
 
 ```
-■■■ Class Utils (v1.0.7)
+
+■■■ Class Utils (v1.0.8)
     ║
     ║ - Main Classes:
     ╠══ Class Actions
@@ -42,17 +43,40 @@
     ║   ║    ├── function getFolderName
     ║   ║    └── function getFileNameSave
     ║   ║
-    ║   ╠══ Class Mouse
-    ║   ║
     ║   ╠══ Class Keyboard
+    ║   ║    │
+    ║   ║    │ - Functions: ──────────────────
+    ║   ║    ├── function getVK
+    ║   ║    ├── function getKeyState
+    ║   ║    ├── function getAsyncKeyState
+    ║   ║    ├── function press
+    ║   ║    ├── function pressAndHold
+    ║   ║    ├── function release
+    ║   ║    ├── function pressHoldRelease
+    ║   ║    ├── function typeWithShift
+    ║   ║    └── function typer
+    ║   ║
+    ║   ╠══ Class Mouse
+    ║   ║    │
+    ║   ║    │ - Functions: ──────────────────
+    ║   ║    ├── property position (get, set)
+    ║   ║    ├── function leftClick
+    ║   ║    ├── function leftClickDown
+    ║   ║    ├── function leftClickUp
+    ║   ║    ├── function rightClick
+    ║   ║    ├── function rightClickDown
+    ║   ║    ├── function rightClickUp
+    ║   ║    ├── function middleClick
+    ║   ║    ├── function middleClickDown
+    ║   ║    └── function middleClickUp
     ║   ║
     ║   ╠══ Class VBS
     ║   │    │
     ║   │    │ - Functions: ──────────────────
+    ║   │    ├── function runScriptVBS
+    ║   │    ├── function minimizeAll
     ║   │    ├── function ejectCDROM
     ║   │    ├── function getWindowsProductKey
-    ║   │    ├── function minimizeAll
-    ║   │    ├── function runScriptVBS
     ║   │    └── function setVolume
     ║   │
     ║   │ - Functions: ───────────────────────
@@ -61,18 +85,27 @@
     ║   ├── function cleanRecyclerBin
     ║   ├── function displaySwitch
     ║   ├── function exitWindows
+    ║   ├── function getActiveWindow
+    ║   ├── function getNameActiveWindow
+    ║   ├── function getPathFromWinExplorer
     ║   ├── function getPrivileges
     ║   ├── function getProcessPrivileges
     ║   ├── function getWindowRect
     ║   ├── function hideConsole
     ║   ├── function hideCursor
+    ║   ├── function hideWindow
     ║   ├── function killProcess
     ║   ├── function lockWorkStation
     ║   ├── function messageBox
     ║   ├── function minimizeWindowCMD
+    ║   ├── function runAsAdmin
+    ║   ├── function runProgram
     ║   ├── function screenshot
+    ║   ├── function setConsoleSize
     ║   ├── function setCursorPos
+    ║   ├── function setTopMostConsole
     ║   ├── function setTopMostWindow
+    ║   ├── function setTopConsole
     ║   ├── function setTopWindow
     ║   ├── function setPriorityPID
     ║   └── function startApp
@@ -89,6 +122,8 @@
     ║   ╠══ Class Explorer
     ║   ║    ║
     ║   ║    ║ - Classes: ────────────────────
+    ║   ║    ╠══ Class Close
+    ║   ║    ╠══ Class PropertiesRecycleBin
     ║   ║    ╠══ Class ControlPanel
     ║   ║    ╠══ Class ContextMenu
     ║   ║    ╠══ Class Clock
@@ -106,8 +141,8 @@
     ║   ║    ╠══ Class SaveSettings
     ║   ║    ╠══ Class TrayItemsDisplay
     ║   ║    ╠══ Class ClassicShell
-    ║   ║    ╠══ Class PropertiesRecycleBin
-    ║   ║    ╚══ Class Close
+    ║   ║    ║ #Modificadas:
+    ║   ║    ╚══ Class WindowMinimizingShortcuts
     ║   ║
     ║   ╠══ Class FoldersOnThisPC
     ║   ║    ║
@@ -179,6 +214,9 @@
     ║   ║
     ║   ║ - Classes: ─────────────────────────
     ║   ╠══ Class GetIP
+    ║   │    │
+    ║   │    │ - Functions: ──────────────────
+    ║   │    └── property only_local (get, set)
     ║   │
     ║   │ - Functions: ───────────────────────
     ║   ├── function latin1_encoding
@@ -192,35 +230,35 @@
     ║   ├── function enumLocalDisk
     ║   ├── function enumLocalUsersAndGroups
     ║   ├── function enumProcess
-    ║   ├── function isCapsLockActive
-    ║   ├── function isLinux
-    ║   ├── function isMouseInstalled
-    ║   ├── function isPythonV2
-    ║   ├── function isPythonV3
-    ║   ├── function isSlowMachine
-    ║   ├── function isUserAnAdmin
+    ║   ├── property isCapsLockActive      (get)
+    ║   ├── property isLinux               (get)
+    ║   ├── property isMouseInstalled      (get)
+    ║   ├── property isPythonV2            (get)
+    ║   ├── property isPythonV3            (get)
+    ║   ├── property isSlowMachine         (get)
+    ║   ├── property isUserAnAdmin         (get)
     ║   ├── function isUserPasswordValid
-    ║   ├── function isWindows
-    ║   ├── function currentProcessId
-    ║   ├── function cursorPos
-    ║   ├── function currentSystemMetrics
-    ║   ├── function realSystemMetrics
-    ║   ├── function displaySettings
-    ║   ├── function computerName
-    ║   ├── function homeDrive
-    ║   ├── function numberOfMonitors
-    ║   ├── function numberOfProcessors
-    ║   ├── function os
-    ║   ├── function processorArchitecture
-    ║   ├── function processorIdentifier
-    ║   ├── function screenSize
-    ║   ├── function systemDrive
-    ║   ├── function systemRoot
+    ║   ├── property isWindows             (get)
+    ║   ├── property currentProcessId      (get)
+    ║   ├── property cursorPos             (get)
+    ║   ├── property currentSystemMetrics  (get)
+    ║   ├── property realSystemMetrics     (get)
+    ║   ├── property displaySettings       (get)
+    ║   ├── property computerName          (get)
+    ║   ├── property homeDrive             (get)
+    ║   ├── property numberOfMonitors      (get)
+    ║   ├── property numberOfProcessors    (get)
+    ║   ├── property os                    (get)
+    ║   ├── property processorArchitecture (get)
+    ║   ├── property processorIdentifier   (get)
+    ║   ├── property screenSize            (get)
+    ║   ├── property systemDrive           (get)
+    ║   ├── property systemRoot            (get)
     ║   ├── function systemUptime
-    ║   ├── function userDowntime
-    ║   ├── function userName
-    ║   ├── function winDir
-    ║   └── function collectAll
+    ║   ├── property userDowntime          (get)
+    ║   ├── property userName              (get)
+    ║   ├── property winDir                (get)
+    ║   └── property collectAll            (get)
     ║
     ╚═ Class Utilities
         ║
@@ -261,9 +299,6 @@
         ║    └── function calculateWeekday
         ║
         ╠══ Class Images
-        ║    ║
-        ║    ║ - Error Classes: ──────────────
-        ║    ╠══ Class MonthDoesNotExist
         ║    │
         ║    │ - Functions: ──────────────────
         ║    ├── function convertFromCv2ToImage
@@ -280,11 +315,13 @@
         ║    ├── function opening
         ║    └── function canny
         ║
+        ╠══ Class NumberSystems
+        ║    │
+        ║    │ - Functions: ──────────────────
+        ║    ├── function decimalToBinary
+        ║    └── function binaryToDecimal
+        ║
         ╠══ Class UBZ2
-        ║    ║
-        ║    ║ - Error Classes: ──────────────
-        ║    ╠══ Class NotSupportedError
-        ║    ╠══ Class TypeError
         ║    │
         ║    │ - Functions: ──────────────────
         ║    ├── function addIconToFileExtension
@@ -294,9 +331,34 @@
         ║    └── function getDataFromUBZ2File
         ║
         ╠══ Class Hash
+        │    ║
+        │    ║ - Error Classes: ──────────────
+        │    ╠══ Class HashNotAvailableError
+        │    │
+        │    │ - Functions: ──────────────────
+        │    ├── function update
+        │    └── function f_hash
         │
         │ - Functions: ───────────────────────
+        │ #Math:
+        ├── function cos
+        ├── function sin
+        ├── function diagonal
+        ├── function euclideanDistance
+        ├── function getAngle
+        │ #Pygame:
+        ├── function moveWindow
+        ├── function curWinRect
+        ├── function curWinSize
+        │ #Bluetooth:
+        ├── function getMajorServiceClass
+        ├── function getMajorDeviceClass
+        ├── function getMinorDeviceClass
+        ├── function getSavedBTHDevices
+        │ #Otros:
+        ├── function splitText
         ├── function hash
+        ├── function getFiletime
         ├── function getLastError
         ├── function writeHiddenText
         └── function flushBuffer
