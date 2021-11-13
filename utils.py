@@ -6478,17 +6478,17 @@ STRUCT = '''\
     ║   ║    └── function getFileNameSave
     ║   ║
     ║   ╠══ Class Keyboard
-    ║   │    │
-    ║   │    │ - Functions: ──────────────────
-    ║   │    ├── function getVK
-    ║   │    ├── function getKeyState
-    ║   │    ├── function getAsyncKeyState
-    ║   │    ├── function press
-    ║   │    ├── function pressAndHold
-    ║   │    ├── function release
-    ║   │    ├── function pressHoldRelease
-    ║   │    ├── function typeWithShift
-    ║   │    └── function typer
+    ║   ║    │
+    ║   ║    │ - Functions: ──────────────────
+    ║   ║    ├── function getVK
+    ║   ║    ├── function getKeyState
+    ║   ║    ├── function getAsyncKeyState
+    ║   ║    ├── function press
+    ║   ║    ├── function pressAndHold
+    ║   ║    ├── function release
+    ║   ║    ├── function pressHoldRelease
+    ║   ║    ├── function typeWithShift
+    ║   ║    └── function typer
     ║   ║
     ║   ╠══ Class Mouse
     ║   ║    │
@@ -6774,22 +6774,22 @@ STRUCT = '''\
         │    └── function f_hash
         │
         │ - Functions: ───────────────────────
-		│ #Math:
+        │ #Math:
         ├── function cos
-		├── function sin
-		├── function diagonal
-		├── function euclideanDistance
-		├── function getAngle
-		│ #Pygame:
-		├── function moveWindow
-		├── function curWinRect
-		├── function curWinSize
-		│ #Bluetooth:
+        ├── function sin
+        ├── function diagonal
+        ├── function euclideanDistance
+        ├── function getAngle
+        │ #Pygame:
+        ├── function moveWindow
+        ├── function curWinRect
+        ├── function curWinSize
+        │ #Bluetooth:
         ├── function getMajorServiceClass
         ├── function getMajorDeviceClass
         ├── function getMinorDeviceClass
         ├── function getSavedBTHDevices
-		│ #Otros:
+        │ #Otros:
         ├── function splitText
         ├── function hash
         ├── function getFiletime
@@ -6798,6 +6798,10 @@ STRUCT = '''\
         └── function flushBuffer
 
  All Classes Have a 'use', 'classes' and 'functions' variables.
+
+ *Classes:    71
+ *Functions:  141
+ *Properties: 32
 
 '''.format(__version__)
 
@@ -6814,7 +6818,7 @@ if __name__ == '__main__':
 	
 	# Pruebas:
 	
-	# ~ print(struct)
+	# ~ print(STRUCT)
 	
 	utils = Utils()
 	# ~ utils.Actions.setTopMostWindow()
