@@ -1,7 +1,7 @@
 
 # Tested in: Python 3.8.8 - Windows
 # By: LawlietJH
-# Utils v1.0.8
+# Utils v1.0.9
 
 # Banner:
 # ███    █▄      ███      ▄█   ▄█          ▄████████    
@@ -10,8 +10,8 @@
 # ███    ███     ███   ▀ ███▌ ███         ███           
 # ███    ███     ███     ███▌ ███       ▀███████████    ██    ██  ██     ██████      █████
 # ███    ███     ███     ███  ███                ███    ██    ██ ███    ██  ████    ██   ██
-# ███    ███     ███     ███  ███▌    ▄    ▄█    ███    ██    ██  ██    ██ ██ ██     █████
-# ████████▀     ▄████▀   █▀   █████▄▄██  ▄████████▀      ██  ██   ██    ████  ██    ██   ██
+# ███    ███     ███     ███  ███▌    ▄    ▄█    ███    ██    ██  ██    ██ ██ ██     ██████
+# ████████▀     ▄████▀   █▀   █████▄▄██  ▄████████▀      ██  ██   ██    ████  ██         ██
 #                             ▀                           ████    ██ ██  ██████  ██  █████
 
 from datetime import datetime, timedelta
@@ -20,6 +20,7 @@ import binascii
 import requests						# python -m pip install requests
 import hashlib
 import atexit
+import locale
 import psutil						# python -m pip install psutil
 import random
 import socket
@@ -28,7 +29,7 @@ import numpy						# python -m pip install numpy
 import json
 import math
 import time
-import cv2							# pip install opencv-python scipy
+import cv2							# python -m pip install opencv-python scipy
 import bz2
 import mss							# python -m pip install mss
 import PIL							# python -m pip install pillow
@@ -50,6 +51,8 @@ except:
 
 # Manipulacion de DLLs de Windows ======================================
 import ctypes
+import comtypes						# python -m pip install comtypes
+from ctypes import wintypes
 #=======================================================================
 
 # pip install pywin32 ==================================================
@@ -64,14 +67,14 @@ import win32security	as WS
 import win32clipboard	as WCB
 import win32net			as WN
 import winreg			as WR
-# ~ import win32com			as WCM
-# ~ import win32process		as WP
+import win32com			as WCM
+import win32process		as WP
 #=======================================================================
 #=======================================================================
 #=======================================================================
 __author__  = 'LawlietJH'	# Desarrollador
 __title__   = 'Utils'		# Nombre
-__version__ = 'v1.0.8'		# Version
+__version__ = 'v1.0.9'		# Version
 #=======================================================================
 #=======================================================================
 # Constants ============================================================
@@ -302,6 +305,7 @@ class Utils:
 			self.Keyboard  = self.Keyboard()
 			self.Mouse     = self.Mouse()
 			self.VBS       = self.VBS()
+			self.Volume    = self.Volume()
 			
 			# Conexiones a Clases hermanas:
 			self.SystemInfo = utils.SystemInfo()
@@ -661,7 +665,6 @@ class Utils:
 					# ~ '-': 0xBD
 				}
 				
-				
 				self.use = '''
 				\r Clase: Keyboard
 				\r │ 
@@ -820,7 +823,7 @@ class Utils:
 				# ~ self.MOUSEEVENTF_XDOWN      = 0x0080
 				# ~ self.MOUSEEVENTF_XUP        = 0x0100
 				# ~ self.MOUSEEVENTF_HWHEEL     = 0x01000
-				# ~ self.MOUSEEVENTF_ABSOLUTE   = 0x8000
+				''# ~ self.MOUSEEVENTF_ABSOLUTE   = 0x8000
 			
 			# print(Mouse.position)
 			@property
@@ -1079,7 +1082,7 @@ class Utils:
 				while '' in key: key.remove('')
 				return key[-1]
 			
-			def setVolume(self, percent=72, rm=True): # use				# Permite ajustar el volumen del sistema.
+			def setVolume(self, percent=72, rm=True): # use				# Permite ajustar el volumen del sistema. Nota: Ver la clase 'Actions.Volume' para una mejor manejo del volumen del sistema.
 				if not 0 <= percent <= 100: return
 				percent = percent//2
 				name = 'vol.vbs'
@@ -1100,6 +1103,493 @@ class Utils:
 					next
 				'''.format(percent)
 				self.runScriptVBS(name, payload, rm)
+		
+		#---------------------------------------------------------------
+		
+		class Volume:												# Controlador de Volumen del Sistema
+			
+			class VolumeControlIsNotSupported(Exception):
+				def __init__(self, error_msg): self.error_msg = error_msg
+				def __str__(self): return repr(self.error_msg)
+			
+			class MuteControlIsNotSupported(Exception):
+				def __init__(self, error_msg): self.error_msg = error_msg
+				def __str__(self): return repr(self.error_msg)
+			
+			class ChannelDoesNotExists(Exception):
+				def __init__(self, error_msg): self.error_msg = error_msg
+				def __str__(self): return repr(self.error_msg)
+			
+			class VolumeHandler:
+				
+				MMDeviceApiLib = comtypes.GUID('{2FDAAFA3-7523-4F66-9957-9D5E7FE698F6}')
+				
+				class IAudioEndpointVolume(comtypes.IUnknown):
+					IID_IAudioEndpointVolume = comtypes.GUID(
+						'{5CDF2C82-841E-4546-9722-0CF74078229A}')
+					LPCGUID = ctypes.POINTER(comtypes.GUID)
+					LPFLOAT = ctypes.POINTER(ctypes.c_float)
+					LPDWORD = ctypes.POINTER(wintypes.DWORD)
+					LPUINT = ctypes.POINTER(wintypes.UINT)
+					LPBOOL = ctypes.POINTER(wintypes.BOOL)
+					_iid_ = IID_IAudioEndpointVolume
+					_methods_ = (
+						comtypes.STDMETHOD(ctypes.HRESULT, 'RegisterControlChangeNotify', []),
+						comtypes.STDMETHOD(ctypes.HRESULT, 'UnregisterControlChangeNotify', []),
+						comtypes.COMMETHOD([], ctypes.HRESULT, 'GetChannelCount',
+							(['out', 'retval'], LPUINT, 'pnChannelCount')),
+						comtypes.COMMETHOD([], ctypes.HRESULT, 'SetMasterVolumeLevel',
+							(['in'], ctypes.c_float, 'fLevelDB'),
+							(['in'], LPCGUID, 'pguidEventContext', None)),
+						comtypes.COMMETHOD([], ctypes.HRESULT, 'SetMasterVolumeLevelScalar',
+							(['in'], ctypes.c_float, 'fLevel'),
+							(['in'], LPCGUID, 'pguidEventContext', None)),
+						comtypes.COMMETHOD([], ctypes.HRESULT, 'GetMasterVolumeLevel',
+							(['out','retval'], LPFLOAT, 'pfLevelDB')),
+						comtypes.COMMETHOD([], ctypes.HRESULT, 'GetMasterVolumeLevelScalar',
+							(['out','retval'], LPFLOAT, 'pfLevel')),
+						comtypes.COMMETHOD([], ctypes.HRESULT, 'SetChannelVolumeLevel',
+							(['in'], wintypes.UINT, 'nChannel'),
+							(['in'], ctypes.c_float, 'fLevelDB'),
+							(['in'], LPCGUID, 'pguidEventContext', None)),
+						comtypes.COMMETHOD([], ctypes.HRESULT, 'SetChannelVolumeLevelScalar',
+							(['in'], wintypes.UINT, 'nChannel'),
+							(['in'], ctypes.c_float, 'fLevel'),
+							(['in'], LPCGUID, 'pguidEventContext', None)),
+						comtypes.COMMETHOD([], ctypes.HRESULT, 'GetChannelVolumeLevel',
+							(['in'], wintypes.UINT, 'nChannel'),
+							(['out','retval'], LPFLOAT, 'pfLevelDB')),
+						comtypes.COMMETHOD([], ctypes.HRESULT, 'GetChannelVolumeLevelScalar',
+							(['in'], wintypes.UINT, 'nChannel'),
+							(['out','retval'], LPFLOAT, 'pfLevel')),
+						comtypes.COMMETHOD([], ctypes.HRESULT, 'SetMute',
+							(['in'], wintypes.BOOL, 'bMute'),
+							(['in'], LPCGUID, 'pguidEventContext', None)),
+						comtypes.COMMETHOD([], ctypes.HRESULT, 'GetMute',
+							(['out','retval'], LPBOOL, 'pbMute')),
+						comtypes.COMMETHOD([], ctypes.HRESULT, 'GetVolumeStepInfo',
+							(['out','retval'], LPUINT, 'pnStep'),
+							(['out','retval'], LPUINT, 'pnStepCount')),
+						comtypes.COMMETHOD([], ctypes.HRESULT, 'VolumeStepUp',
+							(['in'], LPCGUID, 'pguidEventContext', None)),
+						comtypes.COMMETHOD([], ctypes.HRESULT, 'VolumeStepDown',
+							(['in'], LPCGUID, 'pguidEventContext', None)),
+						comtypes.COMMETHOD([], ctypes.HRESULT, 'QueryHardwareSupport',
+							(['out','retval'], LPDWORD, 'pdwHardwareSupportMask')),
+						comtypes.COMMETHOD([], ctypes.HRESULT, 'GetVolumeRange',
+							(['out','retval'], LPFLOAT, 'pfLevelMinDB'),
+							(['out','retval'], LPFLOAT, 'pfLevelMaxDB'),
+							(['out','retval'], LPFLOAT, 'pfVolumeIncrementDB')))
+					
+					@classmethod
+					def method(cls):
+						
+						class IMMDeviceEnumerator(comtypes.IUnknown):
+							
+							class IMMDevice(comtypes.IUnknown):
+								IID_IMMDevice = comtypes.GUID(
+									'{D666063F-1587-4E43-81F1-B948E807363F}')
+								REFIID = ctypes.POINTER(comtypes.GUID)
+								LPDWORD = ctypes.POINTER(wintypes.DWORD)
+								PIUnknown = ctypes.POINTER(comtypes.IUnknown)
+								_iid_ = IID_IMMDevice
+								_methods_ = (
+									comtypes.COMMETHOD([], ctypes.HRESULT, 'Activate',
+										(['in'], REFIID, 'iid'),
+										(['in'], wintypes.DWORD, 'dwClsCtx'),
+										(['in'], LPDWORD, 'pActivationParams', None),
+										(['out','retval'], ctypes.POINTER(PIUnknown), 'ppInterface')),
+									comtypes.STDMETHOD(ctypes.HRESULT, 'OpenPropertyStore', []),
+									comtypes.STDMETHOD(ctypes.HRESULT, 'GetId', []),
+									comtypes.STDMETHOD(ctypes.HRESULT, 'GetState', []))
+							
+							PIMMDevice = ctypes.POINTER(IMMDevice)
+							
+							class IMMDeviceCollection(comtypes.IUnknown):
+								IID_IMMDeviceCollection = comtypes.GUID(
+									'{0BD7A1BE-7A1A-44DB-8397-CC5392387B5E}')
+								_iid_ = IID_IMMDeviceCollection
+							
+							PIMMDeviceCollection = ctypes.POINTER(IMMDeviceCollection)
+							
+							#---------------------------------------------------------
+							
+							IID_IMMDeviceEnumerator = comtypes.GUID(
+								'{A95664D2-9614-4F35-A746-DE8DB63617E6}')
+							_iid_ = IID_IMMDeviceEnumerator
+							_methods_ = (
+								comtypes.COMMETHOD([], ctypes.HRESULT, 'EnumAudioEndpoints',
+									(['in'], wintypes.DWORD, 'dataFlow'),
+									(['in'], wintypes.DWORD, 'dwStateMask'),
+									(['out','retval'], ctypes.POINTER(PIMMDeviceCollection),
+									 'ppDevices')),
+								comtypes.COMMETHOD([], ctypes.HRESULT, 'GetDefaultAudioEndpoint',
+									(['in'], wintypes.DWORD, 'dataFlow'),
+									(['in'], wintypes.DWORD, 'role'),
+									(['out','retval'], ctypes.POINTER(PIMMDevice), 'ppDevices')))
+							@classmethod
+							def get_default(cls, dataFlow, role):
+								CLSID_MMDeviceEnumerator = comtypes.GUID(
+									'{BCDE0395-E52F-467C-8E3D-C4579291692E}')
+								enumerator = comtypes.CoCreateInstance(
+									CLSID_MMDeviceEnumerator, cls, comtypes.CLSCTX_INPROC_SERVER)
+								return enumerator.GetDefaultAudioEndpoint(dataFlow, role)
+						
+						# EDataFlow
+						eRender = 0 # audio rendering stream
+						eCapture = 1 # audio capture stream
+						eAll = 2 # audio rendering or capture stream
+						# ERole
+						eConsole = 0 # games, system sounds, and voice commands
+						eMultimedia = 1 # music, movies, narration
+						eCommunications = 2 # voice communications
+						
+						endpoint = IMMDeviceEnumerator.get_default(eRender, eMultimedia)
+						interface = endpoint.Activate(cls._iid_, comtypes.CLSCTX_INPROC_SERVER)
+						return ctypes.cast(interface, ctypes.POINTER(cls))
+				
+				comtypes.CoInitialize()
+			
+			def __init__(self):
+				
+				self.classes   = ObjectClassNames(self)
+				self.functions = None
+				self.functions = ObjectFunctionNames(self)
+				
+				self.aev = self.VolumeHandler.IAudioEndpointVolume.method()
+				
+				dBrange = self.aev.GetVolumeRange()
+				self.volumeRange = {
+					'levelMinDB': dBrange[0],
+					'levelMaxDB': dBrange[1],
+					'volumeIncrementDB': dBrange[2]
+				}
+				
+				self.use = '''
+				\r Clase: Volume
+				\r │ 
+				\r │ # Descripción: Permite manipular los eventos del
+				\r │ teclado. Permite presionar teclas, mantenerlas
+				\r │ cuanto tiempo se desee y soltarla cuando se indique.
+				\r │ 
+				\r + Ejemplos de uso:
+				\r |    
+				\r |    utils = Utils()
+				\r |    vol = utils.Actions.Volume
+				\r |    
+				\r |  #Control de Silenciado: --------------------------
+				\r |    
+				\r |    # Nos mostrara el sistema esta silenciado:
+				\r |    print(vol.mute)
+				\r |    
+				\r |    # Para Silenciar o Desilenciar el sistema:
+				\r |    vol.mute = True		# True o False
+				\r |    
+				\r |  #Control de nivel de Volumen: --------------------
+				\r |    
+				\r |    # Para ver el volumen maestro actual de 0~100:
+				\r |    print(vol.volume)
+				\r |    
+				\r |    # Para poner un nuevo nivel de volumen maestro
+				\r |    # puedes usar los siguientes valores:
+				\r |    vol.volume = 72      # Entero:   entre 0 y 100
+				\r |    vol.volume = 0.72    # Flotante: entre 0 y 1
+				\r |    
+				\r |  #Ver el Rango de Volumen en Decibeles (dB): ------
+				\r |    
+				\r |    # Muestra los valores minimos y maximos en dB:
+				\r |    print(vol.volumeRange)
+				\r |    # Ejemplo de lo permitido por el sistema:
+				\r |    #{
+				\r |    #  'levelMinDB':        -65.25,
+				\r |    #  'levelMaxDB':        0.0,
+				\r |    #  'volumeIncrementDB': 0.03125
+				\r |    #}
+				\r |    # podemos notar que va de -65.25 a 0.0
+				\r |    
+				\r |  #Control de nivel de Volumen en decibeles (dB): --
+				\r |    
+				\r |    # Para ver el volumen maestro actual de valores
+				\r |    # en decibeles (ver vol.volumeRange):
+				\r |    print(vol.volumedB)
+				\r |    
+				\r |    # Para poner un nuevo nivel de volumen maestro
+				\r |    # en decibeles (ver vol.volumeRange):
+				\r |    vol.volumeDB = -5   # Entero o Flotante negativo
+				\r |    
+				\r |  #Control de nivel de Volumen en Saltos:
+				\r |    
+				\r |    # Para ver la información de posición actual,
+				\r |    # mínima y máxima:
+				\r |    print(vol.volumeStepInfo)
+				\r |    # Ejemplo:
+				\r |    #{
+				\r |    #  'currentSteps': 36,    # Equivale a 72 de 100
+				\r |    #  'minSteps':     0,
+				\r |    #  'maxSteps':     50
+				\r |    #}
+				\r |    
+				\r |    # Para subir el volumen un paso a la vez:
+				\r |    vol.volumeStepUp()
+				\r |    
+				\r |    # Para bajar el volumen un paso a la vez:
+				\r |    vol.volumeStepDown()
+				\r |    
+				\r |  #Ver Informacion de disponibilidad del sistema: --
+				\r |    
+				\r |    print(vol.hardwareSupport)
+				\r |    
+				\r |    # Obtiene una la lista del hardware soportado
+				\r |    # Con los siguientes posibles valores:
+				\r |    # [
+				\r |    #   'Volume Control',
+				\r |    #   'Mute Control',
+				\r |    #   'Peak Meter'
+				\r |    # ]
+				\r |    # Si Volume Control esta presente, será posible
+				\r |    # utilizar los controladores de volumen.
+				\r |    # Si Mute Control esta presente, será posible
+				\r |    # utilizar los controladores de muteo.
+				\r |    # Si no esta presente alguno, al querer usar las
+				\r |    # funciones dirá que el sistema no lo permite.
+				\r |    
+				\r |  #Control del los Canales de volumen: --------------
+				\r |    # Como ejemplo: Las bocinas izquierda y derecha
+				\r |    # de una laptop sería los canales 1 y 2.
+				\r |    
+				\r |    # Para ver la cantidad de canales disponibles:
+				\r |    print(vol.getChannelCount())    # Ejemplo: 2
+				\r |    
+				\r |    # Para mostrar el volumen del Canal 1 y 2 con
+				\r |    # valores de '0~100' 
+				\r |    print(vol.getChannelVol())	  # Canal 1: 100
+				\r |    print(vol.getChannelVol(2))	  # Canal 2: 100
+				\r |    
+				\r |    # Para cambiar los niveles de volumen de los
+				\r |    # canales por separado:
+				\r |    vol.setChannelVol(10)         # Canal 1: 10.
+				\r |    vol.setChannelVol(75, 2)      # Canal 2: 75.
+				\r |    
+				\r |    # El volumen master adoptara la posicion del
+				\r |    # canal con mayor volumen, en este caso el 2.
+				\r |    
+				\r |    print(vol.volume)    # 75.
+				\r |    
+				\r |    # Si cambiamos el volumen, por ejemplo, de nuevo
+				\r |    # a 100 los canales seguiran desfazados.
+				\r |    
+				\r |    # La solución a este problema es:
+				\r |    
+				\r |    vol.balanceVolChannels()
+				\r |    
+				\r |    # Esto balancea el volumen en todos los canales
+				\r |    # de audio al nivel de volumen mas alto entre
+				\r |    # los canales (en este caso en 75).
+				\r |    
+				\r |  #Control de los Canales de Volumen en dB: --------
+				\r |    
+				\r |    # Podemos hacer lo mismo pero con decibeles
+				\r |    print(vol.getChannelVoldB())  # Canal 1: 0.0
+				\r |    print(vol.getChannelVoldB(2)) # Canal 2: 0.0
+				\r |    
+				\r |    # -65.25 en este caso equivale al 0% de volumen.
+				\r |    # 0.0 equivale al 100% de volumen.
+				\r |    # Para ver estos valores vease vol.volumeRange.
+				\r |    
+				\r |    # Para poner el volumen en decibeles con los
+				\r |    # mínimo y máximo visto en vol.volumeRange:
+				\r |    vol.setChannelVoldB(-33)   # Equivale a 10%
+				\r |    vol.setChannelVoldB(-5, 2) # Equivale a 72%
+				\r |    
+				\r |    # Igualmente para equilibrar los canales:
+				\r |    vol.balanceVolChannels()
+				\r \\    
+				'''
+			
+			@property
+			def volumeStepInfo(self):
+				vsi = self.aev.GetVolumeStepInfo()
+				info = {
+					'currentSteps': vsi[0],
+					'minSteps': 0,
+					'maxSteps': vsi[1]-1
+				}
+				return info 
+			
+			@property
+			def hardwareSupport(self):
+				out = []
+				value = self.aev.QueryHardwareSupport()
+				hardware = {
+					1: 'Volume Control',
+					2: 'Mute Control',
+					4: 'Peak Meter'
+				}
+				for i in sorted(hardware.keys())[::-1]:
+					if i <= value:
+						hwi = hardware[i]
+						out.append(hwi)
+						value -= i
+				return out[::-1]
+			
+			# print(Volume.volume)		# Muestra el nivel de volumen
+			@property
+			def volume(self) -> int:
+				if 'Volume Control' in self.hardwareSupport:
+					vol = self.aev.GetMasterVolumeLevelScalar()
+					vol = round(vol*100)
+					return vol
+				else:
+					msg = 'El Control de Volumen no es compatible en tu sistema.'
+					raise self.VolumeControlIsNotSupported(msg)
+			
+			# Volume.volume = 100		# Valores de '0~100' o de '0~1'
+			@volume.setter
+			def volume(self, vol: [int, float]):
+				if 'Volume Control' in self.hardwareSupport:
+					if   vol < 0:   vol = 0
+					elif vol > 100: vol = 100
+					elif vol.__class__ == float and 0 <= vol <= 1:
+						vol = round(vol*100)
+					else:
+						vol = round(vol)
+					self.aev.SetMasterVolumeLevelScalar(vol/100)
+				else:
+					msg = 'El Control de Volumen no es compatible en tu sistema.'
+					raise self.VolumeControlIsNotSupported(msg)
+			
+			# print(Volume.volumedB)	# Muestra el nivel de volumen en Decibeles (dB)
+			# Ver Volume.volumeRange para saber el valor minimo y maximo de decibeles (dB) permitidos en tu sistema.
+			@property
+			def volumedB(self) -> float:
+				if 'Volume Control' in self.hardwareSupport:
+					dB = self.aev.GetMasterVolumeLevel()
+					return round(dB, 2)
+				else:
+					msg = 'El Control de Volumen no es compatible en tu sistema.'
+					raise self.VolumeControlIsNotSupported(msg)
+			
+			# Volume.volumedB = -5		# Muestra el nivel de volumen en Decibeles (dB)
+			# Ver Volume.volumeRange para saber el valor minimo y maximo de decibeles (dB) permitidos en tu sistema.
+			@volumedB.setter
+			def volumedB(self, dB: float):
+				if 'Volume Control' in self.hardwareSupport:
+					dB = round(dB, 4)
+					dBrange = self.volumeRange
+					dBmin = dBrange['levelMinDB']
+					dBmax = dBrange['levelMaxDB']
+					if   dB < dBmin: dB = dBmin
+					elif dB > dBmax: dB = dBmax
+					self.aev.SetMasterVolumeLevel(dB)
+				else:
+					msg = 'El Control de Volumen no es compatible en tu sistema.'
+					raise self.VolumeControlIsNotSupported(msg)
+			
+			# print(Volume.mute)		# Muestra si esta mute o no.
+			@property
+			def mute(self) -> bool:
+				if 'Mute Control' in self.hardwareSupport:
+					mute = self.aev.GetMute()
+					if mute == 0: return False
+					else: return True
+				else:
+					msg = 'El Control de Silenciado (Mute) no es compatible en tu sistema.'
+					raise self.MuteControlIsNotSupported(msg)
+			
+			# Volume.mute = True		# Valores 'True' o 'False' solamente
+			@mute.setter
+			def mute(self, mute: bool):
+				if 'Mute Control' in self.hardwareSupport:
+					self.aev.SetMute(mute)
+				else:
+					msg = 'El Control de Silenciado (Mute) no es compatible en tu sistema.'
+					raise self.MuteControlIsNotSupported(msg)
+			
+			def getChannelCount(self):
+				return self.aev.GetChannelCount()
+			
+			def getChannelVol(self, ch=1):
+				if 'Volume Control' in self.hardwareSupport:
+					ch_c = self.getChannelCount()
+					if 0 < ch <= ch_c:
+						vol = self.aev.GetChannelVolumeLevelScalar(ch-1)
+						vol = round(vol*100)
+						return vol
+					else:
+						msg = 'El Canal {} no existe. '.format(ch)
+						msg += 'El Sistema solo dispone de {} Canales.'.format(ch_c)
+						raise self.ChannelDoesNotExists(msg)
+				else:
+					msg = 'El Control de Volumen no es compatible en tu sistema.'
+					raise self.VolumeControlIsNotSupported(msg)
+			
+			def setChannelVol(self, vol=72, ch=1):
+				if 'Volume Control' in self.hardwareSupport:
+					ch_c = self.getChannelCount()
+					if 0 < ch <= ch_c:
+						if   vol < 0:   vol = 0
+						elif vol > 100: vol = 100
+						elif vol.__class__ == float and 0 <= vol <= 1:
+							vol = round(vol*100)
+						else:
+							vol = round(vol)
+						self.aev.SetChannelVolumeLevelScalar(ch-1, vol/100)
+					else:
+						msg = 'El Canal {} no existe. '.format(ch)
+						msg += 'El Sistema solo dispone de {} Canales.'.format(ch_c)
+						raise self.ChannelDoesNotExists(msg)
+				else:
+					msg = 'El Control de Volumen no es compatible en tu sistema.'
+					raise self.VolumeControlIsNotSupported(msg)
+			
+			def getChannelVoldB(self, ch=1):
+				if 'Volume Control' in self.hardwareSupport:
+					ch_c = self.getChannelCount()
+					if 0 < ch <= ch_c:
+						dB = self.aev.GetChannelVolumeLevel(ch-1)
+						return round(dB, 2)
+					else:
+						msg = 'El Canal {} no existe. '.format(ch)
+						msg += 'El Sistema solo dispone de {} Canales.'.format(ch_c)
+						raise self.ChannelDoesNotExists(msg)
+				else:
+					msg = 'El Control de Volumen no es compatible en tu sistema.'
+					raise self.VolumeControlIsNotSupported(msg)
+			
+			def setChannelVoldB(self, dB=-5, ch=1):
+				if 'Volume Control' in self.hardwareSupport:
+					ch_c = self.getChannelCount()
+					if 0 < ch <= ch_c:
+						dB = round(dB, 4)
+						dBrange = self.volumeRange
+						dBmin = dBrange['levelMinDB']
+						dBmax = dBrange['levelMaxDB']
+						if   dB < dBmin: dB = dBmin
+						elif dB > dBmax: dB = dBmax
+						self.aev.SetChannelVolumeLevel(ch-1, dB)
+					else:
+						msg = 'El Canal {} no existe. '.format(ch)
+						msg += 'El Sistema solo dispone de {} Canales.'.format(ch_c)
+						raise self.ChannelDoesNotExists(msg)
+				else:
+					msg = 'El Control de Volumen no es compatible en tu sistema.'
+					raise self.VolumeControlIsNotSupported(msg)
+			
+			def balanceVolChannels(self):
+				ch_max_vol = 0
+				chs = self.getChannelCount()
+				for ch in range(1, chs+1):
+					ch_vol = self.getChannelVol(ch)
+					if ch_vol > ch_max_vol:
+						ch_max_vol = ch_vol
+				for ch in range(1, chs+1):
+					self.setChannelVol(ch_max_vol, ch)
+			
+			def volumeStepUp(self):
+				self.aev.VolumeStepUp()
+			
+			def volumeStepDown(self):
+				self.aev.VolumeStepDown()
 		
 		#---------------------------------------------------------------
 		
@@ -1674,15 +2164,15 @@ class Utils:
 			else:
 				WG.SetWindowPos(hwnd, WC.HWND_NOTOPMOST, *self.getWindowRect(hwnd), 0)
 		
-		# ~ def setTopMostWindowName(targetTitle=''):
-			# ~ hWndList = []
-			# ~ WG.EnumWindows(lambda hWnd, param: param.append(hWnd), hWndList)  
-			# ~ for hwnd in hWndList:
-				# ~ clsname = WG.GetClassName(hwnd)
-				# ~ title = WG.GetWindowText(hwnd)
-				# ~ print(clsname, [title], ' <--- Here!' if title.endswith('cmd.exe') else '')
-				# ~ if (title.find (targetTitle)> = 0): #Adjust the target window to coordinates (600,300), the size is set to (600,600)
-					# ~ WG.SetWindowPos(hwnd, WC.HWND_TOPMOST, 600,300,600,600, WC.SWP_SHOWWINDOW)
+		def not_setTopMostWindowName(targetTitle=''):
+			hWndList = []
+			WG.EnumWindows(lambda hWnd, param: param.append(hWnd), hWndList)  
+			for hwnd in hWndList:
+				clsname = WG.GetClassName(hwnd)
+				title = WG.GetWindowText(hwnd)
+				print(clsname, [title], ' <--- Here!' if title.endswith('cmd.exe') else '')
+				if (title.find(targetTitle) >= 0): #Adjust the target window to coordinates (600,300), the size is set to (600,600)
+					WG.SetWindowPos(hwnd, WC.HWND_TOPMOST, 600,300,600,600, WC.SWP_SHOWWINDOW)
 		
 		def setTopConsole(self):										# Coloca al frente la consola de comandos.
 			hwnd   = WCS.GetConsoleWindow()
@@ -3864,15 +4354,131 @@ class Utils:
 			self.functions = ObjectFunctionNames(self)
 			
 			self.use = '''
+			\r / 
+			\r + Predeterminado:
+			\r | 
+			\r |    utils = Utils()
+			\r |    nwinf = utils.NetworkInfo
+			\r | 
 			\r Funciones: ESSIDEnum() y ESSIDPasswd(ESSID)
 			\r |
 			\r + Ejemplos de uso:
-			\r |
+			\r |    
 			\r |    utils = Utils()
-			\r |
-			\r |    for ESSID in utils.NetworkInfo.ESSIDEnum():
-			\r |        pwd = utils.NetworkInfo.ESSIDPasswd(ESSID)
+			\r |    
+			\r |    for ESSID in nwinf.ESSIDEnum():
+			\r |        pwd = nwinf.ESSIDPasswd(ESSID)
 			\r |        print('\\nESSID: ' + ESSID + '\\n  Pwd: ' + pwd)
+			\r |
+			\r |--------------------------------------------------------
+			\r Función: getIPv4(
+			\r |            host = socket.gethostname()
+			\r |        )
+			\r |
+			\r + Ejemplos de uso:
+			\r |    
+			\r |    # Obtiene la IPv4 Local:
+			\r |    nwinf.getIPv4()
+			\r |    
+			\r |    # Obtiene la IPv4 de un Host Remoto:
+			\r |    nwinf.getIPv4('www.google.com')
+			\r |
+			\r |--------------------------------------------------------
+			\r Función: packetIPAddress(
+			\r |            ipAddress,
+			\r |            hexlify  = False,
+			\r |            unpacked = False
+			\r |        )
+			\r |
+			\r + Ejemplos de uso:
+			\r |    
+			\r |    ip = '192.168.1.0'
+			\r |    
+			\r |    # Empaqueta la IP:
+			\r |    packed = nwinf.packetIPAddress(ip)
+			\r |    print(packed)    # b'\xc0\xa8\x01\x00'
+			\r |    
+			\r |    # Desempaqueta la IP:
+			\r |    unpacked = nwinf.packetIPAddress(packed, unpacked=True)
+			\r |    print(unpacked)  # 192.168.1.0
+			\r |    
+			\r |    # Empaqueta la IP y la devuelve en hexadecimal:
+			\r |    packed = nwinf.packetIPAddress(ip, hexlify=True)
+			\r |    print(packed)    # b'c0a80100'
+			\r |
+			\r |--------------------------------------------------------
+			\r Función: findServiceName(
+			\r |            port,
+			\r |            protocol = 'tcp',   # 'tcp' or 'udp'
+			\r |            nones    = False
+			\r |        )
+			\r |
+			\r + Ejemplos de uso:
+			\r |    
+			\r |    # Obtiene el nombre del servicio.
+			\r |    port = 80
+			\r |    serv_name = nwinf.findServiceName(port)
+			\r |    print(serv_name)
+			\r |    
+			\r |    # Puertos de ejemplo:
+			\r |    ports = [19,21,23,24,25]
+			\r |    
+			\r |    # Obtiene la lista de puertos (TCP). Ignora los no encontrados:
+			\r |    serv_names = nwinf.findServiceName(ports)
+			\r |    print(json.dumps(serv_names, indent=4))
+			\r |    #{"tcp": {
+			\r |    #    "19": "chargen",
+			\r |    #    "21": "ftp",
+			\r |    #    "23": "telnet",
+			\r |    #    "25": "smtp"
+			\r |    #}}
+			\r |    
+			\r |    # Obtiene la lista de puertos (UDP). Ignora los no encontrados:
+			\r |    serv_names = nwinf.findServiceName(ports, 'udp')
+			\r |    print(json.dumps(serv_names, indent=4))
+			\r |    #{"udp": {
+			\r |    #    "19": "chargen"
+			\r |    #}}
+			\r |    
+			\r |    # Obtiene la lista de puertos (TCP):
+			\r |    serv_names = nwinf.findServiceName(ports, nones=True)
+			\r |    print(json.dumps(serv_names, indent=4))
+			\r |    #{"tcp": {
+			\r |    #    "19": "chargen",
+			\r |    #    "21": "ftp",
+			\r |    #    "23": "telnet",
+			\r |    #    "24": "None",
+			\r |    #    "25": "smtp"
+			\r |    #}}
+			\r |    
+			\r |    # Obtiene la lista de puertos (UDP):
+			\r |    serv_names = nwinf.findServiceName(ports, 'udp', nones=True)
+			\r |    print(json.dumps(serv_names, indent=4))
+			\r |    #{"tcp": {
+			\r |    #    "19": "chargen",
+			\r |    #    "21": "None",
+			\r |    #    "23": "None",
+			\r |    #    "24": "None",
+			\r |    #    "25": "None"
+			\r |    #}}
+			\r |    
+			\r |    # Obtiene la lista de puertos (TCP y UDP). Ignora los no encontrados:
+			\r |    port = {'tcp': [19,21,23,24,25], 'udp': [19,21,80,81,88]}
+			\r |    serv_name = nwinf.findServiceName(port)
+			\r |    print(json.dumps(serv_name, indent=4))
+			\r |    #{"tcp": {
+			\r |    #    "19": "chargen",
+			\r |    #    "21": "ftp",
+			\r |    #    "23": "telnet",
+			\r |    #    "25": "smtp"
+			\r |    # },
+			\r |    # "udp": {
+			\r |    #    "19": "chargen",
+			\r |    #    "81": "hosts2-ns",
+			\r |    #    "88": "kerberos"
+			\r |    #}}
+			\r |
+			\r |--------------------------------------------------------
 			\r \\
 			'''
 			
@@ -3937,6 +4543,7 @@ class Utils:
 				self.only_local_ = bool_
 				if not self.only_local_:
 					try:
+						# Get Public IPv4, commands: nslookup myip.opendns.com resolver1.opendns.com
 						self.public_ipv4 = requests.get('https://api.ipify.org').text
 						self.public_ipv6 = requests.get('https://api64.ipify.org').text
 						if self.public_ipv6 == self.public_ipv4: self.public_ipv6 = None
@@ -4012,6 +4619,74 @@ class Utils:
 					break
 			
 			return Passwd
+		
+		def findServiceName(self, port, protocol='tcp', nones=False): #Use	# Devuelve el nombre del servicio de uno o varios puertos.
+			if port.__class__ == int:
+				try:
+					out = socket.getservbyport(port, protocol)
+				except:
+					out = None
+			elif port.__class__ in [list, tuple, set]:
+				ports = set(port)
+				out = {protocol: {}}
+				if len(ports) == 1:
+					try:
+						port = ports.pop()
+						serv_name = socket.getservbyport(port, protocol)
+						out[protocol][port] = serv_name
+					except:
+						out[protocol][port] = 'None'
+				else:
+					for port in ports:
+						try:
+							serv_name = socket.getservbyport(port, protocol)
+							out[protocol][port] = serv_name
+						except:
+							if nones:
+								out[protocol][port] = 'None'
+			elif port.__class__ == dict:
+				out = {'tcp': {}, 'udp': {}}
+				for protocol, ports in port.items():
+					ports = set(ports)
+					if len(ports) == 1:
+						try:
+							port = ports.pop()
+							serv_name = socket.getservbyport(p, protocol)
+							out[protocol][port] = serv_name
+						except:
+							out[protocol][port] = 'None'
+					else:
+						for port in ports:
+							try:
+								serv_name = socket.getservbyport(port, protocol)
+								out[protocol][port] = serv_name
+							except:
+								if nones:
+									out[protocol][port] = 'None'
+			else:
+				out = None
+			return out
+		
+		def getIPv4(self, host=socket.gethostname()): #Use				# Obtiene la IP publica de cualquier pagina.
+			try:
+				IPv4 = socket.gethostbyname(host)
+			except:
+				IPv4 = None
+			return IPv4
+		
+		def packetIPAddress(self, ipAddress, hexlify=False, unpacked=False): #Use	# Devuelve empaqueta (Binarios) la IP dada.
+			if unpacked:
+				try:
+					unpackedIPAddr = socket.inet_ntoa(ipAddress)
+				except:
+					ipAddress = binascii.unhexlify(ipAddress)
+					unpackedIPAddr = socket.inet_ntoa(ipAddress)
+				return unpackedIPAddr
+			else:
+				packedIPAddr = socket.inet_aton(ipAddress)
+				if hexlify:
+					packedIPAddr = binascii.hexlify(packedIPAddr)
+				return packedIPAddr
 	
 	class SystemInfo:	# Información general sobre la PC
 		
@@ -4315,6 +4990,7 @@ class Utils:
 		
 		def systemUptime(self, raw=False):								# Devuelve el Tiempo de actividad del sistema en formato '0d 00:00:00'
 			
+			#mili = ctypes.windll.kernel32.GetTickCount64()
 			mili = WA.GetTickCount()
 			
 			secs = (mili // 1000)
@@ -4332,7 +5008,13 @@ class Utils:
 			return time
 		
 		@property
-		def userDowntime(self):										# Devuelve la cantidad de tiempo inactivo del usuario (cuanto tiempo tiene sin presionar una tecla o mover el mouse, por ejemplo)
+		def userDefaultLanguage(self):									# Devuelve el Idioma por Defecto del Sistema. Ejemplo 'es_ES'.
+			langID = ctypes.windll.kernel32.GetUserDefaultUILanguage()
+			lang = locale.windows_locale[langID]
+			return lang
+		
+		@property
+		def userDowntime(self):											# Devuelve la cantidad de tiempo inactivo del usuario (cuanto tiempo tiene sin presionar una tecla o mover el mouse, por ejemplo)
 			
 			class LASTINPUTINFO(ctypes.Structure):
 				_fields_ = [('cbSize', ctypes.c_uint), ('dwTime', ctypes.c_uint)]
@@ -5988,16 +6670,16 @@ class Utils:
 			\r Función: hash(text, algo='sha1')
 			\r |
 			\r + Ejemplo de uso:
-			\r |
+			\r |    
 			\r |    utils = Utils()
-			\r |
+			\r |    
 			\r |    # Available: sha1 (Default), sha224, sha256, sha384, sha512, md5.
-			\r |
+			\r |    
 			\r |    h = utils.Utilities.hash('hello world!', 'sha256')
 			\r |    print('Hash: ' + h)
 			\r |    print('Type: ' + h.type)
 			\r |    print('Text: ' + h.text)
-			\r |
+			\r |    
 			\r |    h.update('sha1')
 			\r |    print('\\nActualizado a sha1:')
 			\r |    print('Hash: ' + h)
@@ -6345,7 +7027,7 @@ class Utils:
 					midc, madc = self.getMinorDeviceClass(CoD, ret_madc=True)
 					devices[i] = {
 						'name': name,
-						'address': keyname,
+						'address': self.splitBytes(keyname, ':'),
 						'lastConnected': str(self.getFiletime(lastConn)),
 						'lastSeen': str(self.getFiletime(lastSeen)),
 						'majorServiceClass': masc,
@@ -6353,6 +7035,7 @@ class Utils:
 						'minorDeviceClass': midc
 					}
 				except WindowsError:
+					print(i, False)
 					break
 			
 			if jsonify:
@@ -6361,6 +7044,15 @@ class Utils:
 			return devices
 		
 		# Otros --------------------------------------------------------
+		def splitBytes(self, hexa, char=':'):							# Divide un hexadecimal en bytes añadiendo el caracter deseado.
+			_bytes = []
+			for x, h in enumerate(hexa):
+				if x % 2 == 0:
+					_bytes.append(h)
+				else:
+					_bytes[int(x/2)] += h
+			return char.join(_bytes)
+		
 		def splitText(self, text, chunk_size=32):						# Divide un texto por palabras en lineas de tamaño limite indicado.
 			
 			output = []
@@ -6505,13 +7197,39 @@ STRUCT = '''\
     ║   ║    └── function middleClickUp
     ║   ║
     ║   ╠══ Class VBS
+    ║   ║    │
+    ║   ║    │ - Functions: ──────────────────
+    ║   ║    ├── function runScriptVBS
+    ║   ║    ├── function minimizeAll
+    ║   ║    ├── function ejectCDROM
+    ║   ║    ├── function getWindowsProductKey
+    ║   ║    └── function setVolume
+    ║   ║
+    ║   ╠══ Class Volume
+    ║   │    ║
+    ║   │    ║ - Error Classes: ──────────────
+    ║   │    ╠══ Class VolumeControlIsNotSupported
+    ║   │    ╠══ Class MuteControlIsNotSupported
+    ║   │    ╠══ Class ChannelDoesNotExists
+    ║   │    ║
+    ║   │    ║ - Classes: ────────────────────
+    ║   │    ╠══ Class VolumeHandler
     ║   │    │
     ║   │    │ - Functions: ──────────────────
-    ║   │    ├── function runScriptVBS
-    ║   │    ├── function minimizeAll
-    ║   │    ├── function ejectCDROM
-    ║   │    ├── function getWindowsProductKey
-    ║   │    └── function setVolume
+    ║   │    ├── property volumeRange        (get)
+    ║   │    ├── property volumeStepInfo     (get)
+    ║   │    ├── property hardwareSupport    (get)
+    ║   │    ├── property volume             (get, set)
+    ║   │    ├── property volumedB           (get, set)
+    ║   │    ├── property mute               (get, set)
+    ║   │    ├── function getChannelCount
+    ║   │    ├── function getChannelVol
+    ║   │    ├── function setChannelVol
+    ║   │    ├── function getChannelVoldB
+    ║   │    ├── function setChannelVoldB
+    ║   │    ├── function balanceVolChannels
+    ║   │    ├── function volumeStepUp
+    ║   │    └── function volumeStepDown
     ║   │
     ║   │ - Functions: ───────────────────────
     ║   ├── function beep
@@ -6655,7 +7373,10 @@ STRUCT = '''\
     ║   │ - Functions: ───────────────────────
     ║   ├── function latin1_encoding
     ║   ├── function ESSIDEnum
-    ║   └── function ESSIDPasswd
+    ║   ├── function ESSIDPasswd
+    ║   ├── function findServiceName
+    ║   ├── function getIPv4
+    ║   └── function packetIPAddress
     ║
     ╠═ Class SystemInfo
     ║   │
@@ -6689,6 +7410,7 @@ STRUCT = '''\
     ║   ├── property systemDrive           (get)
     ║   ├── property systemRoot            (get)
     ║   ├── function systemUptime
+    ║   ├── property userDefaultLanguage   (get)
     ║   ├── property userDowntime          (get)
     ║   ├── property userName              (get)
     ║   ├── property winDir                (get)
@@ -6790,6 +7512,7 @@ STRUCT = '''\
         ├── function getMinorDeviceClass
         ├── function getSavedBTHDevices
         │ #Otros:
+        ├── function splitBytes
         ├── function splitText
         ├── function hash
         ├── function getFiletime
@@ -6826,22 +7549,155 @@ if __name__ == '__main__':
 	# ~ ver = utils.Utilities.AsciiFont.ansiRegular(__version__)
 	# ~ print('\n\n Delta Corps Priest:\n\n' + name + '\n\n Ansi Regular:\n\n' + ver)
 	
+	#-------------------------------------------------------------------
+	
+	nwinf = utils.NetworkInfo
+	sysinf = utils.SystemInfo
+	actions = utils.Actions
+	
+	#-------------------------------------------------------------------
+	
+	lang = sysinf.userDefaultLanguage
+	print(lang)
+	
+	#-------------------------------------------------------------------
+	
+	port = 80
+	serv_name = nwinf.findServiceName(port)
+	print(serv_name)
+	
+	ports = [19,21,23,24,25]
+	
+	serv_names = nwinf.findServiceName(ports)
+	print(json.dumps(serv_names, indent=4))
+	
+	serv_names = nwinf.findServiceName(ports, 'udp')
+	print(json.dumps(serv_names, indent=4))
+	
+	serv_names = nwinf.findServiceName(ports, nones=True)
+	print(json.dumps(serv_names, indent=4))
+	
+	serv_names = nwinf.findServiceName(ports, 'udp', nones=True)
+	print(json.dumps(serv_names, indent=4))
+	
+	port = {'tcp': [19,21,23,24,25], 'udp': [19,21,80,81,88]}
+	serv_name = nwinf.findServiceName(port)
+	print(json.dumps(serv_name, indent=4))
+	
+	#-------------------------------------------------------------------
+	
+	ip = '192.168.1.0'
+	
+	# Empaqueta la IP:
+	packed = nwinf.packetIPAddress(ip)
+	print(packed)    # b'\xc0\xa8\x01\x00'
+	
+	# Desempaqueta la IP:
+	unpacked = nwinf.packetIPAddress(packed, unpacked=True)
+	print(unpacked)  # 192.168.1.0
+	
+	# Empaqueta la IP y la devuelve en hexadecimal:
+	packed = nwinf.packetIPAddress(ip, hexlify=True)
+	print(packed)    # b'c0a80100'
+	
+	#-------------------------------------------------------------------
+	
+	# Obtiene la IPv4 Local:
+	ip = nwinf.getIPv4()
+	print(ip)
+	
+	# Obtiene la IPv4 de un Host Remoto:
+	ip = nwinf.getIPv4('www.google.com')
+	print(ip)
+	
+	#-------------------------------------------------------------------
+	# Control de Volumen del Sistema (Muy Eficiente)
+	
+	vol = actions.Volume
+	
+	#-----------------------------------
+	
+	#Control de silenciado:
+	print(vol.mute)					# Nos mostrara el estado del sistema (Si esta silenciado o no)
+	vol.mute = True					# Silencia el sistema.
+	print(vol.mute)					# Ahora el sistema estará silenciado (hasta que se cambie el valor del volumen o se desmutea)
+	vol.mute = False				# Quita el silenciado del sistema.
+	print(vol.mute)					# Ahora el sistema ya no estará silenciado.
+	
+	#-----------------------------------
+	
+	#Control de nivel de Volumen:
+	print(vol.volume)				# Obtiene el nivel de volumen de 0~100
+	vol.volume = 72					# Pone un nuevo nivel de volumen.
+	print(vol.volume)				# Obtiene el nuevo nivel de volumen de 0~100
+	
+	#Control de nivel de Volumen en decibeles (dB):
+	print(vol.volumeDB)				# Obtiene el nivel de volumen en Decibeles (dB en positivos) de aprox. 'Volume.volumeRange['levelMinDB']~Volume.volumeRange['levelMaxDB']' donde el limite es aprox. '-65.254~0' dB
+	vol.volumeDB = -5				# Pone un nuevo nivel de volumen en decibeles.
+	print(vol.volumeDB)				# Obtiene el nuevo nivel de volumen de 0~100
+	
+	print(vol.volumeRange)			# Obtiene el rango de volumen en Decibeles (dB) 'levelMinDB, levelMaxDB y volumeIncrementDB'.
+	
+	#-----------------------------------
+	
+	#Control de nivel de Volumen en Saltos (Como al presionar teclas de volumen):
+	print(vol.volumeStepInfo)		#Actual posicion del audio.
+	vol.volumeStepUp()				#Sube el volumen, como presionar 1 vez para subir volumen.
+	print(vol.volumeStepInfo)		#Nueva posicion del audio.
+	vol.volumeStepDown()			#Baja el volumen, como presionar 1 vez para bajar volumen.
+	print(vol.volumeStepInfo)		#Regresando una posicion.
+	
+	#-----------------------------------
+	
+	#Informacion de disponibilidad del sistema:
+	print(vol.hardwareSupport)		# Obtiene la lista del hardware soportado: ['Volume Control', 'Mute Control', 'Peak Meter']
+	
+	#-----------------------------------
+	
+	#Control de los canales de volumen (por ejemplo las bocinas izquierda y derecha de tu laptop):
+	print(vol.getChannelCount())	# Muestra la cantidad de canales, Ejemplo: 2 (Bocina Izquierda y Derecha respectivamente).
+	
+	print(vol.getChannelVol())		# Muestra el volumen del Canal 1 con valores de '0~100' (Ejemplo: Bocina Izquierda)
+	print(vol.getChannelVol(2))		# Muestra el volumen del Canal 2 con valores de '0~100' (Ejemplo: Bocina Derecha)
+	vol.setChannelVol(10)			# Cambia el volumen del Canal 1 (Izq) a 10.
+	vol.setChannelVol(75, 2)		# Cambia el volumen del Canal 2 (Der) a 75.
+	print(vol.getChannelVol())		# Muestra el nuevo volumen en el Canal 1 con valores de '0~100'
+	print(vol.getChannelVol(2))		# Muestra el nuevo volumen en el Canal 2 con valores de '0~100'
+	
+	vol.balanceVolChannels()		# Esto balancea el volumen en todos los canales de audio al nivel de volumen mas alto entre los canales (en este ejemplo tomara el 75 del canal 2).
+	
+	#Control de los canales de volumen en decibeles (por ejemplo las bocinas izquierda y derecha de tu laptop):
+	print(vol.getChannelVoldB())	# Muestra el volumen del Canal 1 con valores de 'Volume.volumeRange['levelMinDB']~Volume.volumeRange['levelMaxDB']' (Ejemplo: Bocina Izquierda)
+	print(vol.getChannelVoldB(2))	# Muestra el volumen del Canal 2 con valores de 'Volume.volumeRange['levelMinDB']~Volume.volumeRange['levelMaxDB']' (Ejemplo: Bocina Derecha)
+	vol.setChannelVoldB(-33)		# Cambia el volumen del Canal 1 (Izq) a -33 decibeles (dB).
+	vol.setChannelVoldB(-5, 2)		# Cambia el volumen del Canal 2 (Der) a -5  decibeles (dB).
+	print(vol.getChannelVoldB())	# Muestra el nuevo volumen en el Canal 1 con valores de 'Volume.volumeRange['levelMinDB']~Volume.volumeRange['levelMaxDB']'
+	print(vol.getChannelVoldB(2))	# Muestra el nuevo volumen en el Canal 2 con valores de 'Volume.volumeRange['levelMinDB']~Volume.volumeRange['levelMaxDB']'
+	
+	vol.balanceVolChannels()		# Esto balancea el volumen en todos los canales de audio al nivel de volumen mas alto entre los canales (en este ejemplo tomara el -5 del canal 2).
+	
+	#-------------------------------------------------------------------
+	
 	# Bluetooth: Obtiene los dispositivos que estan vinculados e información sobre estos:
 	devices = utils.Utilities.getSavedBTHDevices(jsonify=True)
 	print(devices)
 	
-	# Cortador de cadenas, limita las lineas a un maximo de caracteres pero sin cortar las palabras.
-	# ~ text = 'Hola mundo! xD Soy el creador de estas hermosas funciones.'
-	# ~ text_list = utils.Utilities.splitText(text, 20)
-	# ~ print(text_list)
+	#-------------------------------------------------------------------
 	
-	# Conversiones de Sistemas Numericos
-	# ~ out = utils.Utilities.NumberSystems.decimalToBinary(128, True)
-	# ~ print(out)
-	# ~ out = utils.Utilities.NumberSystems.binaryToDecimal(out)
-	# ~ print(out)
+	# Cortador de cadenas, limita las lineas a un maximo de caracteres pero sin cortar las palabras.
+	text = 'Hola mundo! xD Soy el creador de estas hermosas funciones.'
+	text_list = utils.Utilities.splitText(text, 20)
+	print(text_list)
 	
 	#-------------------------------------------------------------------
+	
+	# Conversiones de Sistemas Numericos
+	out = utils.Utilities.NumberSystems.decimalToBinary(128, True)
+	print(out)
+	out = utils.Utilities.NumberSystems.binaryToDecimal(out)
+	print(out)
+	
+	#===================================================================
 	
 	# ~ for a in utils.Actions.classes.list:
 		# ~ try:
