@@ -7,18 +7,18 @@
 ███    ███     ███   ▀ ███▌ ███         ███           
 ███    ███     ███     ███▌ ███       ▀███████████    ██    ██  ██     ██████      █████
 ███    ███     ███     ███  ███                ███    ██    ██ ███    ██  ████    ██   ██
-███    ███     ███     ███  ███▌    ▄    ▄█    ███    ██    ██  ██    ██ ██ ██     █████
-████████▀     ▄████▀   █▀   █████▄▄██  ▄████████▀      ██  ██   ██    ████  ██    ██   ██
+███    ███     ███     ███  ███▌    ▄    ▄█    ███    ██    ██  ██    ██ ██ ██     ██████
+████████▀     ▄████▀   █▀   █████▄▄██  ▄████████▀      ██  ██   ██    ████  ██         ██
                             ▀                           ████    ██ ██  ██████  ██  █████
 ```
 ## Tested in: Python 3.8.8
 ## By: LawlietJH
-## Utils v1.0.8
+## Utils v1.0.9
 
 ![Icon](ubz2file.ico "Icono de archivos ubz2")
 
 ```php
-■■■ Class Utils (v1.0.8)
+■■■ Class Utils (v1.0.9)
     ║
     ║ - Main Classes:
     ╠══ Class Actions
@@ -70,13 +70,39 @@
     ║   ║    └── function middleClickUp
     ║   ║
     ║   ╠══ Class VBS
+    ║   ║    │
+    ║   ║    │ - Functions: ──────────────────
+    ║   ║    ├── function runScriptVBS
+    ║   ║    ├── function minimizeAll
+    ║   ║    ├── function ejectCDROM
+    ║   ║    ├── function getWindowsProductKey
+    ║   ║    └── function setVolume
+    ║   ║
+    ║   ╠══ Class Volume                              (+New)
+    ║   │    ║
+    ║   │    ║ - Error Classes: ──────────────
+    ║   │    ╠══ Class VolumeControlIsNotSupported
+    ║   │    ╠══ Class MuteControlIsNotSupported
+    ║   │    ╠══ Class ChannelDoesNotExists
+    ║   │    ║
+    ║   │    ║ - Classes: ────────────────────
+    ║   │    ╠══ Class VolumeHandler
     ║   │    │
     ║   │    │ - Functions: ──────────────────
-    ║   │    ├── function runScriptVBS
-    ║   │    ├── function minimizeAll
-    ║   │    ├── function ejectCDROM
-    ║   │    ├── function getWindowsProductKey
-    ║   │    └── function setVolume
+    ║   │    ├── property volumeRange        (get)
+    ║   │    ├── property volumeStepInfo     (get)
+    ║   │    ├── property hardwareSupport    (get)
+    ║   │    ├── property volume             (get, set)
+    ║   │    ├── property volumedB           (get, set)
+    ║   │    ├── property mute               (get, set)
+    ║   │    ├── function getChannelCount
+    ║   │    ├── function getChannelVol
+    ║   │    ├── function setChannelVol
+    ║   │    ├── function getChannelVoldB
+    ║   │    ├── function setChannelVoldB
+    ║   │    ├── function balanceVolChannels
+    ║   │    ├── function volumeStepUp
+    ║   │    └── function volumeStepDown
     ║   │
     ║   │ - Functions: ───────────────────────
     ║   ├── function beep
@@ -220,7 +246,10 @@
     ║   │ - Functions: ───────────────────────
     ║   ├── function latin1_encoding
     ║   ├── function ESSIDEnum
-    ║   └── function ESSIDPasswd
+    ║   ├── function ESSIDPasswd
+    ║   ├── function findServiceName                  (+New)
+    ║   ├── function getIPv4                          (+New)
+    ║   └── function packetIPAddress                  (+New)
     ║
     ╠═ Class SystemInfo
     ║   │
@@ -254,6 +283,7 @@
     ║   ├── property systemDrive           (get)
     ║   ├── property systemRoot            (get)
     ║   ├── function systemUptime
+    ║   ├── property userDefaultLanguage   (get)      (+New)
     ║   ├── property userDowntime          (get)
     ║   ├── property userName              (get)
     ║   ├── property winDir                (get)
@@ -355,6 +385,7 @@
         ├── function getMinorDeviceClass
         ├── function getSavedBTHDevices
         │ #Otros:
+        ├── function splitBytes                       (+New)
         ├── function splitText
         ├── function hash
         ├── function getFiletime
@@ -362,10 +393,10 @@
         ├── function writeHiddenText
         └── function flushBuffer
 
- All Classes Have a 'use', 'classes' and 'functions' variables.
+ All classes have variables called 'use', 'classes', and 'functions'.
  
- *Classes:    71
- *Functions:  141
- *Properties: 32
+ *Classes:    76
+ *Functions:  153
+ *Properties: 39
 
 ```
