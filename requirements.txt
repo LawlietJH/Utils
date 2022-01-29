@@ -3,7 +3,7 @@ mss==6.1.0
 opencv-python==4.5.3.56
 Pillow==8.1.2
 psutil==5.8.0
-pywin32==300
+pywin32==301
 requests==2.25.1
 scipy==1.7.0
 WMI==1.5.1

@@ -4,10 +4,10 @@
 # Utils v1.0.9
 
 # Banner:
-# ███    █▄      ███      ▄█   ▄█          ▄████████    
+# ███    █▄      ███      ▄█   ▄█          ▄████████
 # ███    ███ ▀█████████▄ ███  ███         ███    ███    █▄▄ █▄█ ▀   █   ▄▀█ █ █ █ █   █ █▀▀ ▀█▀   █ █ █
 # ███    ███    ▀███▀▀██ ███▌ ███         ███    █▀     █▄█  █  ▄   █▄▄ █▀█ ▀▄▀▄▀ █▄▄ █ ██▄  █  █▄█ █▀█
-# ███    ███     ███   ▀ ███▌ ███         ███           
+# ███    ███     ███   ▀ ███▌ ███         ███
 # ███    ███     ███     ███▌ ███       ▀███████████    ██    ██  ██     ██████      █████
 # ███    ███     ███     ███  ███                ███    ██    ██ ███    ██  ████    ██   ██
 # ███    ███     ███     ███  ███▌    ▄    ▄█    ███    ██    ██  ██    ██ ██ ██     ██████
@@ -15,6 +15,7 @@
 #                             ▀                           ████    ██ ██  ██████  ██  █████
 
 from datetime import datetime, timedelta
+from functools import reduce
 import pywintypes
 import binascii
 import requests						# python -m pip install requests
@@ -57,18 +58,19 @@ from ctypes import wintypes
 
 # pip install pywin32 ==================================================
 from win32com.shell  import shell, shellcon
-from win32com.client import Dispatch
-import win32api			as WA
-import win32con			as WC		# All Constants
-import win32gui			as WG
-import win32console		as WCS
-import win32ui			as WU
-import win32security	as WS
-import win32clipboard	as WCB
-import win32net			as WN
+from win32com.client import Dispatch, GetObject
 import winreg			as WR
+import win32api			as WA
+import win32clipboard	as WCB
+import win32con			as WC		# All Constants
 import win32com			as WCM
+import win32console		as WCS
+import win32crypt		as WCR
+import win32gui			as WG
+import win32net			as WN
 import win32process		as WP
+import win32security	as WS
+import win32ui			as WU
 #=======================================================================
 #=======================================================================
 #=======================================================================
@@ -162,6 +164,9 @@ class ObjectClassNames: #Use    # Obtiene todos los nombres de las clases en los
 		\r |    # Al sumar con string se convierte en string, sino, seguira siendo un entero.
 		\r |    # utils.classes.qty + str --> str
 		\r |    print('Classes str(qty): ' + utils.classes.qty)
+		\r |
+		\r |    # Para obtener los valores en forma de diccionario usar:
+		\r |    print(utils.classes.dict)
 		\r \\
 		'''
 		list_ = [
@@ -189,7 +194,10 @@ class ObjectClassNames: #Use    # Obtiene todos los nombres de las clases en los
 	
 	def isException(self, obj, class_name):
 		try:
-			return isinstance(eval('obj.'+class_name+'(error_msg="")'), Exception)
+			if eval('obj.'+class_name+'.__class__.__name__') == 'type':
+				return isinstance(eval('obj.'+class_name+'(error_msg="")'), Exception)
+			else:
+				return False
 		except:
 			return False
 	
@@ -198,6 +206,7 @@ class ObjectClassNames: #Use    # Obtiene todos los nombres de las clases en los
 		return {
 			'class': self.cls,
 			'list': self.list,
+			'error_list': self.error_list,
 			'qty': self.qty
 		}
 
@@ -229,6 +238,9 @@ class ObjectFunctionNames: #Use # Obtiene todos los nombres de las funciones en 
 		\r |    # Al sumar con string se convierte en string, sino, seguira siendo un entero.
 		\r |    # utils.functions.qty + str --> str
 		\r |    print('Functions str(qty): ' + utils.functions.qty)
+		\r |
+		\r |    # Para obtener los valores en forma de diccionario usar:
+		\r |    print(utils.functions.dict)
 		\r \\
 		'''
 		list_ = [
@@ -236,6 +248,7 @@ class ObjectFunctionNames: #Use # Obtiene todos los nombres de las funciones en 
 			if  not a[0] == a[0].upper()
 			and not a[0] == '_'
 			and not a.startswith('not_')
+			and not self.willBeIgnored(obj, a)
 		]
 		self.list = ObjectList(list_)
 		self.qty  = ObjectInt(len(list_))
@@ -244,6 +257,12 @@ class ObjectFunctionNames: #Use # Obtiene todos los nombres de las funciones en 
 	def __str__(self):
 		output = '<{}: '+repr(self.cls) + ', {}: '+str(self.list) + ', {}: '+str(self.qty) + '>'
 		return output.format(repr('class'), repr('list'), repr('qty'))
+	
+	def willBeIgnored(self, obj, val_name):
+		try:
+			return eval('obj.'+val_name+'.__class__.__name__ != "method"')
+		except:
+			return False
 	
 	@property
 	def dict(self):
@@ -262,7 +281,6 @@ class Utils:
 	def __init__(self):
 		
 		self.classes   = ObjectClassNames(self)
-		self.functions = None
 		self.functions = ObjectFunctionNames(self)
 		
 		self.Actions      = self.Actions(self)
@@ -293,7 +311,6 @@ class Utils:
 		def __init__(self, utils):
 			
 			self.classes   = ObjectClassNames(self)
-			self.functions = None
 			self.functions = ObjectFunctionNames(self)
 			
 			self.load_uses()
@@ -317,7 +334,6 @@ class Utils:
 			def __init__(self):
 				
 				self.classes   = ObjectClassNames(self)
-				self.functions = None
 				self.functions = ObjectFunctionNames(self)
 				
 				self.use = '''\
@@ -372,7 +388,6 @@ class Utils:
 			def __init__(self):
 				
 				self.classes   = ObjectClassNames(self)
-				self.functions = None
 				self.functions = ObjectFunctionNames(self)
 				
 				self.use = '''
@@ -477,7 +492,6 @@ class Utils:
 			def __init__(self):
 				
 				self.classes   = ObjectClassNames(self)
-				self.functions = None
 				self.functions = ObjectFunctionNames(self)
 				
 				# Giant dictonary to hold key name and VK value
@@ -499,12 +513,17 @@ class Utils:
 					'pause': 0x13,
 					'caps lock': 0x14,
 					'esc': 0x1B,
+					'escape': 0x1B,
 					'spacebar': 0x20,
 					' ': 0x20,
 					'page up': 0x21,
 					'page down': 0x22,
 					'end': 0x23,
 					'home': 0x24,
+					'left': 0x25,
+					'up': 0x26,
+					'right': 0x27,
+					'down': 0x28,
 					'left arrow': 0x25,
 					'up arrow': 0x26,
 					'right arrow': 0x27,
@@ -808,7 +827,6 @@ class Utils:
 			def __init__(self):
 				
 				self.classes   = ObjectClassNames(self)
-				self.functions = None
 				self.functions = ObjectFunctionNames(self)
 				
 				# https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-mouse_event
@@ -818,12 +836,13 @@ class Utils:
 				self.MOUSEEVENTF_RIGHTUP    = 0x0010
 				self.MOUSEEVENTF_MIDDLEDOWN = 0x0020
 				self.MOUSEEVENTF_MIDDLEUP   = 0x0040
+				self.MOUSEEVENTF_WHEEL      = 0x0800
+				self.MOUSEEVENTF_HWHEEL     = 0x01000
 				# ~ self.MOUSEEVENTF_MOVE       = 0x0001
-				# ~ self.MOUSEEVENTF_WHEEL      = 0x0800
 				# ~ self.MOUSEEVENTF_XDOWN      = 0x0080
 				# ~ self.MOUSEEVENTF_XUP        = 0x0100
-				# ~ self.MOUSEEVENTF_HWHEEL     = 0x01000
-				''# ~ self.MOUSEEVENTF_ABSOLUTE   = 0x8000
+				# ~ self.MOUSEEVENTF_ABSOLUTE   = 0x8000
+				''
 			
 			# print(Mouse.position)
 			@property
@@ -859,7 +878,7 @@ class Utils:
 			def rightClickUp(self):										# Deja de presionar el clic derecho
 				ctypes.windll.user32.mouse_event(self.MOUSEEVENTF_RIGHTUP, 0, 0, 0, 0)
 			
-			def middleClick(self, qty=1, sleep=0.01):								# Da un clic central (rueda del mouse) en la posición actual del cursor
+			def middleClick(self, qty=1, sleep=0.01):					# Da un clic central (rueda del mouse) en la posición actual del cursor
 				for x in range(qty):
 					ctypes.windll.user32.mouse_event(self.MOUSEEVENTF_MIDDLEDOWN, 0, 0, 0, 0)
 					time.sleep(sleep)
@@ -868,8 +887,36 @@ class Utils:
 			def middleClickDown(self):									# Da un clic central (presionando rueda del mouse) en la posición actual del cursor y lo mantiene
 				ctypes.windll.user32.mouse_event(self.MOUSEEVENTF_MIDDLEDOWN, 0, 0, 0, 0)
 			
-			def middleClickUp(self):										# Deja de presionar el clic central (rueda del mouse)
+			def middleClickUp(self):									# Deja de presionar el clic central (rueda del mouse)
 				ctypes.windll.user32.mouse_event(self.MOUSEEVENTF_MIDDLEUP, 0, 0, 0, 0)
+			
+			def scrollUp(self, clicks=1, delay=0.1):					# Hace un Scroll hacia Arriba
+				assert clicks >= 1
+				if clicks > 50: clicks = 50
+				for _ in range(clicks):
+					ctypes.windll.user32.mouse_event(self.MOUSEEVENTF_WHEEL, 0, 0, WC.WHEEL_DELTA, 0)
+					time.sleep(delay)
+			
+			def scrollDown(self, clicks=1, delay=0.1):					# Hace un Scroll hacia Abajo
+				assert clicks >= 1
+				if clicks > 50: clicks = 50
+				for _ in range(clicks):
+					ctypes.windll.user32.mouse_event(self.MOUSEEVENTF_WHEEL, 0, 0, -WC.WHEEL_DELTA, 0)
+					time.sleep(delay)
+			
+			def scrollRight(self, clicks=1, delay=0.1):					# Hace un Scroll a la Derecha
+				assert clicks >= 1
+				if clicks > 50: clicks = 50
+				for _ in range(clicks):
+					ctypes.windll.user32.mouse_event(self.MOUSEEVENTF_HWHEEL, 0, 0, WC.WHEEL_DELTA, 0)
+					time.sleep(delay)
+			
+			def scrollLeft(self, clicks=1, delay=0.1):					# Hace un Scroll a la Izquierda
+				assert clicks >= 1
+				if clicks > 50: clicks = 50
+				for _ in range(clicks):
+					ctypes.windll.user32.mouse_event(self.MOUSEEVENTF_HWHEEL, 0, 0, -WC.WHEEL_DELTA, 0)
+					time.sleep(delay)
 		
 		#---------------------------------------------------------------
 		
@@ -878,7 +925,6 @@ class Utils:
 			def __init__(self):
 				
 				self.classes   = ObjectClassNames(self)
-				self.functions = None
 				self.functions = ObjectFunctionNames(self)
 				
 				self.load_uses()
@@ -1253,7 +1299,6 @@ class Utils:
 			def __init__(self):
 				
 				self.classes   = ObjectClassNames(self)
-				self.functions = None
 				self.functions = ObjectFunctionNames(self)
 				
 				self.aev = self.VolumeHandler.IAudioEndpointVolume.method()
@@ -1284,6 +1329,9 @@ class Utils:
 				\r |    
 				\r |    # Para Silenciar o Desilenciar el sistema:
 				\r |    vol.mute = True		# True o False
+				\r |    
+				\r |    # Para hacer un muteo/desmuteo se puede usar:
+				\r |    vol.toggleMute()
 				\r |    
 				\r |  #Control de nivel de Volumen: --------------------
 				\r |    
@@ -1424,7 +1472,7 @@ class Utils:
 					1: 'Volume Control',
 					2: 'Mute Control',
 					4: 'Peak Meter'
-				}
+				} # Reference: https://docs.microsoft.com/en-us/windows/win32/coreaudio/endpoint-hardware-support-xxx-constants
 				for i in sorted(hardware.keys())[::-1]:
 					if i <= value:
 						hwi = hardware[i]
@@ -1504,6 +1552,9 @@ class Utils:
 				else:
 					msg = 'El Control de Silenciado (Mute) no es compatible en tu sistema.'
 					raise self.MuteControlIsNotSupported(msg)
+			
+			def toggleMute(self):
+				self.mute = not self.mute
 			
 			def getChannelCount(self):
 				return self.aev.GetChannelCount()
@@ -2269,7 +2320,6 @@ class Utils:
 		def __init__(self):
 			
 			self.classes   = ObjectClassNames(self)
-			self.functions = None
 			self.functions = ObjectFunctionNames(self)
 			
 			# Clases Internas:
@@ -2287,7 +2337,6 @@ class Utils:
 			def __init__(self):
 				
 				self.classes   = ObjectClassNames(self)
-				self.functions = None
 				self.functions = ObjectFunctionNames(self)
 				
 				self.HKEY  = WR.HKEY_CLASSES_ROOT
@@ -2356,7 +2405,6 @@ class Utils:
 				"Programas y características".'''
 				
 				self.classes   = ObjectClassNames(self)
-				self.functions = None
 				self.functions = ObjectFunctionNames(self)
 				
 				self.HKEY = WR.HKEY_CURRENT_USER
@@ -2515,7 +2563,6 @@ class Utils:
 				def __init__(self, parent):
 					
 					self.classes   = ObjectClassNames(self)
-					self.functions = None
 					self.functions = ObjectFunctionNames(self)
 					
 					self.description = '''
@@ -2543,7 +2590,6 @@ class Utils:
 				def __init__(self, parent):
 					
 					self.classes   = ObjectClassNames(self)
-					self.functions = None
 					self.functions = ObjectFunctionNames(self)
 					
 					self.description = '''
@@ -2583,7 +2629,6 @@ class Utils:
 				def __init__(self, parent):
 					
 					self.classes   = ObjectClassNames(self)
-					self.functions = None
 					self.functions = ObjectFunctionNames(self)
 					
 					self.description = '''
@@ -2628,7 +2673,6 @@ class Utils:
 				def __init__(self, parent):
 					
 					self.classes   = ObjectClassNames(self)
-					self.functions = None
 					self.functions = ObjectFunctionNames(self)
 					
 					self.description = '''
@@ -2683,7 +2727,6 @@ class Utils:
 				def __init__(self, parent):
 					
 					self.classes   = ObjectClassNames(self)
-					self.functions = None
 					self.functions = ObjectFunctionNames(self)
 					
 					self.description = '''
@@ -2730,7 +2773,6 @@ class Utils:
 				def __init__(self, parent):
 					
 					self.classes   = ObjectClassNames(self)
-					self.functions = None
 					self.functions = ObjectFunctionNames(self)
 					
 					self.description = '''
@@ -2758,7 +2800,6 @@ class Utils:
 				def __init__(self, parent):
 					
 					self.classes   = ObjectClassNames(self)
-					self.functions = None
 					self.functions = ObjectFunctionNames(self)
 					
 					self.description = '''
@@ -2786,7 +2827,6 @@ class Utils:
 				def __init__(self, parent):
 					
 					self.classes   = ObjectClassNames(self)
-					self.functions = None
 					self.functions = ObjectFunctionNames(self)
 					
 					self.description = '''
@@ -2814,7 +2854,6 @@ class Utils:
 				def __init__(self, parent):
 					
 					self.classes   = ObjectClassNames(self)
-					self.functions = None
 					self.functions = ObjectFunctionNames(self)
 					
 					self.description = '''
@@ -2842,7 +2881,6 @@ class Utils:
 				def __init__(self, parent):
 					
 					self.classes   = ObjectClassNames(self)
-					self.functions = None
 					self.functions = ObjectFunctionNames(self)
 					
 					self.description = '''
@@ -2870,7 +2908,6 @@ class Utils:
 				def __init__(self, parent):
 					
 					self.classes   = ObjectClassNames(self)
-					self.functions = None
 					self.functions = ObjectFunctionNames(self)
 					
 					self.description = '''
@@ -2898,7 +2935,6 @@ class Utils:
 				def __init__(self, parent):
 					
 					self.classes   = ObjectClassNames(self)
-					self.functions = None
 					self.functions = ObjectFunctionNames(self)
 					
 					self.description = '''
@@ -2926,7 +2962,6 @@ class Utils:
 				def __init__(self, parent):
 					
 					self.classes   = ObjectClassNames(self)
-					self.functions = None
 					self.functions = ObjectFunctionNames(self)
 					
 					self.description = '''
@@ -2954,7 +2989,6 @@ class Utils:
 				def __init__(self, parent):
 					
 					self.classes   = ObjectClassNames(self)
-					self.functions = None
 					self.functions = ObjectFunctionNames(self)
 					
 					self.description = '''
@@ -2982,7 +3016,6 @@ class Utils:
 				def __init__(self, parent):
 					
 					self.classes   = ObjectClassNames(self)
-					self.functions = None
 					self.functions = ObjectFunctionNames(self)
 					
 					self.description = '''
@@ -3010,7 +3043,6 @@ class Utils:
 				def __init__(self, parent):
 					
 					self.classes   = ObjectClassNames(self)
-					self.functions = None
 					self.functions = ObjectFunctionNames(self)
 					
 					self.description = '''
@@ -3038,7 +3070,6 @@ class Utils:
 				def __init__(self, parent):
 					
 					self.classes   = ObjectClassNames(self)
-					self.functions = None
 					self.functions = ObjectFunctionNames(self)
 					
 					self.description = '''
@@ -3066,7 +3097,6 @@ class Utils:
 				def __init__(self, parent):
 					
 					self.classes   = ObjectClassNames(self)
-					self.functions = None
 					self.functions = ObjectFunctionNames(self)
 					
 					self.description = '''
@@ -3094,7 +3124,6 @@ class Utils:
 				def __init__(self, parent):
 					
 					self.classes   = ObjectClassNames(self)
-					self.functions = None
 					self.functions = ObjectFunctionNames(self)
 					
 					self.description = '''
@@ -3122,7 +3151,6 @@ class Utils:
 				def __init__(self, parent):
 					
 					self.classes   = ObjectClassNames(self)
-					self.functions = None
 					self.functions = ObjectFunctionNames(self)
 					
 					self.description = '''
@@ -3153,7 +3181,6 @@ class Utils:
 					sección de "Este Equipo".'''
 				
 				self.classes   = ObjectClassNames(self)
-				self.functions = None
 				self.functions = ObjectFunctionNames(self)
 				
 				self.HKEY  = WR.HKEY_LOCAL_MACHINE
@@ -3370,7 +3397,6 @@ class Utils:
 			def __init__(self):
 				
 				self.classes   = ObjectClassNames(self)
-				self.functions = None
 				self.functions = ObjectFunctionNames(self)
 				
 				self.HKEY  = WR.HKEY_CLASSES_ROOT
@@ -3436,7 +3462,6 @@ class Utils:
 			def __init__(self):
 				
 				self.classes   = ObjectClassNames(self)
-				self.functions = None
 				self.functions = ObjectFunctionNames(self)
 				
 				# ~ self.LETTERS = {
@@ -3653,7 +3678,6 @@ class Utils:
 				"Programas y características".'''
 				
 				self.classes   = ObjectClassNames(self)
-				self.functions = None
 				self.functions = ObjectFunctionNames(self)
 				
 				self.HKEY = WR.HKEY_CURRENT_USER
@@ -4110,7 +4134,6 @@ class Utils:
 			def __init__(self):
 				
 				self.classes   = ObjectClassNames(self)
-				self.functions = None
 				self.functions = ObjectFunctionNames(self)
 				
 				self.HKEY = WR.HKEY_LOCAL_MACHINE
@@ -4199,7 +4222,6 @@ class Utils:
 			def __init__(self):
 				
 				self.classes   = ObjectClassNames(self)
-				self.functions = None
 				self.functions = ObjectFunctionNames(self)
 				
 				self.HKEY  = WR.HKEY_CURRENT_USER
@@ -4275,7 +4297,6 @@ class Utils:
 		def __init__(self):
 			
 			self.classes   = ObjectClassNames(self)
-			self.functions = None
 			self.functions = ObjectFunctionNames(self)
 			
 			self.pid  = os.getpid()
@@ -4350,7 +4371,6 @@ class Utils:
 		def __init__(self):
 			
 			self.classes   = ObjectClassNames(self)
-			self.functions = None
 			self.functions = ObjectFunctionNames(self)
 			
 			self.use = '''
@@ -4492,7 +4512,6 @@ class Utils:
 			def __init__(self):
 				
 				self.classes   = ObjectClassNames(self)
-				self.functions = None
 				self.functions = ObjectFunctionNames(self)
 				
 				self.use = '''
@@ -4693,7 +4712,6 @@ class Utils:
 		def __init__(self):
 			
 			self.classes   = ObjectClassNames(self)
-			self.functions = None
 			self.functions = ObjectFunctionNames(self)
 			
 			self.load_uses()
@@ -5038,31 +5056,35 @@ class Utils:
 		def collectAll(self):
 			
 			collected = {
-				'winDir':       self.winDir,
-				'userName':     self.userName,
-				'userDowntime': self.userDowntime,
-				'systemUptime': self.systemUptime(),
-				'systemRoot':   self.systemRoot,
-				'systemDrive':  self.systemDrive,
-				'screenSize':   self.screenSize,
-				'processorIdentifier':   self.processorIdentifier,
-				'processorArchitecture': self.processorArchitecture,
-				'os':                 self.os,
-				'numberOfProcessors': self.numberOfProcessors,
-				'numberOfMonitors':   self.numberOfMonitors,
-				'homeDrive':        self.homeDrive,
-				'computerName':     self.computerName,
-				'displaySettings':  self.displaySettings,
-				'cursorPos':        self.cursorPos,
-				'currentProcessId': self.currentProcessId,
-				'isWindows':        self.isWindows,
-				'isUserAnAdmin':    self.isUserAnAdmin,
-				'isSlowMachine':    self.isSlowMachine,
-				'isMouseInstalled': self.isMouseInstalled,
-				'isLinux':          self.isLinux,
-				'isCapsLockActive': self.isCapsLockActive
 			}
-			
+			collected = {
+				'isCapsLockActive':      self.isCapsLockActive,
+				'isLinux':               self.isLinux,
+				'isMouseInstalled':      self.isMouseInstalled,
+				'isPythonV3':            self.isPythonV3,
+				'isSlowMachine':         self.isSlowMachine,
+				'isUserAnAdmin':         self.isUserAnAdmin,
+				'isWindows':             self.isWindows,
+				'currentProcessId':      self.currentProcessId,
+				'cursorPos':             self.cursorPos,
+				'currentSystemMetrics':  self.currentSystemMetrics,
+				'realSystemMetrics':     self.realSystemMetrics,
+				'displaySettings':       self.displaySettings,
+				'computerName':          self.computerName,
+				'homeDrive':             self.homeDrive,
+				'numberOfMonitors':      self.numberOfMonitors,
+				'numberOfProcessors':    self.numberOfProcessors,
+				'os':                    self.os,
+				'processorArchitecture': self.processorArchitecture,
+				'processorIdentifier':   self.processorIdentifier,
+				'screenSize':            self.screenSize,
+				'systemDrive':           self.systemDrive,
+				'systemRoot':            self.systemRoot,
+				'userDefaultLanguage':   self.userDefaultLanguage,
+				'userDowntime':          self.userDowntime,
+				'userName':              self.userName,
+				'winDir':                self.winDir
+			}
 			return collected
 	
 	class Utilities:	# Funciones de utilidad para cosas generales.
@@ -5070,7 +5092,6 @@ class Utils:
 		def __init__(self):
 			
 			self.classes   = ObjectClassNames(self)
-			self.functions = None
 			self.functions = ObjectFunctionNames(self)
 			
 			self.load_uses()
@@ -5081,7 +5102,7 @@ class Utils:
 			self.NumberSystems = self.NumberSystems()
 			self.UBZ2 = self.UBZ2()
 		
-		class AsciiFont:	# Clase que permite convertir un texto a un tipo de ASCII FONT
+		class AsciiFont:		# Clase que permite convertir un texto a un tipo de ASCII FONT
 			
 			class NotSupportedError(Exception):
 				def __init__(self, error_msg): self.error_msg = error_msg
@@ -5094,7 +5115,6 @@ class Utils:
 			def __init__(self):
 				
 				self.classes   = ObjectClassNames(self)
-				self.functions = None
 				self.functions = ObjectFunctionNames(self)
 				
 				self.textToAscii = self.not_textToAscii
@@ -5759,6 +5779,10 @@ class Utils:
 				def __str__(self): return repr(self.error_msg)
 			
 			def __init__(self):
+				
+				self.classes   = ObjectClassNames(self)
+				self.functions = ObjectFunctionNames(self)
+				
 				self.weekdays = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado']
 				self.msgError  = 'La Fecha {} no es valida. Modo de Uso: Día/Mes/Año o Día-Mes-Año.'
 				
@@ -6055,20 +6079,21 @@ class Utils:
 				\r + Ejemplo de uso: 
 				\r |    
 				\r |    utils = Utils()
+				\r |    DoomsdayRule = utils.Utilities.DoomsdayRule
 				\r |    
 				\r |    date = '22/07/2050'
-				\r |    weekday = utils.Utilities.DoomsdayRule.getWeekday(date)
-				\r |    print(date + ': ' + weekday)
+				\r |    weekday = DoomsdayRule.getWeekday(date)
+				\r |    print(f'{date}: {weekday}')
 				\r |    
 				\r |    # El resultado es: '22/07/2050: Viernes'
 				\r |    
 				\r |    # Si deseas replicar el algoritmo de forma mental, es
 				\r |    # muy simple, las instrucciones las puedes ver
 				\r |    # con la siguiente función:
-				\r |    utils.Utilities.DoomsdayRule.learnToDoItMentally()
+				\r |    print(DoomsdayRule.learnToDoItMentally)
 				\r |    
 				\r |    # Para obtener una fecha aleatoria y prácticar:
-				\r |    utils.Utilities.DoomsdayRule.getRandomDate()
+				\r |    DoomsdayRule.getRandomDate()
 				\r \\
 				'''
 			
@@ -6092,7 +6117,7 @@ class Utils:
 				parts = part1 + part2 + part3
 				return parts % 7
 			
-			def isValidDate(self, day, month, isLeapYear):					# Comprobamos si la fecha solicitada es valida.
+			def isValidDate(self, day, month, isLeapYear):				# Comprobamos si la fecha solicitada es valida.
 				if (month == 1  and day >= 1 and day <= 31)\
 				or (month == 2  and day >= 1 and day <=(28 if not isLeapYear else 29))\
 				or (month == 3  and day >= 1 and day <= 31)\
@@ -6244,7 +6269,6 @@ class Utils:
 			def __init__(self):
 				
 				self.classes   = ObjectClassNames(self)
-				self.functions = None
 				self.functions = ObjectFunctionNames(self)
 			
 			def convertFromCv2ToImage(self, img):
@@ -6256,7 +6280,8 @@ class Utils:
 				return cv2.cvtColor(numpy.array(img), cv2.COLOR_RGB2BGR)
 			
 			def screenshot(self, img_type=''):
-				ss = PIL.ImageGrab.grab()
+				from PIL import ImageGrab
+				ss = ImageGrab.grab()
 				if img_type.lower() in ['cv2', 'numpy', 'np', 'array', 'cv']:
 					return self.convertFromImageToCv2(ss)
 				else:
@@ -6337,12 +6362,138 @@ class Utils:
 			def canny(self, image):
 				return cv2.Canny(image, 100, 200)
 		
+		class JSONToTree:		# Muestra un JSON (o un Diccionario) en estructura de árbol (como en estructura de ficheros).
+			
+			def __init__(self, root_name='root'):
+				
+				self.classes   = ObjectClassNames(self)
+				self.functions = ObjectFunctionNames(self)
+				
+				self.root_name = root_name
+				
+				self.use = '''
+				\r Clase: JSONToTree
+				\r |
+				\r + Ejemplo de uso: 
+				\r |    
+				\r |    utils = Utils()
+				\r |    j2t = utils.Utilities.JSONToTree()
+				\r |    
+				\r |    # Datos de Ejemplo:
+				\r |	data = {
+				\r |		'author': 'LawlietJH',
+				\r |		'program': 'Utils',
+				\r |		'version': [1, 1, 0],
+				\r |		'structure': {
+				\r |			'classes':    78,
+				\r |			'functions':  164,
+				\r |			'properties': 40,
+				\r |		},
+				\r |		'programs': {
+				\r |			'FileTimeChanger': {
+				\r |				'version': '1.1.0'
+				\r |			},
+				\r |			'Kamuz': 'v1.1.0'
+				\r |		}
+				\r |	}
+				\r |    
+				\r |    # Podemos cargar un archivo tipo JSON
+				\r |    # o un obeto de tipo Diccionario utilizando:
+				\r |    tree = j2t.tree(data)
+				\r |    print(tree)
+				\r |    
+				\r |    # Output:
+				\r |    ■■■ root
+				\r |	   ├─── Author: 'LawlietJH'
+				\r |	   ├─── Program: 'Utils'
+				\r |	   ├─── version
+				\r |	   │   ├─── 1
+				\r |	   │   ├─── 1
+				\r |	   │   └─── 0
+				\r |	   ├─── structure
+				\r |	   │   ├─── Classes: 78
+				\r |	   │   ├─── Functions: 164
+				\r |	   │   └─── Properties: 40
+				\r |	   └─── programs
+				\r |		   ├─── FileTimeChanger
+				\r |		   │   └─── version: '1.1.0'
+				\r |		   └─── Kamuz: 'v1.1.0'
+				\r \\
+				'''
+			
+			def _tree(self, subtree, lvl, pretty):
+				
+				out = ''
+				
+				if subtree.__class__ == dict:
+					for i, (key, val) in enumerate(subtree.items()):
+						if i == len(subtree)-1:
+							out += f'\n{lvl}└─── {key}'
+							if val or val.__class__ == int:
+								lvl_ = lvl+'    '
+								out += self._tree(val, lvl_, pretty)
+						else:
+							out += f'\n{lvl}├─── {key}'
+							if val or val.__class__ == int:
+								lvl_ = lvl+'│   '
+								out += self._tree(val, lvl_, pretty)
+				elif subtree.__class__ == list:
+					for i, val in enumerate(subtree):
+						if i == len(subtree)-1:
+							if val.__class__ != str:
+								if val.__class__ == int:
+									out += f'\n{lvl}└─── {val}'
+								else:
+									out += f'\n{lvl}└───┐'
+									if val:
+										lvl_ = lvl+'    '
+										out += self._tree(val, lvl_, pretty)
+							else:
+								out += f'\n{lvl}└─── {repr(val)}'
+						else:
+							if val.__class__ != str:
+								if val.__class__ == int:
+									out += f'\n{lvl}├─── {val}'
+								else:
+									out += f'\n{lvl}├───┐'
+									if val:
+										lvl_ = lvl+'│   '
+										out += self._tree(val, lvl_, pretty)
+							else:
+								out += f'\n{lvl}├─── {repr(val)}'
+				else:
+					if pretty:
+						if subtree.__class__ == str:
+							out += f': {repr(subtree)}'
+						else:
+							out += f': {subtree}'
+					else:
+						out += f'\n{lvl}└─── {subtree}'
+				
+				return out
+			
+			def tree(self, json_data, pretty=True):
+				
+				try:
+					json_data = json.loads(json_data)
+				except TypeError:
+					pass 
+				
+				self.jsontree = {self.root_name: json_data}
+				
+				out = ''
+				
+				for key, val in self.jsontree.items():
+					out += f'■■■ {key}'
+					out += self._tree(val, '   ', pretty)
+				
+				return out
+		
 		class NumberSystems:	# Permite hacer conversiones entre distintos sistemas numericos.
 			
 			def __init__(self):
 				
 				self.classes   = ObjectClassNames(self)
-				self.functions = None
 				self.functions = ObjectFunctionNames(self)
 			
 			def decimalToBinary(self, decimal, raw=False):
@@ -6378,12 +6529,149 @@ class Utils:
 					decimal = int(str(binary), 2)
 				return decimal
 		
-		class UBZ2:			# Algoritmo de compresión y descompresión de archivos bz2. El nombre se refiere a Utils BZ2.
+		class Splitmix64:		# Pseudo-Random Number Generator: https://rosettacode.org/wiki/Pseudo-random_numbers/Splitmix64
+			
+			def __init__(self, seed=0):
+				
+				self.classes   = ObjectClassNames(self)
+				self.functions = ObjectFunctionNames(self)
+				
+				self.MASK64 = (1 << 64) - 1
+				self.seed  = seed
+				self.state = self.seed & self.MASK64
+				
+				self.use = '''
+				\r Clase: Splitmix64          # Pseudo-random number generator
+				\r |
+				\r + Descripción: 
+				\r |    
+				\r |    Splitmix64 es el algoritmo generador de números pseudoaleatorios
+				\r |    predeterminado en Java y está incluido/disponible en muchos otros
+				\r |    idiomas. Utiliza un algoritmo bastante simple que, aunque se
+				\r |    considera pobre para fines criptográficos, es muy rápido de
+				\r |    calcular y es "suficientemente bueno" para muchas necesidades de
+				\r |    números aleatorios. Pasa varias pruebas de "aptitud" PRNG bastante
+				\r |    rigurosas que fallan algunos algoritmos más complejos.
+				\r |    
+				\r |    Splitmix64 no se recomienda para requisitos exigentes de números
+				\r |    aleatorios, pero a menudo se usa para calcular estados iniciales
+				\r |    para otros generadores de números pseudoaleatorios más complejos.
+				\r |    
+				\r |    El splitmix64 "estándar" mantiene una variable de estado de 64
+				\r |    bits y devuelve 64 bits de datos aleatorios con cada llamada.
+				\r |    
+				\r + Ejemplo de uso: 
+				\r |    
+				\r |    utils = Utils()
+				\r |    
+				\r |    # Se debe generar un objeto de la clase Splitmix64
+				\r |    rn = utils.Utilities.Splitmix64()
+				\r |    
+				\r |    # Seleccionamos una semilla
+				\r |    rn.seed = 1234567
+				\r |    
+				\r |    # Para obtener el primer número pseudo-aleatorio
+				\r |    rn.nextInt()
+				\r |    
+				\r |    Salida: 6457827717110365317
+				\r |    
+				\r |    # Para obtener el número con un valor entre 0 y 1:
+				\r |    rn.nextFloat()
+				\r |    
+				\r |    # Para obtener el valor entero con un rango entre 0 y 5:
+				\r |    rn.nextIntInRange(5)			# Método 1
+				\r |    rn.nextIntInRange(0, 5)			# Método 2
+				\r |    rn.nextIntInRange((0, 5))		# Método 3
+				\r |    
+				\r |    Salida (Posibles): 0, 1, 2, 3 o 4
+				\r |    
+				\r |    # Para obtener el valor entero con un rango entre 2 y 5:
+				\r |    rn.nextIntInRange(2, 5)			# Método 1
+				\r |    rn.nextIntInRange([2, 5])		# Método 2
+				\r |    
+				\r |    Salida (Posibles): 2, 3 o 4
+				\r |    
+				\r |    # Es posible hacer lo mismo pero obteniendo valores flotantes
+				\r |    rn.nextFloatInRange(2, 5)
+				\r |    
+				\r |    Salida (Posibles): Desde 2.0 hasta 5.0
+				\r |    
+				\r |    # Para reiniciar la semilla
+				\r |    rn.reset()
+				\r |    
+				\r |    # Es posible seleccionar otra semilla, y comenzará de nuevo
+				\r |    rn.semilla = 7654321
+				\r \\
+				'''
+			
+			@property
+			def seed(self):
+				return self.seedv
+			
+			@seed.setter
+			def seed(self, num):
+				self.seedv = num
+				self.state = num & self.MASK64
+			
+			def reset(self):
+				self.state = self.seedv & self.MASK64
+			
+			def nextInt(self):
+				'return random int between 0 and 2**64'
+				z = self.state = (self.state + 0x9e3779b97f4a7c15) & self.MASK64
+				z = ((z ^ (z >> 30)) * 0xbf58476d1ce4e5b9) & self.MASK64
+				z = ((z ^ (z >> 27)) * 0x94d049bb133111eb) & self.MASK64
+				number = (z ^ (z >> 31)) & self.MASK64
+				return number
+			
+			def nextFloat(self):
+				'return random float between 0 and 1'
+				return self.nextInt() / (1 << 64)
+			
+			def nextFloatInRange(self, ini, end=None):
+				
+				if end == None:
+					end = ini
+					ini = None
+				else:
+					if not ini.__class__ == int:
+						msg = f'The value {ini} is invalid.'
+						raise TypeError(msg)
+					elif not end.__class__ == int:
+						msg = f'The value {end} is invalid.'
+						raise TypeError(msg)
+				
+				if end.__class__ in (tuple, list) and len(end) == 2:
+					ini = end[0]
+					end = end[1]
+					if ini > end:
+						temp = ini
+						ini = end
+						end = temp
+					dif = end - ini
+					return (self.nextFloat() * (dif)) + ini
+				elif end.__class__ == int:
+					if ini.__class__ == int:
+						if ini > end:
+							temp = ini
+							ini = end
+							end = temp
+						dif = end - ini
+						return (self.nextFloat() * (dif)) + ini
+					else:
+						return (self.nextFloat() * (end))
+				else:
+					msg = f'The value {end} is invalid.'
+					raise TypeError(msg)
+			
+			def nextIntInRange(self, ini, end=None):
+				return int(self.nextFloatInRange(ini, end))
+		
+		class UBZ2:				# Algoritmo de compresión y descompresión de archivos bz2. El nombre se refiere a Utils BZ2.
 			
 			def __init__(self):
 				
 				self.classes   = ObjectClassNames(self)
-				self.functions = None
 				self.functions = ObjectFunctionNames(self)
 				
 				# Icono de Navi de Zelda en Pixel Art (de mi autoria). Esta en bz2.
@@ -6596,7 +6884,7 @@ class Utils:
 				except FileNotFoundError:
 					return {}
 		
-		class Hash:			# Convierte un texto a algun tipo de hash seleccionado.
+		class Hash:				# Convierte un texto a algun tipo de hash seleccionado.
 			
 			class HashNotAvailableError(Exception):
 				def __init__(self, error_msg): self.error_msg = error_msg
@@ -6605,7 +6893,6 @@ class Utils:
 			def __init__(self, hash_, text, type_):
 				
 				self.classes   = ObjectClassNames(self)
-				self.functions = None
 				self.functions = ObjectFunctionNames(self)
 				
 				self.types_avail = ['sha1', 'sha224', 'sha256', 'sha384', 'sha512', 'md5']
@@ -6727,6 +7014,12 @@ class Utils:
 			Y = (Yb-Ya)**2
 			d = math.sqrt(X+Y)
 			return d
+		
+		def fibonacci(self, val: int) -> list:							# Obtiene una lista con elementos ordenados y generados por la sucesion fibonacci.
+			r = lambda x, n: [x[0] + x[1], x[0]]
+			m = lambda n: reduce(r, range(n), [0, 1])[0]
+			fib = list(map(m, range(val+1)))
+			return fib
 		
 		def getAngle(self, A, B):										# Obtiene el angulo que genera una linea entre 2 puntos del plano cartesiano.
 			''' Donde: A=(Xa,Ya), B=(Xb,Yb) '''
@@ -7194,7 +7487,11 @@ STRUCT = '''\
     ║   ║    ├── function rightClickUp
     ║   ║    ├── function middleClick
     ║   ║    ├── function middleClickDown
-    ║   ║    └── function middleClickUp
+    ║   ║    ├── function middleClickUp
+    ║   ║    ├── function scrollUp
+    ║   ║    ├── function scrollDown
+    ║   ║    ├── function scrollRight
+    ║   ║    └── function scrollLeft
     ║   ║
     ║   ╠══ Class VBS
     ║   ║    │
@@ -7222,6 +7519,7 @@ STRUCT = '''\
     ║   │    ├── property volume             (get, set)
     ║   │    ├── property volumedB           (get, set)
     ║   │    ├── property mute               (get, set)
+    ║   │    ├── function toggleMute
     ║   │    ├── function getChannelCount
     ║   │    ├── function getChannelVol
     ║   │    ├── function setChannelVol
@@ -7471,11 +7769,26 @@ STRUCT = '''\
         ║    ├── function opening
         ║    └── function canny
         ║
+        ╠══ Class JSONToTree
+        ║    │
+        ║    │ - Functions: ──────────────────
+        ║    └── function tree
+        ║
         ╠══ Class NumberSystems
         ║    │
         ║    │ - Functions: ──────────────────
         ║    ├── function decimalToBinary
         ║    └── function binaryToDecimal
+        ║
+        ╠══ Class Splitmix64
+        ║    │
+        ║    │ - Functions: ──────────────────
+        ║    ├── property seed
+        ║    ├── function reset
+        ║    ├── function nextInt
+        ║    ├── function nextFloat
+        ║    ├── function nextIntInRange
+        ║    └── function nextFloatInRange
         ║
         ╠══ Class UBZ2
         ║    │
@@ -7501,6 +7814,7 @@ STRUCT = '''\
         ├── function sin
         ├── function diagonal
         ├── function euclideanDistance
+        ├── function fibonacci
         ├── function getAngle
         │ #Pygame:
         ├── function moveWindow
@@ -7519,13 +7833,13 @@ STRUCT = '''\
         ├── function getLastError
         ├── function writeHiddenText
         └── function flushBuffer
-
- All Classes Have a 'use', 'classes' and 'functions' variables.
-
- *Classes:    71
- *Functions:  141
- *Properties: 32
-
+ 
+ All Classes Have Variables Called 'use', 'classes', and 'functions'.
+ 
+ *Classes:    78
+ *Functions:  164
+ *Properties: 40
+ 
 '''.format(__version__)
 
 
@@ -7545,157 +7859,260 @@ if __name__ == '__main__':
 	
 	utils = Utils()
 	# ~ utils.Actions.setTopMostWindow()
-	# ~ name = utils.Utilities.AsciiFont.deltaCorpsPriest(__title__)
-	# ~ ver = utils.Utilities.AsciiFont.ansiRegular(__version__)
-	# ~ print('\n\n Delta Corps Priest:\n\n' + name + '\n\n Ansi Regular:\n\n' + ver)
 	
 	#-------------------------------------------------------------------
 	
 	nwinf = utils.NetworkInfo
 	sysinf = utils.SystemInfo
 	actions = utils.Actions
+	utilities = utils.Utilities
+	
+	#-------------------------------------------------------------------
+	# Print Title, Author & Version:
+	
+	# ~ title = utils.Utilities.AsciiFont.deltaCorpsPriest(__title__).split('\n')
+	# ~ ver   = utils.Utilities.AsciiFont.ansiRegular(__version__).split('\n')
+	# ~ by    = ['█▄▄ █▄█ ▀   █   ▄▀█ █ █ █ █   █ █▀▀ ▀█▀   █ █ █',
+	# ~ 		 '█▄█  █  ▄   █▄▄ █▀█ ▀▄▀▄▀ █▄▄ █ ██▄  █  █▄█ █▀█']
+	
+	# ~ banner = title[:]
+	# ~ for i in range(len(title)):
+		# ~ if i in [0, 2, 3]: continue
+		# ~ if i == 1:
+			# ~ banner[i]   += f'   {by[0]}'
+			# ~ banner[i+1] += f'   {by[1]}'
+		# ~ else:
+			# ~ banner[i]   += f'   {ver[i-4]}'
+	
+	# ~ for b in banner:
+		# ~ print(b)
+	
+	# ~ print('\n\n')
+	
+	#-------------------------------------------------------------------
+	# Pseudo-random generator
+	rn = utilities.Splitmix64()			# Crea el objeto "Random Numbers"
+	rn.seed = 1234567					# Inicia los numeros pseudo-random con la semilla dada
+	
+	for i in range(3):					# Obtiene los primeros 3 numeros pseudo-random como enteros
+		print(rn.nextInt())
+	# Output:
+	#	6457827717110365317
+	#	3203168211198807973
+	#	9817491932198370423
+	
+	rn.reset()							# Reinicia los numeros pseudo-random con la semilla dada
+	for i in range(3):					# Obtiene los primeros 3 numeros pseudo-random como flotantes
+		print(rn.nextFloat())
+	# Output:
+	#	0.3500795420214082
+	#	0.17364409667091274
+	#	0.5322073040624193
+	
+	# Obtiene los números enteros 1 o 2
+	rn.reset()							# Reinicia los numeros pseudo-random con la semilla dada
+	for i in range(3):					# Obtiene los primeros 3 numeros pseudo-random como enteros entre el rango dado
+		print(rn.nextIntInRange(1, 3))
+	# Output:
+	#	1
+	#	1
+	#	2
+	
+	# Obtiene los números flotantes de 1.0 a 2.9999...
+	rn.seed = 1234567					# Reinicia los numeros pseudo-random con la semilla dada
+	for i in range(3):					# Obtiene los primeros 3 numeros pseudo-random como flotantes entre el rango dado
+		print(rn.nextFloatInRange(1, 3))
+	# Output:
+	#	1.7001590840428165
+	#	1.3472881933418255
+	#	2.0644146081248387
+	
+	#-------------------------------------------------------------------
+	# JSON To Tree:
+	data = {
+		'Author': 'LawlietJH',
+		'Program': 'Utils',
+		'version': [1, 1, 0],
+		'structure': {
+			'Classes':    78,
+			'Functions':  164,
+			'Properties': 40,
+		},
+		'programs': {
+			'FileTimeChanger': {
+				'version': '1.1.0'
+			},
+			'Kamuz': 'v1.1.0'
+		}
+	}
+	json_tree = utilities.JSONToTree()
+	print('\n JSON (or a Dictionary) To Tree:')
+	print(json_tree.tree(data))
+	# Example Output:
+	# ■■■ root
+	#    ├─── Author: 'LawlietJH'
+	#    ├─── Program: 'Utils'
+	#    ├─── version
+	#    │   ├─── 1
+	#    │   ├─── 1
+	#    │   └─── 0
+	#    ├─── structure
+	#    │   ├─── Classes: 78
+	#    │   ├─── Functions: 164
+	#    │   └─── Properties: 40
+	#    └─── programs
+	#        ├─── FileTimeChanger
+	#        │   └─── version: '1.1.0'
+	#        └─── Kamuz: 'v1.1.0'
+	
+	#-------------------------------------------------------------------
+	# Sucesión Fibonacci:
+	x = 12
+	fib = utilities.fibonacci(x)
+	s = '\n'.join(map(lambda n: f'{n[0]:02d} - {n[1]}', enumerate(fib)))
+	print(f'\nSucesión Fibonacci (primeros {x} números): \n{s}')
 	
 	#-------------------------------------------------------------------
 	
-	lang = sysinf.userDefaultLanguage
-	print(lang)
+	print('\nLang:', sysinf.userDefaultLanguage)
 	
 	#-------------------------------------------------------------------
 	
-	port = 80
-	serv_name = nwinf.findServiceName(port)
-	print(serv_name)
+	# ~ port = 80
+	# ~ serv_name = nwinf.findServiceName(port)
+	# ~ print(serv_name)
 	
-	ports = [19,21,23,24,25]
+	# ~ ports = [19,21,23,24,25]
 	
-	serv_names = nwinf.findServiceName(ports)
-	print(json.dumps(serv_names, indent=4))
+	# ~ serv_names = nwinf.findServiceName(ports)
+	# ~ print(json.dumps(serv_names, indent=4))
 	
-	serv_names = nwinf.findServiceName(ports, 'udp')
-	print(json.dumps(serv_names, indent=4))
+	# ~ serv_names = nwinf.findServiceName(ports, 'udp')
+	# ~ print(json.dumps(serv_names, indent=4))
 	
-	serv_names = nwinf.findServiceName(ports, nones=True)
-	print(json.dumps(serv_names, indent=4))
+	# ~ serv_names = nwinf.findServiceName(ports, nones=True)
+	# ~ print(json.dumps(serv_names, indent=4))
 	
-	serv_names = nwinf.findServiceName(ports, 'udp', nones=True)
-	print(json.dumps(serv_names, indent=4))
+	# ~ serv_names = nwinf.findServiceName(ports, 'udp', nones=True)
+	# ~ print(json.dumps(serv_names, indent=4))
 	
-	port = {'tcp': [19,21,23,24,25], 'udp': [19,21,80,81,88]}
-	serv_name = nwinf.findServiceName(port)
-	print(json.dumps(serv_name, indent=4))
-	
-	#-------------------------------------------------------------------
-	
-	ip = '192.168.1.0'
-	
-	# Empaqueta la IP:
-	packed = nwinf.packetIPAddress(ip)
-	print(packed)    # b'\xc0\xa8\x01\x00'
-	
-	# Desempaqueta la IP:
-	unpacked = nwinf.packetIPAddress(packed, unpacked=True)
-	print(unpacked)  # 192.168.1.0
-	
-	# Empaqueta la IP y la devuelve en hexadecimal:
-	packed = nwinf.packetIPAddress(ip, hexlify=True)
-	print(packed)    # b'c0a80100'
+	# ~ port = {'tcp': [19,21,23,24,25], 'udp': [19,21,80,81,88]}
+	# ~ serv_name = nwinf.findServiceName(port)
+	# ~ print(json.dumps(serv_name, indent=4))
 	
 	#-------------------------------------------------------------------
 	
-	# Obtiene la IPv4 Local:
-	ip = nwinf.getIPv4()
-	print(ip)
+	# ~ ip = '192.168.1.0'
 	
-	# Obtiene la IPv4 de un Host Remoto:
-	ip = nwinf.getIPv4('www.google.com')
-	print(ip)
+	# ~ # Empaqueta la IP:
+	# ~ packed = nwinf.packetIPAddress(ip)
+	# ~ print(packed)    # b'\xc0\xa8\x01\x00'
+	
+	# ~ # Desempaqueta la IP:
+	# ~ unpacked = nwinf.packetIPAddress(packed, unpacked=True)
+	# ~ print(unpacked)  # 192.168.1.0
+	
+	# ~ # Empaqueta la IP y la devuelve en hexadecimal:
+	# ~ packed = nwinf.packetIPAddress(ip, hexlify=True)
+	# ~ print(packed)    # b'c0a80100'
+	
+	#-------------------------------------------------------------------
+	
+	# ~ # Obtiene la IPv4 Local:
+	# ~ ip = nwinf.getIPv4()
+	# ~ print(ip)
+	
+	# ~ # Obtiene la IPv4 de un Host Remoto:
+	# ~ ip = nwinf.getIPv4('www.google.com')
+	# ~ print(ip)
 	
 	#-------------------------------------------------------------------
 	# Control de Volumen del Sistema (Muy Eficiente)
 	
-	vol = actions.Volume
+	# ~ vol = actions.Volume
 	
 	#-----------------------------------
 	
 	#Control de silenciado:
-	print(vol.mute)					# Nos mostrara el estado del sistema (Si esta silenciado o no)
-	vol.mute = True					# Silencia el sistema.
-	print(vol.mute)					# Ahora el sistema estará silenciado (hasta que se cambie el valor del volumen o se desmutea)
-	vol.mute = False				# Quita el silenciado del sistema.
-	print(vol.mute)					# Ahora el sistema ya no estará silenciado.
+	# ~ print(vol.mute)					# Nos mostrara el estado del sistema (Si esta silenciado o no)
+	# ~ vol.mute = True					# Silencia el sistema.
+	# ~ print(vol.mute)					# Ahora el sistema estará silenciado (hasta que se cambie el valor del volumen o se desmutea)
+	# ~ vol.mute = False				# Quita el silenciado del sistema.
+	# ~ print(vol.mute)					# Ahora el sistema ya no estará silenciado.
+	# ~ vol.toggleMute()				# Mutea/Desmutea.
 	
 	#-----------------------------------
 	
 	#Control de nivel de Volumen:
-	print(vol.volume)				# Obtiene el nivel de volumen de 0~100
-	vol.volume = 72					# Pone un nuevo nivel de volumen.
-	print(vol.volume)				# Obtiene el nuevo nivel de volumen de 0~100
+	# ~ print(vol.volume)				# Obtiene el nivel de volumen de 0~100
+	# ~ vol.volume = 72					# Pone un nuevo nivel de volumen.
+	# ~ print(vol.volume)				# Obtiene el nuevo nivel de volumen de 0~100
 	
 	#Control de nivel de Volumen en decibeles (dB):
-	print(vol.volumeDB)				# Obtiene el nivel de volumen en Decibeles (dB en positivos) de aprox. 'Volume.volumeRange['levelMinDB']~Volume.volumeRange['levelMaxDB']' donde el limite es aprox. '-65.254~0' dB
-	vol.volumeDB = -5				# Pone un nuevo nivel de volumen en decibeles.
-	print(vol.volumeDB)				# Obtiene el nuevo nivel de volumen de 0~100
+	# ~ print(vol.volumeDB)				# Obtiene el nivel de volumen en Decibeles (dB en positivos) de aprox. 'Volume.volumeRange['levelMinDB']~Volume.volumeRange['levelMaxDB']' donde el limite es aprox. '-65.254~0' dB
+	# ~ vol.volumeDB = -5				# Pone un nuevo nivel de volumen en decibeles.
+	# ~ print(vol.volumeDB)				# Obtiene el nuevo nivel de volumen de 0~100
 	
-	print(vol.volumeRange)			# Obtiene el rango de volumen en Decibeles (dB) 'levelMinDB, levelMaxDB y volumeIncrementDB'.
+	# ~ print(vol.volumeRange)			# Obtiene el rango de volumen en Decibeles (dB) 'levelMinDB, levelMaxDB y volumeIncrementDB'.
 	
 	#-----------------------------------
 	
 	#Control de nivel de Volumen en Saltos (Como al presionar teclas de volumen):
-	print(vol.volumeStepInfo)		#Actual posicion del audio.
-	vol.volumeStepUp()				#Sube el volumen, como presionar 1 vez para subir volumen.
-	print(vol.volumeStepInfo)		#Nueva posicion del audio.
-	vol.volumeStepDown()			#Baja el volumen, como presionar 1 vez para bajar volumen.
-	print(vol.volumeStepInfo)		#Regresando una posicion.
+	# ~ print(vol.volumeStepInfo)		#Actual posicion del audio.
+	# ~ vol.volumeStepUp()				#Sube el volumen, como presionar 1 vez para subir volumen.
+	# ~ print(vol.volumeStepInfo)		#Nueva posicion del audio.
+	# ~ vol.volumeStepDown()			#Baja el volumen, como presionar 1 vez para bajar volumen.
+	# ~ print(vol.volumeStepInfo)		#Regresando una posicion.
 	
 	#-----------------------------------
 	
 	#Informacion de disponibilidad del sistema:
-	print(vol.hardwareSupport)		# Obtiene la lista del hardware soportado: ['Volume Control', 'Mute Control', 'Peak Meter']
+	# ~ print(vol.hardwareSupport)		# Obtiene la lista del hardware soportado: ['Volume Control', 'Mute Control', 'Peak Meter']
 	
 	#-----------------------------------
 	
 	#Control de los canales de volumen (por ejemplo las bocinas izquierda y derecha de tu laptop):
-	print(vol.getChannelCount())	# Muestra la cantidad de canales, Ejemplo: 2 (Bocina Izquierda y Derecha respectivamente).
+	# ~ print(vol.getChannelCount())	# Muestra la cantidad de canales, Ejemplo: 2 (Bocina Izquierda y Derecha respectivamente).
 	
-	print(vol.getChannelVol())		# Muestra el volumen del Canal 1 con valores de '0~100' (Ejemplo: Bocina Izquierda)
-	print(vol.getChannelVol(2))		# Muestra el volumen del Canal 2 con valores de '0~100' (Ejemplo: Bocina Derecha)
-	vol.setChannelVol(10)			# Cambia el volumen del Canal 1 (Izq) a 10.
-	vol.setChannelVol(75, 2)		# Cambia el volumen del Canal 2 (Der) a 75.
-	print(vol.getChannelVol())		# Muestra el nuevo volumen en el Canal 1 con valores de '0~100'
-	print(vol.getChannelVol(2))		# Muestra el nuevo volumen en el Canal 2 con valores de '0~100'
+	# ~ print(vol.getChannelVol())		# Muestra el volumen del Canal 1 con valores de '0~100' (Ejemplo: Bocina Izquierda)
+	# ~ print(vol.getChannelVol(2))		# Muestra el volumen del Canal 2 con valores de '0~100' (Ejemplo: Bocina Derecha)
+	# ~ vol.setChannelVol(10)			# Cambia el volumen del Canal 1 (Izq) a 10.
+	# ~ vol.setChannelVol(75, 2)		# Cambia el volumen del Canal 2 (Der) a 75.
+	# ~ print(vol.getChannelVol())		# Muestra el nuevo volumen en el Canal 1 con valores de '0~100'
+	# ~ print(vol.getChannelVol(2))		# Muestra el nuevo volumen en el Canal 2 con valores de '0~100'
 	
-	vol.balanceVolChannels()		# Esto balancea el volumen en todos los canales de audio al nivel de volumen mas alto entre los canales (en este ejemplo tomara el 75 del canal 2).
+	# ~ vol.balanceVolChannels()		# Esto balancea el volumen en todos los canales de audio al nivel de volumen mas alto entre los canales (en este ejemplo tomara el 75 del canal 2).
 	
 	#Control de los canales de volumen en decibeles (por ejemplo las bocinas izquierda y derecha de tu laptop):
-	print(vol.getChannelVoldB())	# Muestra el volumen del Canal 1 con valores de 'Volume.volumeRange['levelMinDB']~Volume.volumeRange['levelMaxDB']' (Ejemplo: Bocina Izquierda)
-	print(vol.getChannelVoldB(2))	# Muestra el volumen del Canal 2 con valores de 'Volume.volumeRange['levelMinDB']~Volume.volumeRange['levelMaxDB']' (Ejemplo: Bocina Derecha)
-	vol.setChannelVoldB(-33)		# Cambia el volumen del Canal 1 (Izq) a -33 decibeles (dB).
-	vol.setChannelVoldB(-5, 2)		# Cambia el volumen del Canal 2 (Der) a -5  decibeles (dB).
-	print(vol.getChannelVoldB())	# Muestra el nuevo volumen en el Canal 1 con valores de 'Volume.volumeRange['levelMinDB']~Volume.volumeRange['levelMaxDB']'
-	print(vol.getChannelVoldB(2))	# Muestra el nuevo volumen en el Canal 2 con valores de 'Volume.volumeRange['levelMinDB']~Volume.volumeRange['levelMaxDB']'
+	# ~ print(vol.getChannelVoldB())	# Muestra el volumen del Canal 1 con valores de 'Volume.volumeRange['levelMinDB']~Volume.volumeRange['levelMaxDB']' (Ejemplo: Bocina Izquierda)
+	# ~ print(vol.getChannelVoldB(2))	# Muestra el volumen del Canal 2 con valores de 'Volume.volumeRange['levelMinDB']~Volume.volumeRange['levelMaxDB']' (Ejemplo: Bocina Derecha)
+	# ~ vol.setChannelVoldB(-33)		# Cambia el volumen del Canal 1 (Izq) a -33 decibeles (dB).
+	# ~ vol.setChannelVoldB(-5, 2)		# Cambia el volumen del Canal 2 (Der) a -5  decibeles (dB).
+	# ~ print(vol.getChannelVoldB())	# Muestra el nuevo volumen en el Canal 1 con valores de 'Volume.volumeRange['levelMinDB']~Volume.volumeRange['levelMaxDB']'
+	# ~ print(vol.getChannelVoldB(2))	# Muestra el nuevo volumen en el Canal 2 con valores de 'Volume.volumeRange['levelMinDB']~Volume.volumeRange['levelMaxDB']'
 	
-	vol.balanceVolChannels()		# Esto balancea el volumen en todos los canales de audio al nivel de volumen mas alto entre los canales (en este ejemplo tomara el -5 del canal 2).
+	# ~ vol.balanceVolChannels()		# Esto balancea el volumen en todos los canales de audio al nivel de volumen mas alto entre los canales (en este ejemplo tomara el -5 del canal 2).
 	
 	#-------------------------------------------------------------------
 	
 	# Bluetooth: Obtiene los dispositivos que estan vinculados e información sobre estos:
-	devices = utils.Utilities.getSavedBTHDevices(jsonify=True)
-	print(devices)
+	# ~ devices = utils.Utilities.getSavedBTHDevices(jsonify=True)
+	# ~ print(devices)
 	
 	#-------------------------------------------------------------------
 	
 	# Cortador de cadenas, limita las lineas a un maximo de caracteres pero sin cortar las palabras.
-	text = 'Hola mundo! xD Soy el creador de estas hermosas funciones.'
-	text_list = utils.Utilities.splitText(text, 20)
-	print(text_list)
+	# ~ text = 'Hola mundo! xD Soy el creador de estas hermosas funciones.'
+	# ~ text_list = utils.Utilities.splitText(text, 20)
+	# ~ print(text_list)
 	
 	#-------------------------------------------------------------------
 	
 	# Conversiones de Sistemas Numericos
-	out = utils.Utilities.NumberSystems.decimalToBinary(128, True)
-	print(out)
-	out = utils.Utilities.NumberSystems.binaryToDecimal(out)
-	print(out)
+	# ~ out = utils.Utilities.NumberSystems.decimalToBinary(128, True)
+	# ~ print(out)
+	# ~ out = utils.Utilities.NumberSystems.binaryToDecimal(out)
+	# ~ print(out)
 	
 	#===================================================================
 	
@@ -7882,8 +8299,7 @@ if __name__ == '__main__':
 	# Algoritmo de Doomsday (Doomsday Rule)
 	# ~ date = '22/07/2050'
 	# ~ weekday = utils.Utilities.DoomsdayRule.getWeekday(date)
-	# ~ print(date + ': ' + weekday)
-	
+	# ~ print(f'{date}: {weekday}')
 	
 	# ~ time.sleep(3)
 	# ~ utils.Actions.Keyboard.typer('Hola Mundo!', sleep=.01)
