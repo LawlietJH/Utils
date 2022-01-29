@@ -1,18 +1,18 @@
 
 # Tested in: Python 3.8.8 - Windows
 # By: LawlietJH
-# Utils v1.0.9
+# Utils v1.1.0
 
 # Banner:
 # ███    █▄      ███      ▄█   ▄█          ▄████████
 # ███    ███ ▀█████████▄ ███  ███         ███    ███    █▄▄ █▄█ ▀   █   ▄▀█ █ █ █ █   █ █▀▀ ▀█▀   █ █ █
 # ███    ███    ▀███▀▀██ ███▌ ███         ███    █▀     █▄█  █  ▄   █▄▄ █▀█ ▀▄▀▄▀ █▄▄ █ ██▄  █  █▄█ █▀█
 # ███    ███     ███   ▀ ███▌ ███         ███
-# ███    ███     ███     ███▌ ███       ▀███████████    ██    ██  ██     ██████      █████
-# ███    ███     ███     ███  ███                ███    ██    ██ ███    ██  ████    ██   ██
-# ███    ███     ███     ███  ███▌    ▄    ▄█    ███    ██    ██  ██    ██ ██ ██     ██████
-# ████████▀     ▄████▀   █▀   █████▄▄██  ▄████████▀      ██  ██   ██    ████  ██         ██
-#                             ▀                           ████    ██ ██  ██████  ██  █████
+# ███    ███     ███     ███▌ ███       ▀███████████    ██    ██  ██     ██     ██████
+# ███    ███     ███     ███  ███                ███    ██    ██ ███    ███    ██  ████
+# ███    ███     ███     ███  ███▌    ▄    ▄█    ███    ██    ██  ██     ██    ██ ██ ██
+# ████████▀     ▄████▀   █▀   █████▄▄██  ▄████████▀      ██  ██   ██     ██    ████  ██
+#                             ▀                           ████    ██ ██  ██ ██  ██████
 
 from datetime import datetime, timedelta
 from functools import reduce
@@ -76,7 +76,7 @@ import win32ui			as WU
 #=======================================================================
 __author__  = 'LawlietJH'	# Desarrollador
 __title__   = 'Utils'		# Nombre
-__version__ = 'v1.0.9'		# Version
+__version__ = 'v1.1.0'		# Version
 #=======================================================================
 #=======================================================================
 # Constants ============================================================
@@ -289,6 +289,28 @@ class Utils:
 		self.NetworkInfo  = self.NetworkInfo()
 		self.SystemInfo   = self.SystemInfo()
 		self.Utilities    = self.Utilities()
+	
+	def getBanner(self, raw=False):	# Get Banner with Title, Author & Version.
+		
+		title  = self.Utilities.AsciiFont.deltaCorpsPriest(__title__).split('\n')
+		ver    = self.Utilities.AsciiFont.ansiRegular(__version__).split('\n')
+		
+		author = ['█▄▄ █▄█ ▀   █   ▄▀█ █ █ █ █   █ █▀▀ ▀█▀   █ █ █',
+				  '█▄█  █  ▄   █▄▄ █▀█ ▀▄▀▄▀ █▄▄ █ ██▄  █  █▄█ █▀█']
+		
+		banner = title[:]
+		for i in range(len(title)):
+			if i in [0, 2, 3]: continue
+			if i == 1:
+				banner[i]   += f'   {author[0]}'
+				banner[i+1] += f'   {author[1]}'
+			else:
+				banner[i]   += f'   {ver[i-4]}'
+		
+		if raw:
+			return banner[:-1]
+		else:
+			return '\n'.join(banner[:-1])
 	
 	class Actions:		# Interacciones con el Systema (Mayormente Windows)
 		
@@ -5767,9 +5789,9 @@ class Utils:
 			#  ██████╔╝╚██████╔╝╚██████╔╝██║ ╚═╝ ██║███████║██████╔╝     ██║   ██║   
 			#  ╚═════╝  ╚═════╝  ╚═════╝ ╚═╝     ╚═╝╚══════╝╚═════╝      ╚═╝   ╚═╝   
 			#                                                         By: LawlietJH
-			#                                                               v1.0.6
+			#                                                               v1.1.0
 			# Fuente: 'ANSI Shadow' - Desde: http://patorjk.com/software/taag/#p=display&f=ANSI%20Shadow&t=Doomsd4y
-
+			
 			class MonthDoesNotExist(Exception):
 				def __init__(self, error_msg): self.error_msg = error_msg
 				def __str__(self): return repr(self.error_msg)
@@ -6264,7 +6286,7 @@ class Utils:
 					else:
 						qty += 1
 		
-		class Images:
+		class Images:			# Funciones para manipulación de imagenes: Filtros, comparaciones, conversiones, etc.
 			
 			def __init__(self):
 				
@@ -7425,16 +7447,16 @@ class Utils:
 			except ImportError:
 				import sys, termios
 				termios.tcflush(sys.stdin, termios.TCIOFLUSH)
-
+	
 #=======================================================================
 #=======================================================================
 #=======================================================================
 
-# ~ ┌───┬───┐   ╔═══╦═══╗   ▄▄▄▄▄▄▄▄▄
-# ~ │   │   │   ║   ║   ║   █   █   █
-# ~ ├───┼───┤   ╠═══╬═══╣   █■■■█■■■█
-# ~ │   │   │   ║   ║   ║   █   █   █
-# ~ └───┴───┘   ╚═══╩═══╝   ▀▀▀▀▀▀▀▀▀
+# ┌───┬───┐ ╔═══╦═══╗ ▄▄▄▄▄▄▄▄▄
+# │   │   │ ║   ║   ║ █   █   █
+# ├───┼───┤ ╠═══╬═══╣ █■■■█■■■█
+# │   │   │ ║   ║   ║ █   █   █
+# └───┴───┘ ╚═══╩═══╝ ▀▀▀▀▀▀▀▀▀
 
 STRUCT = '''\
    
@@ -7783,7 +7805,7 @@ STRUCT = '''\
         ╠══ Class Splitmix64
         ║    │
         ║    │ - Functions: ──────────────────
-        ║    ├── property seed
+        ║    ├── property seed             (get, set)
         ║    ├── function reset
         ║    ├── function nextInt
         ║    ├── function nextFloat
@@ -7837,12 +7859,12 @@ STRUCT = '''\
  All Classes Have Variables Called 'use', 'classes', and 'functions'.
  
  *Classes:    78
- *Functions:  164
+ *Functions:  165
  *Properties: 40
  
 '''.format(__version__)
 
-
+#=======================================================================
 
 # Ejecuta esto despues de terminar la ejecución del programa.
 @atexit.register
@@ -7855,639 +7877,25 @@ if __name__ == '__main__':
 	
 	# Pruebas:
 	
+	#-------------------------------------------------------------------
 	# ~ print(STRUCT)
+	#-------------------------------------------------------------------
 	
 	utils = Utils()
 	# ~ utils.Actions.setTopMostWindow()
 	
 	#-------------------------------------------------------------------
-	
-	nwinf = utils.NetworkInfo
-	sysinf = utils.SystemInfo
-	actions = utils.Actions
-	utilities = utils.Utilities
-	
-	#-------------------------------------------------------------------
 	# Print Title, Author & Version:
-	
-	# ~ title = utils.Utilities.AsciiFont.deltaCorpsPriest(__title__).split('\n')
-	# ~ ver   = utils.Utilities.AsciiFont.ansiRegular(__version__).split('\n')
-	# ~ by    = ['█▄▄ █▄█ ▀   █   ▄▀█ █ █ █ █   █ █▀▀ ▀█▀   █ █ █',
-	# ~ 		 '█▄█  █  ▄   █▄▄ █▀█ ▀▄▀▄▀ █▄▄ █ ██▄  █  █▄█ █▀█']
-	
-	# ~ banner = title[:]
-	# ~ for i in range(len(title)):
-		# ~ if i in [0, 2, 3]: continue
-		# ~ if i == 1:
-			# ~ banner[i]   += f'   {by[0]}'
-			# ~ banner[i+1] += f'   {by[1]}'
-		# ~ else:
-			# ~ banner[i]   += f'   {ver[i-4]}'
-	
-	# ~ for b in banner:
-		# ~ print(b)
-	
-	# ~ print('\n\n')
-	
+	# ~ print(utils.getBanner())
 	#-------------------------------------------------------------------
-	# Pseudo-random generator
-	rn = utilities.Splitmix64()			# Crea el objeto "Random Numbers"
-	rn.seed = 1234567					# Inicia los numeros pseudo-random con la semilla dada
 	
-	for i in range(3):					# Obtiene los primeros 3 numeros pseudo-random como enteros
-		print(rn.nextInt())
-	# Output:
-	#	6457827717110365317
-	#	3203168211198807973
-	#	9817491932198370423
-	
-	rn.reset()							# Reinicia los numeros pseudo-random con la semilla dada
-	for i in range(3):					# Obtiene los primeros 3 numeros pseudo-random como flotantes
-		print(rn.nextFloat())
-	# Output:
-	#	0.3500795420214082
-	#	0.17364409667091274
-	#	0.5322073040624193
-	
-	# Obtiene los números enteros 1 o 2
-	rn.reset()							# Reinicia los numeros pseudo-random con la semilla dada
-	for i in range(3):					# Obtiene los primeros 3 numeros pseudo-random como enteros entre el rango dado
-		print(rn.nextIntInRange(1, 3))
-	# Output:
-	#	1
-	#	1
-	#	2
-	
-	# Obtiene los números flotantes de 1.0 a 2.9999...
-	rn.seed = 1234567					# Reinicia los numeros pseudo-random con la semilla dada
-	for i in range(3):					# Obtiene los primeros 3 numeros pseudo-random como flotantes entre el rango dado
-		print(rn.nextFloatInRange(1, 3))
-	# Output:
-	#	1.7001590840428165
-	#	1.3472881933418255
-	#	2.0644146081248387
-	
-	#-------------------------------------------------------------------
-	# JSON To Tree:
-	data = {
-		'Author': 'LawlietJH',
-		'Program': 'Utils',
-		'version': [1, 1, 0],
-		'structure': {
-			'Classes':    78,
-			'Functions':  164,
-			'Properties': 40,
-		},
-		'programs': {
-			'FileTimeChanger': {
-				'version': '1.1.0'
-			},
-			'Kamuz': 'v1.1.0'
-		}
-	}
-	json_tree = utilities.JSONToTree()
-	print('\n JSON (or a Dictionary) To Tree:')
-	print(json_tree.tree(data))
-	# Example Output:
-	# ■■■ root
-	#    ├─── Author: 'LawlietJH'
-	#    ├─── Program: 'Utils'
-	#    ├─── version
-	#    │   ├─── 1
-	#    │   ├─── 1
-	#    │   └─── 0
-	#    ├─── structure
-	#    │   ├─── Classes: 78
-	#    │   ├─── Functions: 164
-	#    │   └─── Properties: 40
-	#    └─── programs
-	#        ├─── FileTimeChanger
-	#        │   └─── version: '1.1.0'
-	#        └─── Kamuz: 'v1.1.0'
-	
-	#-------------------------------------------------------------------
-	# Sucesión Fibonacci:
-	x = 12
-	fib = utilities.fibonacci(x)
-	s = '\n'.join(map(lambda n: f'{n[0]:02d} - {n[1]}', enumerate(fib)))
-	print(f'\nSucesión Fibonacci (primeros {x} números): \n{s}')
+	# ~ nwinf = utils.NetworkInfo
+	# ~ sysinf = utils.SystemInfo
+	# ~ actions = utils.Actions
+	# ~ utilities = utils.Utilities
 	
 	#-------------------------------------------------------------------
 	
-	print('\nLang:', sysinf.userDefaultLanguage)
-	
-	#-------------------------------------------------------------------
-	
-	# ~ port = 80
-	# ~ serv_name = nwinf.findServiceName(port)
-	# ~ print(serv_name)
-	
-	# ~ ports = [19,21,23,24,25]
-	
-	# ~ serv_names = nwinf.findServiceName(ports)
-	# ~ print(json.dumps(serv_names, indent=4))
-	
-	# ~ serv_names = nwinf.findServiceName(ports, 'udp')
-	# ~ print(json.dumps(serv_names, indent=4))
-	
-	# ~ serv_names = nwinf.findServiceName(ports, nones=True)
-	# ~ print(json.dumps(serv_names, indent=4))
-	
-	# ~ serv_names = nwinf.findServiceName(ports, 'udp', nones=True)
-	# ~ print(json.dumps(serv_names, indent=4))
-	
-	# ~ port = {'tcp': [19,21,23,24,25], 'udp': [19,21,80,81,88]}
-	# ~ serv_name = nwinf.findServiceName(port)
-	# ~ print(json.dumps(serv_name, indent=4))
-	
-	#-------------------------------------------------------------------
-	
-	# ~ ip = '192.168.1.0'
-	
-	# ~ # Empaqueta la IP:
-	# ~ packed = nwinf.packetIPAddress(ip)
-	# ~ print(packed)    # b'\xc0\xa8\x01\x00'
-	
-	# ~ # Desempaqueta la IP:
-	# ~ unpacked = nwinf.packetIPAddress(packed, unpacked=True)
-	# ~ print(unpacked)  # 192.168.1.0
-	
-	# ~ # Empaqueta la IP y la devuelve en hexadecimal:
-	# ~ packed = nwinf.packetIPAddress(ip, hexlify=True)
-	# ~ print(packed)    # b'c0a80100'
-	
-	#-------------------------------------------------------------------
-	
-	# ~ # Obtiene la IPv4 Local:
-	# ~ ip = nwinf.getIPv4()
-	# ~ print(ip)
-	
-	# ~ # Obtiene la IPv4 de un Host Remoto:
-	# ~ ip = nwinf.getIPv4('www.google.com')
-	# ~ print(ip)
-	
-	#-------------------------------------------------------------------
-	# Control de Volumen del Sistema (Muy Eficiente)
-	
-	# ~ vol = actions.Volume
-	
-	#-----------------------------------
-	
-	#Control de silenciado:
-	# ~ print(vol.mute)					# Nos mostrara el estado del sistema (Si esta silenciado o no)
-	# ~ vol.mute = True					# Silencia el sistema.
-	# ~ print(vol.mute)					# Ahora el sistema estará silenciado (hasta que se cambie el valor del volumen o se desmutea)
-	# ~ vol.mute = False				# Quita el silenciado del sistema.
-	# ~ print(vol.mute)					# Ahora el sistema ya no estará silenciado.
-	# ~ vol.toggleMute()				# Mutea/Desmutea.
-	
-	#-----------------------------------
-	
-	#Control de nivel de Volumen:
-	# ~ print(vol.volume)				# Obtiene el nivel de volumen de 0~100
-	# ~ vol.volume = 72					# Pone un nuevo nivel de volumen.
-	# ~ print(vol.volume)				# Obtiene el nuevo nivel de volumen de 0~100
-	
-	#Control de nivel de Volumen en decibeles (dB):
-	# ~ print(vol.volumeDB)				# Obtiene el nivel de volumen en Decibeles (dB en positivos) de aprox. 'Volume.volumeRange['levelMinDB']~Volume.volumeRange['levelMaxDB']' donde el limite es aprox. '-65.254~0' dB
-	# ~ vol.volumeDB = -5				# Pone un nuevo nivel de volumen en decibeles.
-	# ~ print(vol.volumeDB)				# Obtiene el nuevo nivel de volumen de 0~100
-	
-	# ~ print(vol.volumeRange)			# Obtiene el rango de volumen en Decibeles (dB) 'levelMinDB, levelMaxDB y volumeIncrementDB'.
-	
-	#-----------------------------------
-	
-	#Control de nivel de Volumen en Saltos (Como al presionar teclas de volumen):
-	# ~ print(vol.volumeStepInfo)		#Actual posicion del audio.
-	# ~ vol.volumeStepUp()				#Sube el volumen, como presionar 1 vez para subir volumen.
-	# ~ print(vol.volumeStepInfo)		#Nueva posicion del audio.
-	# ~ vol.volumeStepDown()			#Baja el volumen, como presionar 1 vez para bajar volumen.
-	# ~ print(vol.volumeStepInfo)		#Regresando una posicion.
-	
-	#-----------------------------------
-	
-	#Informacion de disponibilidad del sistema:
-	# ~ print(vol.hardwareSupport)		# Obtiene la lista del hardware soportado: ['Volume Control', 'Mute Control', 'Peak Meter']
-	
-	#-----------------------------------
-	
-	#Control de los canales de volumen (por ejemplo las bocinas izquierda y derecha de tu laptop):
-	# ~ print(vol.getChannelCount())	# Muestra la cantidad de canales, Ejemplo: 2 (Bocina Izquierda y Derecha respectivamente).
-	
-	# ~ print(vol.getChannelVol())		# Muestra el volumen del Canal 1 con valores de '0~100' (Ejemplo: Bocina Izquierda)
-	# ~ print(vol.getChannelVol(2))		# Muestra el volumen del Canal 2 con valores de '0~100' (Ejemplo: Bocina Derecha)
-	# ~ vol.setChannelVol(10)			# Cambia el volumen del Canal 1 (Izq) a 10.
-	# ~ vol.setChannelVol(75, 2)		# Cambia el volumen del Canal 2 (Der) a 75.
-	# ~ print(vol.getChannelVol())		# Muestra el nuevo volumen en el Canal 1 con valores de '0~100'
-	# ~ print(vol.getChannelVol(2))		# Muestra el nuevo volumen en el Canal 2 con valores de '0~100'
-	
-	# ~ vol.balanceVolChannels()		# Esto balancea el volumen en todos los canales de audio al nivel de volumen mas alto entre los canales (en este ejemplo tomara el 75 del canal 2).
-	
-	#Control de los canales de volumen en decibeles (por ejemplo las bocinas izquierda y derecha de tu laptop):
-	# ~ print(vol.getChannelVoldB())	# Muestra el volumen del Canal 1 con valores de 'Volume.volumeRange['levelMinDB']~Volume.volumeRange['levelMaxDB']' (Ejemplo: Bocina Izquierda)
-	# ~ print(vol.getChannelVoldB(2))	# Muestra el volumen del Canal 2 con valores de 'Volume.volumeRange['levelMinDB']~Volume.volumeRange['levelMaxDB']' (Ejemplo: Bocina Derecha)
-	# ~ vol.setChannelVoldB(-33)		# Cambia el volumen del Canal 1 (Izq) a -33 decibeles (dB).
-	# ~ vol.setChannelVoldB(-5, 2)		# Cambia el volumen del Canal 2 (Der) a -5  decibeles (dB).
-	# ~ print(vol.getChannelVoldB())	# Muestra el nuevo volumen en el Canal 1 con valores de 'Volume.volumeRange['levelMinDB']~Volume.volumeRange['levelMaxDB']'
-	# ~ print(vol.getChannelVoldB(2))	# Muestra el nuevo volumen en el Canal 2 con valores de 'Volume.volumeRange['levelMinDB']~Volume.volumeRange['levelMaxDB']'
-	
-	# ~ vol.balanceVolChannels()		# Esto balancea el volumen en todos los canales de audio al nivel de volumen mas alto entre los canales (en este ejemplo tomara el -5 del canal 2).
-	
-	#-------------------------------------------------------------------
-	
-	# Bluetooth: Obtiene los dispositivos que estan vinculados e información sobre estos:
-	# ~ devices = utils.Utilities.getSavedBTHDevices(jsonify=True)
-	# ~ print(devices)
-	
-	#-------------------------------------------------------------------
-	
-	# Cortador de cadenas, limita las lineas a un maximo de caracteres pero sin cortar las palabras.
-	# ~ text = 'Hola mundo! xD Soy el creador de estas hermosas funciones.'
-	# ~ text_list = utils.Utilities.splitText(text, 20)
-	# ~ print(text_list)
-	
-	#-------------------------------------------------------------------
-	
-	# Conversiones de Sistemas Numericos
-	# ~ out = utils.Utilities.NumberSystems.decimalToBinary(128, True)
-	# ~ print(out)
-	# ~ out = utils.Utilities.NumberSystems.binaryToDecimal(out)
-	# ~ print(out)
-	
-	#===================================================================
-	
-	# ~ for a in utils.Actions.classes.list:
-		# ~ try:
-			# ~ print(a, isinstance(eval('utils.Actions.'+a+'("")'), Exception))
-		# ~ except: pass
-	
-	# ~ print(utils.Actions.classes)
-	# ~ list_ = [
-		# ~ a for a in dir(utils.Actions)
-		# ~ if a[0] == a[0].upper()
-		# ~ and not a[0] == '_'
-		# ~ and not a.startswith('not_')
-	# ~ ]
-	# ~ print(list_)
-	# ~ print(utils.Actions.classes)
-	# ~ print(utils.Actions.functions)
-	
-	#-------------------------------------------------------------------
-	'''
-	def bucle(base='utils', deep=0, spa2='', data=False):
-		print()
-		print(base, deep)
-		out_main = ''
-		
-		cls_list = '.classes.list'
-		cls_list_err = '.classes.error_list'
-		fn_list = '.functions.list'
-		
-		spa  = spa2 if deep > 0 else '    '
-		swb  = ' ║  '
-		sbg  = ' ║ -'
-		swb2 = ' │  '
-		sbg2 = ' │ -'
-		brk  = '\n'
-		
-		# ~ if deep == 0:
-		values = eval(base+cls_list)[:1]
-		# ~ else:
-			# ~ values = eval(base+cls_list)
-		
-		for i1, cls in enumerate(values):
-			
-			sub_cls = base+'.'+cls
-			print(sub_cls)
-			sub_cls_list    = cls+'_list'
-			sub_errcls_list = cls+'_list_err'
-			sub_fn_list     = cls+'fn_list'
-			
-			exec(sub_cls_list    + ' = ' + sub_cls + cls_list)
-			exec(sub_errcls_list + ' = ' + sub_cls + cls_list_err)
-			exec(sub_fn_list     + ' = ' + sub_cls + fn_list)
-			
-			out_main_class = ''
-			
-			if deep == 0:
-				if i1 == len(values)-1:
-					if not i1 == 0:
-						out_main_class += spa + swb*(deep+1) + brk
-					out_main_class += spa + swb*deep + ' ╚══ Class ' + cls + brk
-					spa = spa*2
-					deep -= 1
-				elif i1 == 0:
-					out_main_class += spa + swb*deep + ' ╠══ Class ' + cls + brk
-				else:
-					out_main_class += spa + swb*deep + brk
-					out_main_class += spa + swb*deep + ' ╠══ Class ' + cls + brk
-			else:
-				deep -= 1
-				if i1 == len(values)-1:
-					if not i1 == 0:
-						out_main_class += spa + swb*(deep+1) + brk
-					if data:
-						out_main_class += spa + swb*deep + ' ╠══ Class ' + cls + brk
-					else:
-						out_main_class += spa + swb*deep + ' ╚══ Class ' + cls + brk
-					spa = spa2 + '    '*2
-					deep -= 1
-				elif i1 == 0:
-					out_main_class += spa + swb*deep + ' ╠══ Class ' + cls + brk
-				else:
-					out_main_class += spa + swb*deep + brk
-					out_main_class += spa + swb*deep + ' ╠══ Class ' + cls + brk
-				
-			
-			
-			deep += 1
-			
-			methods = []
-			others = []
-			
-			for cls in eval(sub_fn_list):
-				sub_cls2 = sub_cls+'.'+cls
-				type_obj = type(eval(sub_cls2)).__name__
-				if type_obj == 'method':
-					methods.append(cls)
-				else:
-					others.append((cls, type_obj))
-			
-			others_data = False
-			out_others = ''
-			if others:
-				print(others)
-				out_others += spa + swb*deep + swb2 + brk
-				out_others += spa + swb*deep + sbg2 + ' Others:' + brk
-				for i5, (name, _type) in enumerate(others):
-					others_data = True
-					if i5 == len(others)-1:
-						out_others += spa + swb*deep + ' └── ' + _type + ' ' + name + brk
-					else:
-						out_others += spa + swb*deep + ' ├── ' + _type + ' ' + name + brk
-			
-			methods_data = False
-			out_methods = ''
-			if methods:
-				out_methods += spa + swb*deep + swb2 + brk
-				out_methods += spa + swb*deep + sbg2 + ' Methods:' + brk
-				for i4, name in enumerate(methods):
-					methods_data = True
-					if others_data:
-						out_methods += spa + swb*deep + ' ├── Function ' +  name + brk
-					else:
-						if i4 == len(methods)-1:
-							out_methods += spa + swb*deep + ' └── Function ' +  name + brk
-						else:
-							out_methods += spa + swb*deep + ' ├── Function ' +  name + brk
-			
-			classes_data = False
-			val = eval(sub_cls_list)
-			out_classes = ''
-			if val:
-				out_classes += spa + swb*deep + swb + brk
-				out_classes += spa + swb*deep + sbg + ' Classes:' + brk
-				# ~ for i3, cls in enumerate(val):
-					# ~ classes_data = True
-					# ~ if methods_data or others_data:
-						# ~ out_classes += spa + swb*deep + ' ╠══ Class ' + cls + brk
-					# ~ else:
-						# ~ if i3 == len(val)-1:
-							# ~ out_classes += spa + swb*deep + ' ╚══ Class ' + cls + brk
-						# ~ else:
-							# ~ out_classes += spa + swb*deep + ' ╠══ Class ' + cls + brk
-				classes_data = True
-				data = methods_data or others_data
-				out_classes += bucle(sub_cls, deep+1, spa + swb*deep, data)
-			
-			val = eval(sub_errcls_list)
-			out_error_classes = ''
-			if val:
-				out_error_classes += spa + swb*deep + swb + brk
-				out_error_classes += spa + swb*deep + sbg + ' Error Classes:' + brk
-				for i2, cls in enumerate(val):
-					if classes_data or methods_data or others_data:
-						out_error_classes += spa + swb*deep + ' ╠══ Class ' + cls + brk
-					else:
-						if i2 == len(val)-1:
-							out_error_classes += spa + swb*deep + ' ╚══ Class ' + cls + brk
-						else:
-							out_error_classes += spa + swb*deep + ' ╠══ Class ' + cls + brk
-			
-			deep -= 1
-			
-			out_main += out_main_class + out_error_classes + out_classes + out_methods + out_others
-		
-		return out_main
-	
-	spa  = '    '
-	swb  = ' ║  '
-	sbg  = ' ║ -'
-	brk  = '\n'
-	
-	out_main  = '■■■ Class Utils ({})'.format(__version__) + brk
-	out_main += spa + swb + brk
-	out_main += spa + sbg + ' Main Classes:' + brk
-	out_main += bucle()
-	
-	print('\n\n',out_main)
-	'''
-	#-------------------------------------------------------------------
-	#-------------------------------------------------------------------
-	#-------------------------------------------------------------------
-	
-	# Algoritmo de Doomsday (Doomsday Rule)
-	# ~ date = '22/07/2050'
-	# ~ weekday = utils.Utilities.DoomsdayRule.getWeekday(date)
-	# ~ print(f'{date}: {weekday}')
-	
-	# ~ time.sleep(3)
-	# ~ utils.Actions.Keyboard.typer('Hola Mundo!', sleep=.01)
-	
-	
-	# ~ print(utils.Utilities.DoomsdayRule.learnToDoItMentally)
-	
-	# ~ for x in range(3):
-		# ~ utils.Utilities.DoomsdayRule.getRandomDate()
-	
-	# ~ print(utils.EditRegistry.Programs.use)
-	# ~ print(utils.EditRegistry.Programs.enumValues)
-	# ~ utils.EditRegistry.Programs.ProgramsAndFeatures.hide()
-	# ~ utils.EditRegistry.Programs.ProgramsAndFeatures.show()
-	# ~ utils.EditRegistry.Programs.ProgramsAndFeatures.cleanUp()
-	
-	# ~ print(utils.EditRegistry.Explorer.use)
-	# ~ utils.EditRegistry.Explorer.ControlPanel.disable()
-	# ~ utils.EditRegistry.Explorer.ControlPanel.enable()
-	# ~ utils.EditRegistry.Explorer.ControlPanel.cleanUp()
-	
-	
-	# toma una captura de pantalla despues de 5 segundos de inactividad del usuario
-	# ~ while True:
-		# ~ if utils.SystemInfo.userDowntime > 5:
-			# ~ utils.Actions.screenshot()
-			# ~ utils.Actions.beep()
-			# ~ break
-		# ~ time.sleep(.1)
-	
-	# ~ utils.Actions.Mouse.position = (150, 200)
-	# ~ utils.Actions.Mouse.leftClickDown()
-	# ~ utils.Actions.Mouse.position = (150, 300)
-	# ~ utils.Actions.Mouse.leftClickUp()
-	
-	# ~ print(utils.Actions.Mouse.position)
-	# ~ utils.Actions.Mouse.position = (105, 205)
-	# ~ print(utils.Actions.Mouse.position)
-	
-	# ~ utils.Actions.Mouse.leftClick()		# clic
-	# ~ utils.Actions.Mouse.leftClick(2)	# doble clic
-	
-	# ~ utils.Actions.Mouse.rightClick()	# clic derecho
-	
-	# ~ utils.EditRegistry.PhysicalDrivesInWinExplorer.hide('ABCDEFGH')
-	# ~ utils.EditRegistry.PhysicalDrivesInWinExplorer.show('CFB')
-	# ~ print(utils.EditRegistry.PhysicalDrivesInWinExplorer.enumHiddenDrives())
-	# ~ utils.EditRegistry.PhysicalDrivesInWinExplorer.showAll()
-	# ~ utils.EditRegistry.PhysicalDrivesInWinExplorer.cleanUp()
-	
-	# UBZ2 -------------------------------------------------------------
-	# ~ print(utils.Utilities.UBZ2.use)
-	# ~ utils.Utilities.UBZ2.addIconToFileExtension()
-	
-	# ~ fileName = utils.Actions.Explorer.getFileName(topmost=False)
-	# ~ if fileName:
-		# ~ utils.Utilities.UBZ2.compress(fileName)
-		# ~ utils.Utilities.UBZ2.decompress(fileName)
-		# ~ print(utils.Utilities.UBZ2.getDataFromUBZ2File(fileName))
-	#-------------------------------------------------------------------
-	
-	# ~ utils.EditRegistry.ContextMenu.disable()
-	# ~ utils.EditRegistry.TaskManager.disable()
-	# ~ utils.EditRegistry.OneDrive.disable()
-	# ~ utils.EditRegistry.DropBox.disable()
-	# ~ utils.EditRegistry.FoldersOnThisPC.Folder3DObjects.hide()
-	
-	# ~ print(utils.EditRegistry.PowerPlan.currentPowerPlanGUID)
-	# ~ print(utils.EditRegistry.PowerPlan.brightnessLevel)
-	# ~ print(utils.EditRegistry.PowerPlan.powerSavingMode())
-	# ~ utils.EditRegistry.PowerPlan.setBrightnessLevel(3)
-	
-	# ~ print(utils.SystemInfo.enumLocalDisk())
-	
-	# ~ groups = utils.SystemInfo.enumLocalUsersAndGroups()
-	# ~ for name, group in groups.items():
-		# ~ print(name, group['group'])
-		# ~ for user in group['users']:
-			# ~ print(user)
-	
-	# ~ print(utils.SystemInfo.enumComputerSystemInfo())
-	
-	# ~ utils.Actions.setCursorPos(700,400)
-	
-	#-------------------------------------------------------------------
-	# Buscando la contraseña de usuario 'prueba'.
-	# Contraseña de prueba propuesta: 'xD'.
-	# ~ palabras = [
-		# ~ 'ab',    'cd',    'ef',    'fg',    'hi',
-		# ~ 'jk',    'lasd',  'lasd1', 'lasd3', 'lasd2',
-		# ~ 'lasd4', 'lasd5', 'lasd6', 'xD',    'XDD',
-		# ~ 'xD3',   'xD4',   'lasx1', 'laxd3', 'xasd2'
-	# ~ ]
-	
-	# ~ user = 'prueba'
-	
-	# ~ for x in palabras:
-		# ~ resp = utils.SystemInfo.isUserPasswordValid(user, x)
-		# ~ if resp:
-			# ~ print('\n User:', user)
-			# ~ print('\n Passwd:', x)
-			# ~ break
-
-	# ~ if not resp:
-		# ~ print('Password Not Found...')
-	#-------------------------------------------------------------------
-	
-	# ~ if utils.Actions.runAsAdmin():
-		# ~ print(True)
-		# ~ time.sleep(10)
-	
-	# ~ passwd = utils.Utilities.writeHiddenText('Password: ')
-	# ~ print(f'La contraseña escrita fue: {passwd}')
-	
-	# ~ print('\n\n Ascii Font functions availables: '+utils.Utilities.AsciiFont.functions.list)
-	
-	# ~ text = 'By: LawlietJH'
-	
-	# ~ cal = utils.Utilities.AsciiFont.calvinS(text)
-	# ~ sha = utils.Utilities.AsciiFont.ansiShadow(text)
-	# ~ reg = utils.Utilities.AsciiFont.ansiRegular(text)
-	# ~ dcp = utils.Utilities.AsciiFont.deltaCorpsPriest(text)
-	# ~ blo = utils.Utilities.AsciiFont.block(text)
-	# ~ alg = utils.Utilities.AsciiFont.alligator(text)
-	# ~ cyb = utils.Utilities.AsciiFont.cybermedium(text)
-	# ~ dsh = utils.Utilities.AsciiFont.dobleShorts(text)
-	# ~ dob = utils.Utilities.AsciiFont.doble(text)
-	# ~ ram = utils.Utilities.AsciiFont.rammstein(text)
-	
-	# ~ print('calvinS:\n'          + cal)
-	# ~ print('ansiShadow:\n'       + sha)
-	# ~ print('ansiRegular:\n'      + reg)
-	# ~ print('deltaCorpsPriest:\n' + dcp)
-	# ~ print('block:\n'            + blo)
-	# ~ print('alligator:\n'        + alg)
-	# ~ print('cybermedium:\n'      + cyb)
-	# ~ print('dobleShorts:\n'      + dsh)
-	# ~ print('doble:\n'            + dob)
-	# ~ print('rammstein:\n'        + ram)
-	
-	# ~ collected = utils.SystemInfo.collectAll
-	
-	# ~ for key, val in collected.items():
-		# ~ print(key.ljust(24), val)
-	
-	# ~ print(utils.Utilities.hash_use)
-	
-	# ~ print(utils.Actions.functions)
-	
-	# ~ key = utils.Actions.VBS.getWindowsProductKey()
-	# ~ print('\nClave de Producto de Windows:', key)
-	
-	# ~ print(utils.Actions.messageBox_use)
-	
-	# ~ resp = utils.Actions.messageBox(
-		# ~ message = 'Esta función te resulta muy útil?',
-		# ~ title = 'Es útil?',
-		# ~ style = WC.MB_YESNO | WC.MB_ICONQUESTION
-				# ~ | WC.MB_DEFAULT_DESKTOP_ONLY
-				# ~ | WC.MB_CANCELTRYCONTINUE
-	# ~ )
-	# ~ print('Respuesta: ' + resp)
-	
-	# ~ utils.Actions.screenshot()
-	# ~ utils.Actions.VBS.setVolume(72)
-	# ~ utils.Actions.startApp('Notepad')
-	# ~ utils.Actions.startApp('Calc')
-	
-	# ~ procs = utils.SystemInfo.enumProcess('notepad')
-	# ~ for p in procs: print(p)
-	
-	# ~ if len(procs) == 1:
-		# ~ proc = procs.pop()
-		# ~ resp = utils.Actions.killProcess(proc['pid'])
-		# ~ print('Proceso Terminado: '+str(proc) if resp else 'Permiso Denegado: '+str(proc))
-	
-	# ~ print(utils.Actions.use)
-	# ~ print(utils.Actions.Clipboard.use)
-	# ~ print(utils.Actions.Explorer.use)
-	# ~ print(utils.Actions.VBS.use)
-	# ~ print(utils.Actions.VBS.getWindowsProductKey_use)
-	# ~ print(utils.Actions.VBS.getWindowsProductKey_use)
-	
-	# ~ print(utils.Actions.cleanRecyclerBin_use)
-	# ~ print(utils.Actions.displaySwitch_use)
-	# ~ print(utils.Actions.messageBox_use)
-	# ~ print(utils.Actions.startApp_use)
-
 #=======================================================================
 
 
