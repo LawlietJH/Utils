@@ -1,24 +1,24 @@
 # Utilidades
  Un módulo recopilatorio con decenas de funciones que he hecho a lo largo del tiempo, utilidades de todo tipo, desde usar funciones simples como hash o comprimir archivos de texto plano con hasta 99% de compresión en algunos casos, editar los registros de Windows para personalizar el sistema o manejar la API de Windows para manipular el mouse, la pantalla, el teclado, vaciar la papelera de forma silenciosa o esconderle archivos dentro y que sean imborrables, obtener información de dispositivos bluetooth previamente vinculados o de conexiones wi-fi y mucho, mucho más...
 ```
-███    █▄      ███      ▄█   ▄█          ▄████████    
+███    █▄      ███      ▄█   ▄█          ▄████████
 ███    ███ ▀█████████▄ ███  ███         ███    ███    █▄▄ █▄█ ▀   █   ▄▀█ █ █ █ █   █ █▀▀ ▀█▀   █ █ █
 ███    ███    ▀███▀▀██ ███▌ ███         ███    █▀     █▄█  █  ▄   █▄▄ █▀█ ▀▄▀▄▀ █▄▄ █ ██▄  █  █▄█ █▀█
-███    ███     ███   ▀ ███▌ ███         ███           
-███    ███     ███     ███▌ ███       ▀███████████    ██    ██  ██     ██████      █████
-███    ███     ███     ███  ███                ███    ██    ██ ███    ██  ████    ██   ██
-███    ███     ███     ███  ███▌    ▄    ▄█    ███    ██    ██  ██    ██ ██ ██     ██████
-████████▀     ▄████▀   █▀   █████▄▄██  ▄████████▀      ██  ██   ██    ████  ██         ██
-                            ▀                           ████    ██ ██  ██████  ██  █████
+███    ███     ███   ▀ ███▌ ███         ███
+███    ███     ███     ███▌ ███       ▀███████████    ██    ██  ██     ██     ██████
+███    ███     ███     ███  ███                ███    ██    ██ ███    ███    ██  ████
+███    ███     ███     ███  ███▌    ▄    ▄█    ███    ██    ██  ██     ██    ██ ██ ██
+████████▀     ▄████▀   █▀   █████▄▄██  ▄████████▀      ██  ██   ██     ██    ████  ██
+                            ▀                           ████    ██ ██  ██ ██  ██████
 ```
 ## Tested in: Python 3.8.8
 ## By: LawlietJH
-## Utils v1.0.9
+## Utils v1.1.0
 
 ![Icon](ubz2file.ico "Icono de archivos ubz2")
 
 ```php
-■■■ Class Utils (v1.0.9)
+■■■ Class Utils (v1.1.0)
     ║
     ║ - Main Classes:
     ╠══ Class Actions
@@ -67,7 +67,11 @@
     ║   ║    ├── function rightClickUp
     ║   ║    ├── function middleClick
     ║   ║    ├── function middleClickDown
-    ║   ║    └── function middleClickUp
+    ║   ║    ├── function middleClickUp
+    ║   ║    ├── function scrollUp                    (+New)
+    ║   ║    ├── function scrollDown                  (+New)
+    ║   ║    ├── function scrollRight                 (+New)
+    ║   ║    └── function scrollLeft                  (+New)
     ║   ║
     ║   ╠══ Class VBS
     ║   ║    │
@@ -78,7 +82,7 @@
     ║   ║    ├── function getWindowsProductKey
     ║   ║    └── function setVolume
     ║   ║
-    ║   ╠══ Class Volume                              (+New)
+    ║   ╠══ Class Volume
     ║   │    ║
     ║   │    ║ - Error Classes: ──────────────
     ║   │    ╠══ Class VolumeControlIsNotSupported
@@ -95,6 +99,7 @@
     ║   │    ├── property volume             (get, set)
     ║   │    ├── property volumedB           (get, set)
     ║   │    ├── property mute               (get, set)
+    ║   │    ├── function toggleMute                  (+New)
     ║   │    ├── function getChannelCount
     ║   │    ├── function getChannelVol
     ║   │    ├── function setChannelVol
@@ -247,9 +252,9 @@
     ║   ├── function latin1_encoding
     ║   ├── function ESSIDEnum
     ║   ├── function ESSIDPasswd
-    ║   ├── function findServiceName                  (+New)
-    ║   ├── function getIPv4                          (+New)
-    ║   └── function packetIPAddress                  (+New)
+    ║   ├── function findServiceName
+    ║   ├── function getIPv4
+    ║   └── function packetIPAddress
     ║
     ╠═ Class SystemInfo
     ║   │
@@ -283,7 +288,7 @@
     ║   ├── property systemDrive           (get)
     ║   ├── property systemRoot            (get)
     ║   ├── function systemUptime
-    ║   ├── property userDefaultLanguage   (get)      (+New)
+    ║   ├── property userDefaultLanguage   (get)
     ║   ├── property userDowntime          (get)
     ║   ├── property userName              (get)
     ║   ├── property winDir                (get)
@@ -344,11 +349,26 @@
         ║    ├── function opening
         ║    └── function canny
         ║
+        ╠══ Class JSONToTree                          (+New)
+        ║    │
+        ║    │ - Functions: ──────────────────
+        ║    └── function tree
+        ║
         ╠══ Class NumberSystems
         ║    │
         ║    │ - Functions: ──────────────────
         ║    ├── function decimalToBinary
         ║    └── function binaryToDecimal
+        ║
+        ╠══ Class Splitmix64                          (+New)
+        ║    │
+        ║    │ - Functions: ──────────────────
+        ║    ├── property seed             (get, set)
+        ║    ├── function reset
+        ║    ├── function nextInt
+        ║    ├── function nextFloat
+        ║    ├── function nextIntInRange
+        ║    └── function nextFloatInRange
         ║
         ╠══ Class UBZ2
         ║    │
@@ -374,6 +394,7 @@
         ├── function sin
         ├── function diagonal
         ├── function euclideanDistance
+        ├── function fibonacci                        (+New)
         ├── function getAngle
         │ #Pygame:
         ├── function moveWindow
@@ -385,18 +406,18 @@
         ├── function getMinorDeviceClass
         ├── function getSavedBTHDevices
         │ #Otros:
-        ├── function splitBytes                       (+New)
+        ├── function splitBytes
         ├── function splitText
         ├── function hash
         ├── function getFiletime
         ├── function getLastError
         ├── function writeHiddenText
         └── function flushBuffer
-
- All classes have variables called 'use', 'classes', and 'functions'.
  
- *Classes:    76
- *Functions:  153
- *Properties: 39
-
+ All Classes Have Variables Called 'use', 'classes', and 'functions'.
+ 
+ *Classes:    78
+ *Functions:  165
+ *Properties: 40
+ 
 ```
