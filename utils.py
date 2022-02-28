@@ -1,22 +1,23 @@
 
 # Tested in: Python 3.8.8 - Windows
 # By: LawlietJH
-# Utils v1.1.0
+# Utils v1.1.1
 
 # Banner:
 # ███    █▄      ███      ▄█   ▄█          ▄████████
-# ███    ███ ▀█████████▄ ███  ███         ███    ███    █▄▄ █▄█ ▀   █   ▄▀█ █ █ █ █   █ █▀▀ ▀█▀   █ █ █
-# ███    ███    ▀███▀▀██ ███▌ ███         ███    █▀     █▄█  █  ▄   █▄▄ █▀█ ▀▄▀▄▀ █▄▄ █ ██▄  █  █▄█ █▀█
+# ███    ███ ▀█████████▄ ███  ███         ███    ███    █▄▄ █▄█ ▀   █   ▄▀█ █ █ █ █   █ █▀▀ ▀█▀   █ █ █
+# ███    ███    ▀███▀▀██ ███▌ ███         ███    █▀     █▄█  █  ▄   █▄▄ █▀█ ▀▄▀▄▀ █▄▄ █ ██▄  █  █▄█ █▀█
 # ███    ███     ███   ▀ ███▌ ███         ███
-# ███    ███     ███     ███▌ ███       ▀███████████    ██    ██  ██     ██     ██████
-# ███    ███     ███     ███  ███                ███    ██    ██ ███    ███    ██  ████
-# ███    ███     ███     ███  ███▌    ▄    ▄█    ███    ██    ██  ██     ██    ██ ██ ██
-# ████████▀     ▄████▀   █▀   █████▄▄██  ▄████████▀      ██  ██   ██     ██    ████  ██
-#                             ▀                           ████    ██ ██  ██ ██  ██████
+# ███    ███     ███     ███▌ ███       ▀███████████    ██    ██  ██     ██     ██
+# ███    ███     ███     ███  ███                ███    ██    ██ ███    ███    ███
+# ███    ███     ███     ███  ███▌    ▄    ▄█    ███    ██    ██  ██     ██     ██
+# ████████▀     ▄████▀   █▀   █████▄▄██  ▄████████▀      ██  ██   ██     ██     ██
+#                             ▀                           ████    ██ ██  ██ ██  ██
 
 from datetime import datetime, timedelta
 from functools import reduce
 import pywintypes
+import threading
 import binascii
 import requests						# python -m pip install requests
 import hashlib
@@ -53,7 +54,7 @@ except:
 # Manipulacion de DLLs de Windows ======================================
 import ctypes
 import comtypes						# python -m pip install comtypes
-from ctypes import wintypes
+from ctypes import wintypes, windll, byref
 #=======================================================================
 
 # pip install pywin32 ==================================================
@@ -76,7 +77,7 @@ import win32ui			as WU
 #=======================================================================
 __author__  = 'LawlietJH'	# Desarrollador
 __title__   = 'Utils'		# Nombre
-__version__ = 'v1.1.0'		# Version
+__version__ = 'v1.1.1'		# Version
 #=======================================================================
 #=======================================================================
 # Constants ============================================================
@@ -4933,7 +4934,7 @@ class Utils:
 					print('\n User:', user)
 					print('\n Passwd:', x)
 					break
-
+			
 			if not resp:
 				print('Password Not Found...')
 			'''
@@ -5120,9 +5121,14 @@ class Utils:
 			
 			self.AsciiFont = self.AsciiFont()
 			self.DoomsdayRule = self.DoomsdayRule()
+			self.FileTimeChanger = self.FileTimeChanger()
 			self.Images = self.Images()
 			self.NumberSystems = self.NumberSystems()
 			self.UBZ2 = self.UBZ2()
+			
+			self.getNumWords = lambda num_c, w_len: sum([ num_c**l    for l in range(1, w_len+1)])
+			self.getNumChars = lambda num_c, w_len: sum([(num_c**l)*l for l in range(1, w_len+1)])
+			self.getFileSize = lambda num_c, w_len: self.getNumChars(num_c, w_len) + self.getNumWords(num_c, w_len) * 2
 		
 		class AsciiFont:		# Clase que permite convertir un texto a un tipo de ASCII FONT
 			
@@ -6286,6 +6292,129 @@ class Utils:
 					else:
 						qty += 1
 		
+		class FileTimeChanger:	# File Time Changer Base Code
+			# FileTimeChanger v1.0.0
+			
+			def __init__(self):
+				
+				self.classes   = ObjectClassNames(self)
+				self.functions = ObjectFunctionNames(self)
+				
+				# Convierte de Unix timestamp a Windows FileTime
+				# Documentación: https://support.microsoft.com/en-us/help/167296
+				self.toTimestamp = lambda epoch: int((epoch * 10000000) + 116444736000000000)
+				self.toFileTime  = lambda epoch: byref(wintypes.FILETIME(self.toTimestamp(epoch) & 0xFFFFFFFF, self.toTimestamp(epoch) >> 32))
+				self.timeToDate  = lambda time: datetime.fromtimestamp(time).strftime('%Y-%m-%d %H:%M:%S')
+				self.dateToTime  = lambda date: time.mktime(date.timetuple())
+				self.strToDate   = lambda date: datetime.strptime(date, '%Y-%m-%d %H:%M:%S')
+				self.toDatetime  = lambda year, month, day, hour=0, minute=0, second=0: datetime(
+					year = year, month  = month,  day    = day,
+					hour = hour, minute = minute, second = second
+				)
+			
+			def getFileTimes(self, filename, raw=False):        
+				
+				ctime = os.path.getctime(filename)
+				mtime = os.path.getmtime(filename)
+				atime = os.path.getatime(filename)
+				
+				if raw:
+					values = (ctime, mtime, atime)
+				else:
+					ctime = self.timeToDate(ctime)
+					mtime = self.timeToDate(mtime)
+					atime = self.timeToDate(atime)
+					values = (
+						self.strToDate(ctime),
+						self.strToDate(mtime),
+						self.strToDate(atime)
+					)
+				
+				return values
+			
+			def changeFileTimes(self, filepath, values):
+				
+				# values = [datetime, datetime, datetime]
+				
+				oc = self.toFileTime(self.dateToTime(values[0]))	# Created
+				om = self.toFileTime(self.dateToTime(values[1]))	# Modified
+				oa = self.toFileTime(self.dateToTime(values[2]))	# Accessed
+				
+				values = [oc, oa, om]
+				
+				# Llamada al Win32 API para modificar los tiempos del archivo
+				handle = windll.kernel32.CreateFileW(filepath, 256, 0, None, 3, 128, None)
+				windll.kernel32.SetFileTime(handle, *values)
+				windll.kernel32.CloseHandle(handle)
+			
+			def _probe(self, filepath):
+				# Arbitrary example of a file and a date
+				
+				# Tiempos actuales (originales de: created, modified, accessed).
+				# Pendiente: Concatenar esta info al final del archivo, con un
+				# booleano para saber si ya fue modificado o aún no.
+				oc, om, oa = self.getFileTimes(filepath)	# Obtiene los Tiempos actuales
+				
+				values = [None, None, None]
+				
+				# El Año, Mes y Día son obligatorios.
+				# Las Horas, minutos y/o Segundos son opcionales.
+				# Formatos %Y-%m-%d %H:%M:%S o None
+				# ~ created = None
+				created = {
+					'year':   2031,
+					'month':  2,
+					'day':    14,
+					'hour':   17,
+					# ~ 'minute': 7,
+					# ~ 'second': 5
+				}
+				# ~ modified = None
+				modified = {
+					'year':   2032,
+					'month':  2,
+					'day':    14,
+					# ~ 'hour':   17,
+					'minute': 7,
+					# ~ 'second': 5
+				}
+				# ~ accessed = None		# Esto permite que se ignore la modificación
+				accessed = {
+					'year':   2033,
+					'month':  2,
+					'day':    14,
+					# ~ 'hour':   17,
+					# ~ 'minute': 7,
+					'second': 5
+				}
+				
+				if created:
+					cdate = self.toDatetime(**created)
+					ctime = self.toFileTime(self.dateToTime(cdate))
+					values[0] = ctime
+				
+				if accessed:
+					adate = self.toDatetime(**accessed)
+					atime = self.toFileTime(self.dateToTime(adate))
+					values[1] = atime
+				
+				if modified:
+					mdate = self.toDatetime(**modified)
+					mtime = self.toFileTime(self.dateToTime(mdate))
+					values[2] = mtime
+				
+				self.changeFileTimes(filepath, values)	# Modifica los Tiempos del Archivo
+				c, m, a = self.getFileTimes(filepath)	# Obtiene los Tiempos actuales
+				
+				print('\n PoC: Modificar los tiempos en un archivo.\n')
+				print(' Original Created  Time:', self.timeToDate(oc))
+				print(' Original Modified Time:', self.timeToDate(om))
+				print(' Original Accessed Time:', self.timeToDate(oa))
+				print()
+				print(' New Created  Time:', self.timeToDate(c))
+				print(' New Modified Time:', self.timeToDate(m))
+				print(' New Accessed Time:', self.timeToDate(a))
+		
 		class Images:			# Funciones para manipulación de imagenes: Filtros, comparaciones, conversiones, etc.
 			
 			def __init__(self):
@@ -6997,7 +7126,7 @@ class Utils:
 			\r \\
 			'''
 		
-		# Math -------------------------------------------------------
+		# Math ---------------------------------------------------------
 		def cos(self, deg=45):											# Obtiene el Coseno de X grados
 			rad = math.radians(deg)
 			return math.cos(rad)
@@ -7043,6 +7172,14 @@ class Utils:
 			fib = list(map(m, range(val+1)))
 			return fib
 		
+		def factorial(self, n: int) -> int:								# Obtiene el Factorial de un número
+			assert type(n) == int
+			if n < 0: return
+			if n == 0: return 1
+			f = lambda x, y: x*y
+			r = range(1, n+1)
+			return reduce(f, r)
+		
 		def getAngle(self, A, B):										# Obtiene el angulo que genera una linea entre 2 puntos del plano cartesiano.
 			''' Donde: A=(Xa,Ya), B=(Xb,Yb) '''
 			Xa, Ya = A
@@ -7052,6 +7189,116 @@ class Utils:
 			atan2 = math.atan2(Y, X)
 			angle = math.degrees(atan2)
 			return angle
+		
+		# Combinatoria -------------------------------------------------
+		def nCr(self, n, r):											# Combinaciones
+			# nCr = n! / (r! * (n-r)!)
+			f = self.factorial
+			out = f(n) // (f(r) * f(n-r))
+			return out
+		
+		def nVr(self, n, r):											# Variaciones
+			# nVRr = n! / (n-r)!
+			f = self.factorial
+			out = f(n) // f(n-r)
+			return out
+		
+		def nP(self, n):												# Permutaciones
+			# nP = n!
+			f = self.factorial
+			out = f(n)
+			return out
+		
+		def nCRr(self, n, r):											# Combinaciones con Repetición
+			# nCRr = (n+r-1)
+			#        (  r  )
+			f = self.factorial
+			n = (n+r-1)
+			out = self.nCr(n, r)
+			return out
+		
+		def nVRr(self, n, r):											# Variaciones con Repetición
+			# nVRr = n^r
+			out = n**r
+			return out
+		
+		def nPR(self, simbols):											# Permutaciones con Repetición
+			# nPRx,y,z... = n! / (x! * y! * z! * ...)
+			n = len(simbols)
+			f = self.factorial
+			unq = set(simbols)
+			qty = [simbols.count(u) for u in unq]
+			fac = [f(q) for q in qty]
+			mul = lambda x, y: x*y
+			out = f(n) // reduce(mul, fac)
+			return out
+		
+		def _wordGeneratorBase(self, charset, max_len, permut=False, by_len=False, out=None, string=''):		# Generador de palabras
+			
+			if out in [None, True]: out = []
+			
+			for char in charset:
+				
+				if permut and string.count(char) >= 1: continue
+				
+				add = string + char
+				
+				if not by_len: out.append(add)
+				
+				if len(add) == max_len:
+					
+					if by_len: out.append(add)
+					
+					continue
+				
+				self.wordGenerator(charset, max_len, permut, by_len, out, add)
+			
+			return out
+		
+		# Generador de palabras, puede ser por Variaciones sin Repetición (por defecto) o con Repetición (con VR=True)
+		def wordGenerator(self, charset, max_len, min_len=1, func=None, VR=False, by_len=False, threads=None, wait=True, sorted=True, out=None, string=''):
+			
+			assert 0 < min_len <= max_len
+			assert type(VR)   == bool and type(by_len) == bool
+			assert type(wait) == bool and type(sorted) == bool
+			
+			if out == None: out = []
+			
+			for char in charset:
+				
+				if VR and string.count(char) >= 1: continue
+				
+				add = string + char
+				
+				if not len(add) >= min_len:
+					
+					self.wordGenerator(charset, max_len, min_len, func, VR, by_len, threads, wait, sorted, out, add)
+					
+					continue
+				
+				if func: func(add)
+				
+				if not by_len: out.append(add)
+				
+				if len(add) == max_len:
+					
+					if by_len: out.append(add)
+					
+					continue
+				
+				if (type(threads) in [list, tuple] or threads == True) and len(add) == min_len:
+					if threads == True: threads = []
+					threads.append(threading.Thread(target=self.wordGenerator, args=[charset, max_len, min_len, func, VR, by_len, threads, wait, sorted, out, add]))
+					threads[-1].start()
+					if sorted: threads[-1].join()
+				else:
+					self.wordGenerator(charset, max_len, min_len, func, VR, by_len, threads, wait, sorted, out, add)
+			
+			if wait and len(string) == 0 and threads and not sorted:
+				
+				for thr in threads: thr.join()
+			
+			return out
 		
 		# Pygame -------------------------------------------------------
 		def moveWindow(self, win_x, win_y, win_w, win_h):
@@ -7774,6 +8021,18 @@ STRUCT = '''\
         ║    ├── function getMonthValue
         ║    └── function calculateWeekday
         ║
+        ╠══ Class FileTimeChanger
+        ║    │
+        ║    │ - Functions: ──────────────────
+        ║    ├── function toTimestamp (Lambda)
+        ║    ├── function toFileTime  (Lambda)
+        ║    ├── function timeToDate  (Lambda)
+        ║    ├── function dateToTime  (Lambda)
+        ║    ├── function strToDate   (Lambda)
+        ║    ├── function toDatetime  (Lambda)
+        ║    ├── function getFileTimes
+        ║    └── function changeFileTimes
+        ║
         ╠══ Class Images
         ║    │
         ║    │ - Functions: ──────────────────
@@ -7831,13 +8090,25 @@ STRUCT = '''\
         │    └── function f_hash
         │
         │ - Functions: ───────────────────────
+        ├── function getNumWords (Lambda)
+        ├── function getNumChars (Lambda)
+        ├── function getFileSize (Lambda)
         │ #Math:
         ├── function cos
         ├── function sin
         ├── function diagonal
         ├── function euclideanDistance
         ├── function fibonacci
+        ├── function factorial
         ├── function getAngle
+        │ #Combinatoria:
+        ├── function nCr
+        ├── function nVr
+        ├── function nP
+        ├── function nCRr
+        ├── function nVRr
+        ├── function nPR
+        ├── function wordGenerator
         │ #Pygame:
         ├── function moveWindow
         ├── function curWinRect
@@ -7856,10 +8127,10 @@ STRUCT = '''\
         ├── function writeHiddenText
         └── function flushBuffer
  
- All Classes Have Variables Called 'use', 'classes', and 'functions'.
+ All Classes Have Properties Called 'use', 'classes', and 'functions'.
  
- *Classes:    78
- *Functions:  165
+ *Classes:    79
+ *Functions:  184
  *Properties: 40
  
 '''.format(__version__)
@@ -7886,7 +8157,7 @@ if __name__ == '__main__':
 	
 	#-------------------------------------------------------------------
 	# Print Title, Author & Version:
-	# ~ print(utils.getBanner())
+	print(utils.getBanner())
 	#-------------------------------------------------------------------
 	
 	# ~ nwinf = utils.NetworkInfo
@@ -7895,6 +8166,108 @@ if __name__ == '__main__':
 	# ~ utilities = utils.Utilities
 	
 	#-------------------------------------------------------------------
+	# FileTimeChanger
+	# ~ ftc = utils.Utilities.FileTimeChanger
+	# ~ filename = 'prueba.txt'
+	
+	# ~ # Obtiene los Tiempos actuales
+	# ~ oc, om, oa = ftc.getFileTimes(filename)
+	# ~ print(' Original Created  Time:', oc)
+	# ~ print(' Original Modified Time:', om)
+	# ~ print(' Original Accessed Time:', oa)
+	
+	# ~ # Modifica los Tiempos del Archivo
+	# ~ ftc.changeFileTimes(filename, [oc, om, oa])
+	
+	# ~ # Obtiene los Tiempos actuales
+	# ~ oc, om, oa = ftc.getFileTimes(filename)
+	# ~ print(' Current Created  Time:', oc)
+	# ~ print(' Current Modified Time:', om)
+	# ~ print(' Current Accessed Time:', oa)
+	
+	#-------------------------------------------------------------------
+	# factorial:
+	# ~ factorial = utils.Utilities.factorial(5)
+	# ~ print(f'\n Factorial de 5: {factorial}')
+	# output: Factorial de 5: 120
+	#-------------------------------------------------------------------
+	# Combinatoria:
+	# ~ charset = '123'
+	# ~ num_chrs = len(charset)
+	# ~ lenght   = 2
+	
+	# ~ nCr = utils.Utilities.nCr(num_chrs, lenght)
+	# ~ nVr = utils.Utilities.nVr(num_chrs, lenght)
+	# ~ nP  = utils.Utilities.nP(num_chrs)
+	
+	# ~ nCRr = utils.Utilities.nCRr(num_chrs, lenght)
+	# ~ nVRr = utils.Utilities.nVRr(num_chrs, lenght)
+	# ~ nPR  = utils.Utilities.nPR('1223')
+	
+	# ~ print(f'\n Combinaciones sin repetición ({num_chrs}, {lenght}): {nCr}')
+	# ~ print(f' Variaciones   sin repetición ({num_chrs}, {lenght}): {nVr}')
+	# ~ print(f' Permutaciones sin repetición ({num_chrs}): {nP}')
+	
+	# ~ print(f'\n Combinaciones con repetición ({num_chrs}, {lenght}): {nCRr}')
+	# ~ print(f' Variaciones   con repetición ({num_chrs}, {lenght}): {nVRr}')
+	# ~ print(f' Permutaciones con repetición ({repr("1223")}): {nPR}')
+	
+	#-------------------------------------------------------------------
+	# Word Generator:
+	# ~ wordGenerator = utils.Utilities.wordGenerator
+	
+	# ~ charset = '123'
+	# ~ max_len = 2
+	# ~ num_chrs = len(charset)
+	
+	# ~ wg1 = wordGenerator(charset, max_len)
+	# ~ wg2 = wordGenerator(charset, max_len, by_len=True)
+	# ~ wg3 = wordGenerator(charset, max_len, VR=True)
+	# ~ wg4 = wordGenerator(charset, max_len, VR=True, by_len=True)
+	
+	# ~ print('\n Variaciones con repeticion:          ', wg1)
+	# ~ print(' Cantidad de Palabras:', utils.Utilities.getNumWords(len(charset), max_len))
+	# ~ print(' Variaciones con repeticion (max len):', wg2)
+	# ~ print(' Cantidad (nVRr):', utils.Utilities.nVRr(len(charset), max_len))
+	# ~ print('\n Variaciones sin repeticion:          ', wg3)
+	# ~ print(' Variaciones sin repeticion (max len):', wg4)
+	# ~ print(' Cantidad (nVr): ', utils.Utilities.nVr(len(charset), max_len))
+	
+	# Outputs:
+	# Variaciones con repeticion:           ['1', '11', '12', '13', '2', '21', '22', '23', '3', '31', '32', '33']
+	# Variaciones con repeticion (max len): ['11', '12', '13', '21', '22', '23', '31', '32', '33']
+	# Cantidad (nVRr): 9
+	
+	# Variaciones sin repeticion:           ['1', '12', '13', '2', '21', '23', '3', '31', '32']
+	# Variaciones sin repeticion (max len): ['12', '13', '21', '23', '31', '32']
+	# Cantidad (nVr):  6
+	
+	# ~ charset = '12345'
+	# ~ max_len = 5
+	# ~ num_chrs = len(charset)
+	
+	# ~ with open('temporal.txt', 'w') as f:
+		
+		# ~ save = lambda value: f.write(value+'\n')
+		
+		# ~ wordGenerator(charset, max_len, func=save, threads=True, sorted=True)
+		
+		# ~ num_w = utils.Utilities.getNumWords(num_chrs, max_len)
+		# ~ num_c = utils.Utilities.getNumChars(num_chrs, max_len)
+		# ~ fsize = utils.Utilities.getFileSize(num_chrs, max_len)
+		
+		# ~ print(f'\n Total de Palabras:   {num_w}')
+		# ~ print(f'\n Total de Caracteres: {num_c}')
+		# ~ print(f'\n Tamaño Total:        {fsize/(2**10):.2f} KB')
+	
+	#-------------------------------------------------------------------
+	# Ubz2:
+	# ~ ubz2 = utils.Utilities.UBZ2
+	
+	# ~ path = r'C:\Users\Ivan\Documents\A Utilidades\Programación\Github\Kamuz\wordlists'
+	# ~ filename = utils.Actions.Explorer.getFileName(init_dir=path)
+	# ~ if filename:
+		# ~ ubz2.decompress(filename)
 	
 #=======================================================================
 
