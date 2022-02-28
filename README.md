@@ -2,23 +2,23 @@
  Un módulo recopilatorio con decenas de funciones que he hecho a lo largo del tiempo, utilidades de todo tipo, desde usar funciones simples como hash o comprimir archivos de texto plano con hasta 99% de compresión en algunos casos, editar los registros de Windows para personalizar el sistema o manejar la API de Windows para manipular el mouse, la pantalla, el teclado, vaciar la papelera de forma silenciosa o esconderle archivos dentro y que sean imborrables, obtener información de dispositivos bluetooth previamente vinculados o de conexiones wi-fi y mucho, mucho más...
 ```
 ███    █▄      ███      ▄█   ▄█          ▄████████
-███    ███ ▀█████████▄ ███  ███         ███    ███    █▄▄ █▄█ ▀   █   ▄▀█ █ █ █ █   █ █▀▀ ▀█▀   █ █ █
-███    ███    ▀███▀▀██ ███▌ ███         ███    █▀     █▄█  █  ▄   █▄▄ █▀█ ▀▄▀▄▀ █▄▄ █ ██▄  █  █▄█ █▀█
+███    ███ ▀█████████▄ ███  ███         ███    ███    █▄▄ █▄█ ▀   █   ▄▀█ █ █ █ █   █ █▀▀ ▀█▀   █ █ █
+███    ███    ▀███▀▀██ ███▌ ███         ███    █▀     █▄█  █  ▄   █▄▄ █▀█ ▀▄▀▄▀ █▄▄ █ ██▄  █  █▄█ █▀█
 ███    ███     ███   ▀ ███▌ ███         ███
-███    ███     ███     ███▌ ███       ▀███████████    ██    ██  ██     ██     ██████
-███    ███     ███     ███  ███                ███    ██    ██ ███    ███    ██  ████
-███    ███     ███     ███  ███▌    ▄    ▄█    ███    ██    ██  ██     ██    ██ ██ ██
-████████▀     ▄████▀   █▀   █████▄▄██  ▄████████▀      ██  ██   ██     ██    ████  ██
-                            ▀                           ████    ██ ██  ██ ██  ██████
+███    ███     ███     ███▌ ███       ▀███████████    ██    ██  ██     ██     ██
+███    ███     ███     ███  ███                ███    ██    ██ ███    ███    ███
+███    ███     ███     ███  ███▌    ▄    ▄█    ███    ██    ██  ██     ██     ██
+████████▀     ▄████▀   █▀   █████▄▄██  ▄████████▀      ██  ██   ██     ██     ██
+                            ▀                           ████    ██ ██  ██ ██  ██
 ```
 ## Tested in: Python 3.8.8
 ## By: LawlietJH
-## Utils v1.1.0
+## Utils v1.1.1
 
 ![Icon](ubz2file.ico "Icono de archivos ubz2")
 
 ```php
-■■■ Class Utils (v1.1.0)
+■■■ Class Utils (v1.1.1)
     ║
     ║ - Main Classes:
     ╠══ Class Actions
@@ -68,10 +68,10 @@
     ║   ║    ├── function middleClick
     ║   ║    ├── function middleClickDown
     ║   ║    ├── function middleClickUp
-    ║   ║    ├── function scrollUp                    (+New)
-    ║   ║    ├── function scrollDown                  (+New)
-    ║   ║    ├── function scrollRight                 (+New)
-    ║   ║    └── function scrollLeft                  (+New)
+    ║   ║    ├── function scrollUp
+    ║   ║    ├── function scrollDown
+    ║   ║    ├── function scrollRight
+    ║   ║    └── function scrollLeft
     ║   ║
     ║   ╠══ Class VBS
     ║   ║    │
@@ -99,7 +99,7 @@
     ║   │    ├── property volume             (get, set)
     ║   │    ├── property volumedB           (get, set)
     ║   │    ├── property mute               (get, set)
-    ║   │    ├── function toggleMute                  (+New)
+    ║   │    ├── function toggleMute
     ║   │    ├── function getChannelCount
     ║   │    ├── function getChannelVol
     ║   │    ├── function setChannelVol
@@ -332,6 +332,18 @@
         ║    ├── function getMonthValue
         ║    └── function calculateWeekday
         ║
+        ╠══ Class FileTimeChanger                     (+New)
+        ║    │
+        ║    │ - Functions: ──────────────────
+        ║    ├── function toTimestamp (Lambda)
+        ║    ├── function toFileTime  (Lambda)
+        ║    ├── function timeToDate  (Lambda)
+        ║    ├── function dateToTime  (Lambda)
+        ║    ├── function strToDate   (Lambda)
+        ║    ├── function toDatetime  (Lambda)
+        ║    ├── function getFileTimes
+        ║    └── function changeFileTimes
+        ║
         ╠══ Class Images
         ║    │
         ║    │ - Functions: ──────────────────
@@ -349,7 +361,7 @@
         ║    ├── function opening
         ║    └── function canny
         ║
-        ╠══ Class JSONToTree                          (+New)
+        ╠══ Class JSONToTree
         ║    │
         ║    │ - Functions: ──────────────────
         ║    └── function tree
@@ -360,7 +372,7 @@
         ║    ├── function decimalToBinary
         ║    └── function binaryToDecimal
         ║
-        ╠══ Class Splitmix64                          (+New)
+        ╠══ Class Splitmix64
         ║    │
         ║    │ - Functions: ──────────────────
         ║    ├── property seed             (get, set)
@@ -389,13 +401,25 @@
         │    └── function f_hash
         │
         │ - Functions: ───────────────────────
+        ├── function getNumWords (Lambda)             (+New)
+        ├── function getNumChars (Lambda)             (+New)
+        ├── function getFileSize (Lambda)             (+New)
         │ #Math:
         ├── function cos
         ├── function sin
         ├── function diagonal
         ├── function euclideanDistance
-        ├── function fibonacci                        (+New)
+        ├── function fibonacci
+        ├── function factorial                        (+New)
         ├── function getAngle
+        │ #Combinatoria:
+        ├── function nCr                              (+New)
+        ├── function nVr                              (+New)
+        ├── function nP                               (+New)
+        ├── function nCRr                             (+New)
+        ├── function nVRr                             (+New)
+        ├── function nPR                              (+New)
+        ├── function wordGenerator                    (+New)
         │ #Pygame:
         ├── function moveWindow
         ├── function curWinRect
@@ -414,10 +438,10 @@
         ├── function writeHiddenText
         └── function flushBuffer
  
- All Classes Have Variables Called 'use', 'classes', and 'functions'.
+ All Classes Have Properties Called 'use', 'classes', and 'functions'.
  
- *Classes:    78
- *Functions:  165
+ *Classes:    79
+ *Functions:  184
  *Properties: 40
  
 ```
