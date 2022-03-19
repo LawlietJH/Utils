@@ -13,7 +13,7 @@
 ```
 ## Tested in: Python 3.8.8
 ## By: LawlietJH
-## Utils v1.1.1
+## Utils v1.1.3
 
 ![Icon](ubz2file.ico "Icono de archivos ubz2")
 
@@ -28,7 +28,7 @@
     ╠══ property tree                                 (+New)
     ╠══ property raw_tree                             (+New)
     ║
-    ║ - Main Classes:
+    ║ - Main Classes: ────────────────────────
     ╠══ Class Actions
     ║   ║
     ║   ║ - Error Classes: ───────────────────
