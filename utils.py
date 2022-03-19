@@ -1,7 +1,7 @@
 
 # Tested in: Python 3.8.8 - Windows
 # By: LawlietJH
-# Utils v1.1.2
+# Utils v1.1.3
 
 # Banner:
 # ███    █▄      ███      ▄█   ▄█          ▄████████
@@ -11,8 +11,8 @@
 # ███    ███     ███     ███▌ ███       ▀███████████    ██    ██  ██     ██    ██████
 # ███    ███     ███     ███  ███                ███    ██    ██ ███    ███         ██
 # ███    ███     ███     ███  ███▌    ▄    ▄█    ███    ██    ██  ██     ██     █████
-# ████████▀     ▄████▀   █▀   █████▄▄██  ▄████████▀      ██  ██   ██     ██    ██
-#                             ▀                           ████    ██ ██  ██ ██ ███████
+# ████████▀     ▄████▀   █▀   █████▄▄██  ▄████████▀      ██  ██   ██     ██         ██
+#                             ▀                           ████    ██ ██  ██ ██ ██████
 
 from typing import List, Callable, TypeVar		# Anotaciones de Tipos
 from datetime import datetime, timedelta
@@ -78,7 +78,7 @@ import win32ui			as WU
 #=======================================================================
 __author__  = 'LawlietJH'	# Desarrollador
 __title__   = 'Utils'		# Nombre
-__version__ = 'v1.1.2'		# Version
+__version__ = 'v1.1.3'		# Version
 #=======================================================================
 #=======================================================================
 # Constants ============================================================
@@ -126,8 +126,8 @@ class ObjTyList(list):
 			mapped.append(func(item))
 		return mapped
 	
-	def filter(self, func: Callable[[TITM], bool]) -> List[TRET]:
-		filtered: List[TRET] = ObjTyList([])
+	def filter(self, func: Callable[[TITM], bool]) -> List[TITM]:
+		filtered: List[TITM] = ObjTyList([])
 		for item in self:
 			if func(item):
 				filtered.append(item)
@@ -168,7 +168,7 @@ class ObjTyInt(int):
 
 class ObjTyClassNames: #Use    # Obtiene todos los nombres de las clases en los objetos de 'Utils' y la cantidad.    Detecta Clases con Formato de primer letra Mayúscula. Ejemplo: 'PrimeroSegundoTercero'
 	
-	def __init__(self, obj):
+	def __init__(self, obj, test=False):
 		self.use = '''
 		\r Función: ObjTyClassNames(obj)
 		\r |
@@ -208,12 +208,14 @@ class ObjTyClassNames: #Use    # Obtiene todos los nombres de las clases en los 
 		\r |    utils.classes.list.forEach(lambda item, index, list: ...)
 		\r \\
 		'''
+		self.test = test
 		list_ = [
 			a for a in dir(obj)
 			if a[0] == a[0].upper()
 			and not a[0] == '_'
 			and not a.startswith('not_')
 			and not self.isException(obj, a)
+			and self.isClass(obj, a)
 		]
 		error_list = [
 			a for a in dir(obj)
@@ -221,6 +223,7 @@ class ObjTyClassNames: #Use    # Obtiene todos los nombres de las clases en los 
 			and not a[0] == '_'
 			and not a.startswith('not_')
 			and self.isException(obj, a)
+			and self.isClass(obj, a)
 		]
 		self.error_list = ObjTyList(error_list)
 		self.list = ObjTyList(list_)
@@ -230,6 +233,11 @@ class ObjTyClassNames: #Use    # Obtiene todos los nombres de las clases en los 
 	def __str__(self):
 		output = '<{}: '+repr(self.cls) + ', {}: '+str(self.list) + ', {}: '+str(self.error_list) + ', {}: '+str(self.qty) + '>'
 		return output.format(repr('class'), repr('list'), repr('error_list'), repr('qty'))
+	
+	def isClass(self, obj, class_name):
+		if self.test:
+			print(eval('obj.'+class_name+'.__class__.__name__'), class_name)
+		return eval('obj.'+class_name+'.__class__.__name__') == 'type'
 	
 	def isException(self, obj, class_name):
 		try:
@@ -251,7 +259,7 @@ class ObjTyClassNames: #Use    # Obtiene todos los nombres de las clases en los 
 
 class ObjTyFunctionNames: #Use # Obtiene todos los nombres de las funciones en los objetos de 'Utils' y la cantidad. Detecta funciones con Formato de primer letra minúscula. Ejemplo: 'primeroSegundoTercero'
 	
-	def __init__(self, obj):
+	def __init__(self, obj, test=False):
 		self.use = '''
 		\r Función: ObjTyFunctionNames(obj)
 		\r |
@@ -291,12 +299,13 @@ class ObjTyFunctionNames: #Use # Obtiene todos los nombres de las funciones en l
 		\r |    utils.functions.list.forEach(lambda item, index, list: ...)
 		\r \\
 		'''
+		self.test = test
 		list_ = [
 			a for a in dir(obj) 
 			if  not a[0] == a[0].upper()
 			and not a[0] == '_'
 			and not a.startswith('not_')
-			and not self.willBeIgnored(obj, a)
+			and not self.ignore(obj, a)
 		]
 		self.list = ObjTyList(list_)
 		self.qty  = ObjTyInt(len(list_))
@@ -306,9 +315,10 @@ class ObjTyFunctionNames: #Use # Obtiene todos los nombres de las funciones en l
 		output = '<{}: '+repr(self.cls) + ', {}: '+str(self.list) + ', {}: '+str(self.qty) + '>'
 		return output.format(repr('class'), repr('list'), repr('qty'))
 	
-	def willBeIgnored(self, obj, val_name):
+	def ignore(self, obj, val_name):
+		if self.test: print(eval('obj.'+val_name+'.__class__.__name__'), val_name)
 		try:
-			return eval('obj.'+val_name+'.__class__.__name__ != "method"')
+			return eval('obj.'+val_name+'.__class__.__name__ not in ["method", "function"]')
 		except:
 			return False
 	
@@ -337,6 +347,11 @@ class Utils:
 		self.NetworkInfo  = self.NetworkInfo()
 		self.SystemInfo   = self.SystemInfo()
 		self.Utilities    = self.Utilities()
+		
+		name = self.__class__.__name__
+		json2tree = self.Utilities.JSONToTree
+		self.raw_tree = self.getClassAndFuncs(self)
+		self.tree = json2tree.tree(self.raw_tree, name)
 	
 	def getBanner(self, raw=False):	# Get Banner with Title, Author & Version.
 		
@@ -359,6 +374,49 @@ class Utils:
 			return banner[:-1]
 		else:
 			return '\n'.join(banner[:-1])
+	
+	def getClassAndFuncs(self, obj, obj_name=''):
+		
+		try:
+			output = {
+				'Error Classes': obj.classes.error_list,
+				'Classes': {},
+				'Functions': obj.functions.list
+			}
+		except:
+			obj_classes = ObjTyClassNames(obj)
+			obj_functions = ObjTyFunctionNames(obj)
+			output = {
+				'Error Classes': obj_classes.error_list,
+				'Classes': {},
+				'Functions': obj_functions.list
+			}
+			
+			for c_list in obj_classes.list:
+				out = self.getClassAndFuncs(eval(f'obj.{c_list}'), c_list)
+				output['Classes'][c_list] = out
+			
+			if output['Error Classes'] == []: del output['Error Classes']
+			if output['Classes'] == {}: del output['Classes']
+			if output['Functions'] == []: del output['Functions']
+			
+			if output == {}:
+				return None
+			else:
+				return output
+		
+		for c_list in obj.classes.list:
+			out = self.getClassAndFuncs(eval(f'obj.{c_list}'), c_list)
+			output['Classes'][c_list] = out
+		
+		if output['Error Classes'] == []: del output['Error Classes']
+		if output['Classes'] == {}: del output['Classes']
+		if output['Functions'] == []: del output['Functions']
+		
+		if output == {}:
+			return None
+		else:
+			return output
 	
 	class Actions:		# Interacciones con el Systema (Mayormente Windows)
 		
@@ -384,7 +442,7 @@ class Utils:
 			self.functions = ObjTyFunctionNames(self)
 			
 			self.load_uses()
-			self.run_command = lambda command: os.popen(command).read()	# Ejecuta cualquier comando en consola
+			# ~ self.run_command = lambda command: os.popen(command).read()	# Ejecuta cualquier comando en consola
 			
 			# Clases Internas:
 			self.Clipboard = self.Clipboard()
@@ -396,6 +454,10 @@ class Utils:
 			
 			# Conexiones a Clases hermanas:
 			self.SystemInfo = utils.SystemInfo()
+		
+		# Lambda functions ---------------------------------------------
+		
+		run_command = lambda self, command: os.popen(command).read()	# Ejecuta cualquier comando en consola
 		
 		#---------------------------------------------------------------
 		
@@ -999,7 +1061,9 @@ class Utils:
 				
 				self.load_uses()
 				
-				self.run_command = lambda command: os.popen(command).read()	# Ejecuta cualquier comando en consola
+				# ~ self.run_command = lambda command: os.popen(command).read()	# Ejecuta cualquier comando en consola
+			
+			run_command = lambda self, command: os.popen(command).read()	# Ejecuta cualquier comando en consola
 			
 			@property
 			def use(self):
@@ -1368,10 +1432,10 @@ class Utils:
 			
 			def __init__(self):
 				
+				self.aev = self.VolumeHandler.IAudioEndpointVolume.method()
+				
 				self.classes   = ObjTyClassNames(self)
 				self.functions = ObjTyFunctionNames(self)
-				
-				self.aev = self.VolumeHandler.IAudioEndpointVolume.method()
 				
 				dBrange = self.aev.GetVolumeRange()
 				self.volumeRange = {
@@ -4203,13 +4267,13 @@ class Utils:
 			
 			def __init__(self):
 				
-				self.classes   = ObjTyClassNames(self)
-				self.functions = ObjTyFunctionNames(self)
-				
 				self.HKEY = WR.HKEY_LOCAL_MACHINE
 				self.ROOT_PATH = r'SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes'
 				self.BRIGHTNESS_LVL_SUBPATH = r'7516b95f-f776-4464-8c53-06167f40cc99\aded5e82-b909-4619-9949-f5d71dac0bcb'
 				self.POWER_SAV_MODE_SUBPATH = r'19cbb8fa-5279-450e-9fac-8a3d5fedd0c1\12bbebe6-58d6-4636-95bb-3217ef867c1a'
+				
+				self.classes   = ObjTyClassNames(self)
+				self.functions = ObjTyFunctionNames(self)
 				
 				self.use = '''
 				\r Clase: PowerPlan
@@ -4249,7 +4313,7 @@ class Utils:
 			@property
 			def brightnessLevel(self):
 				
-				PATH = self.ROOT_PATH + '\\' + self.currentPowerPlanGUID + '\\' + self.BRIGHTNESS_SUBPATH
+				PATH = self.ROOT_PATH + '\\' + self.currentPowerPlanGUID + '\\' + self.BRIGHTNESS_LVL_SUBPATH
 				
 				reg = WR.OpenKeyEx(self.HKEY, PATH)
 				brightnessValue = WR.QueryValueEx(reg, 'DCSettingIndex')[0]
@@ -4361,7 +4425,7 @@ class Utils:
 					reg = WR.OpenKey(self.HKEY, self.PATH, 0, WR.KEY_SET_VALUE)
 					WR.DeleteValue(reg, self.VALUE)
 					WR.CloseKey(reg)
-		
+	
 	class MemoryInfo:	# Información relacionadas a espacio en disco y demás.
 		
 		def __init__(self):
@@ -4572,17 +4636,16 @@ class Utils:
 			\r \\
 			'''
 			
-			self.run_command = lambda command: os.popen(command).read()	# Ejecuta cualquier comando en consola
+			# ~ self.run_command = lambda command: os.popen(command).read()	# Ejecuta cualquier comando en consola
 			self.GetIP = self.GetIP()
+		
+		run_command = lambda self, command: os.popen(command).read()	# Ejecuta cualquier comando en consola
 		
 		def __str__(self): return self.use
 		
 		class GetIP: #Use												# Esta Clase Permite obtener la información sobre la IP Pública y Privada, versión 4 y/o versión 6.
 			
 			def __init__(self):
-				
-				self.classes   = ObjTyClassNames(self)
-				self.functions = ObjTyFunctionNames(self)
 				
 				self.use = '''
 				\r Clase: GetIP()
@@ -4620,6 +4683,9 @@ class Utils:
 				self.local_ipv6 = socket.getaddrinfo(self.hostname, None, socket.AF_INET6)[0][4][0]
 				self.public_ipv4 = None
 				self.public_ipv6 = None
+				
+				self.classes   = ObjTyClassNames(self)
+				self.functions = ObjTyFunctionNames(self)
 			
 			def __str__(self): return self.use
 			
@@ -4788,7 +4854,9 @@ class Utils:
 			
 			self.info = self.collectAll
 			
-			self.run_command = lambda command: os.popen(command).read()	# Ejecuta cualquier comando en consola
+			# ~ self.run_command = lambda command: os.popen(command).read()	# Ejecuta cualquier comando en consola
+		
+		run_command = lambda self, command: os.popen(command).read()	# Ejecuta cualquier comando en consola
 		
 		def load_uses(self):
 			self.enumProcess_use = '''
@@ -5167,15 +5235,21 @@ class Utils:
 			self.load_uses()
 			
 			self.AsciiFont = self.AsciiFont()
+			self.ContentOnImage = self.ContentOnImage(self.Splitmix64)
 			self.DoomsdayRule = self.DoomsdayRule()
 			self.FileTimeChanger = self.FileTimeChanger()
 			self.Images = self.Images()
+			self.JSONToTree = self.JSONToTree()
 			self.NumberSystems = self.NumberSystems()
 			self.UBZ2 = self.UBZ2()
 			
-			self.getNumWords = lambda num_c, w_len: sum([ num_c**l    for l in range(1, w_len+1)])
-			self.getNumChars = lambda num_c, w_len: sum([(num_c**l)*l for l in range(1, w_len+1)])
-			self.getFileSize = lambda num_c, w_len: self.getNumChars(num_c, w_len) + self.getNumWords(num_c, w_len) * 2
+			# ~ self.getNumWords = lambda num_c, w_len: sum([ num_c**l    for l in range(1, w_len+1)])
+			# ~ self.getNumChars = lambda num_c, w_len: sum([(num_c**l)*l for l in range(1, w_len+1)])
+			# ~ self.getFileSize = lambda num_c, w_len: self.getNumChars(num_c, w_len) + self.getNumWords(num_c, w_len) * 2
+		
+		getNumWords = lambda self, num_c, w_len: sum([ num_c**l    for l in range(1, w_len+1)])
+		getNumChars = lambda self, num_c, w_len: sum([(num_c**l)*l for l in range(1, w_len+1)])
+		getFileSize = lambda self, num_c, w_len: self.getNumChars(num_c, w_len) + self.getNumWords(num_c, w_len) * 2
 		
 		class AsciiFont:		# Clase que permite convertir un texto a un tipo de ASCII FONT
 			
@@ -5833,6 +5907,413 @@ class Utils:
 				
 				return self.textToAscii(text, c, rules, width=8)
 		
+		class ContentOnImage:	# Algoritmo de Esteganografía para ocultamiento de información en los pixeles de una imagen.
+			
+			def __init__(self, Splitmix64):
+				
+				self.classes   = ObjTyClassNames(self)
+				self.functions = ObjTyFunctionNames(self)
+				
+				self.Splitmix64 = Splitmix64
+			
+			basic_rule = lambda self, r, g, b: (r and g) or (r and b) or (g and b)
+			
+			def asc2Bin(self, text):	# Ascii a Binario
+				if not text.__class__ == bytes:
+					text = [ord(x) for x in text]
+				bins = [bin(x)[2:].zfill(8 if len(bin(x)[2:]) <= 8 else 16) for x in text]
+				return bins
+			
+			def bin2Asc(self, binary):	# Binario a Ascii
+				
+				if binary.__class__ == int:
+					binary = str(binary)
+				
+				if binary.__class__ == str:
+					
+					bin_lis = []
+					byte = ''
+					
+					for i, b in enumerate(binary):
+						if i % 8 == 0 and not i == 0:
+							bin_lis.append(byte)
+							byte = b
+						else:
+							byte += b
+					
+					if len(byte): bin_lis.append(byte)
+					
+					binary = bin_lis
+				
+				nums = []
+				
+				for b in binary:
+					
+					b = int(b)
+					
+					if b == 0:
+						nums.append(0)
+						continue
+					
+					i = 0
+					c = 0
+					k = int(math.log10(b))+1
+					
+					for j in range(k):
+						i = ((b%10)*(2**j))   
+						b = b//10
+						c = c+i
+					
+					nums.append(c)
+				
+				asc = ''.join([chr(n) for n in nums])
+				
+				return asc
+			
+			def bin2Dec(self, binary):	# Binario a Decimal
+				try:
+					decimal = int(binary, 2)
+				except:
+					decimal = int(str(binary), 2)
+				return decimal
+			
+			def dec2Bin(self, decimal, raw=False):	# Decimal a Binario
+				binary = bin(decimal)
+				if not raw:
+					binary = str(binary)[2:]
+					lbin = (len(binary)//8) + (1 if len(binary)%8 > 0 else 0)
+					binary = binary.zfill(lbin*8)
+				return binary
+			
+			def dec2Hex(self, decimal):	# Decimal a Hexadecimal.
+				
+				assert decimal.__class__ in [int, str]
+				
+				if decimal.__class__ == int:
+					decimal = str(decimal)
+				
+				hex_list = []
+				hex_val = ''
+				
+				for hex_ in decimal:
+					
+					if hex_ != ' ':
+						hex_val = hex_val + hex_
+					else:
+						hex_val = hex(int(hex_val))
+						hex_val = hex_val.split('x')[1]
+						hex_list.append(hex_val+' ')
+						hex_val = ''
+				
+				hex_val = hex(int(hex_val))
+				hex_val = hex_val.split('x')[1]
+				hex_list.append(hex_val)
+				
+				output = [hex_.upper() for hex_ in hex_list]
+				output = ''.join(output)
+				
+				return output
+			
+			def hex2Dec(self, hexadec):	# Hexadecimal a Decimal.
+				
+				if hexadec.__class__ == str and ' ' in hexadec:
+					decimal = [int(hex_, 16) for hex_ in hexadec.split(' ')]
+				elif hexadec.__class__ in [list, tuple]:
+					decimal = [int(hex_, 16) for hex_ in hexadec]
+				else:
+					decimal = int(hexadec, 16)
+				
+				return decimal
+			
+			def getMaxChars(self, img, max_cb=4):
+				
+				assert 0 < max_cb <= 4
+				
+				width, height = img.size
+				hxw = height*width
+				max_c = (hxw - (hxw%8)) // 8
+				
+				return max_c - max_cb
+			
+			def getMaxCharsVal(self, width, height, max_cb=4):
+				
+				assert 0 < max_cb <= 4
+				
+				hxw = height*width
+				max_c = (hxw - (hxw%8)) // 8
+				
+				return max_c - max_cb
+			
+			def checksumFixed(self, R, G, B, func):
+				R = R % 2 == 0
+				G = G % 2 == 0
+				B = B % 2 == 0
+				return func(R, G, B)
+			
+			def checksumNormal(self, R, G, B, int_v):
+				
+				int_val = int_v % (16**3)
+				hex_val = self.dec2Hex(int_val).zfill(3)
+				rules   = self.hex2Dec([x for x in hex_val])
+				
+				R = R % 2 == 0
+				G = G % 2 == 0
+				B = B % 2 == 0
+				
+				rule_values = {
+					 0: ('&', (R and G)),
+					 1: ('&', (R and B)),
+					 2: ('&', (G and B)),
+					 3: ('&', (R or G)),
+					 4: ('&', (R or B)),
+					 5: ('&', (G or B)),
+					 6: ('|', (R and G)),
+					 7: ('|', (R and B)),
+					 8: ('|', (G and B)),
+					 9: ('|', (R or G)),
+					10: ('|', (R or B)),
+					11: ('|', (G or B)),
+					12: ('&', ((R and G) or (R and B))),
+					13: ('&', ((R and G) or (G and B))),
+					14: ('|', ((R and G) or (R and B))),
+					15: ('|', ((R and G) or (G and B)))
+				}
+				
+				num = rules.pop(0)
+				value = rule_values[num][1]
+				
+				for num in rules:
+					
+					oper = rule_values[num][0]
+					rule = rule_values[num][1]
+					
+					if   oper == '&': value &= rule
+					elif oper == '|': value |= rule
+				
+				return value
+			
+			def listGenerator(self, objects: list, max_len=3, set_=[], out=None):			# Generador de todas las combinaciones posibles entre objetos:
+				if out == None: out = []
+				for obj in objects:
+					add = set_ + [obj]
+					if len(add) == max_len:
+						out.append(add)
+						continue
+					listGenerator(objects, max_len, add, out)
+				return out
+			
+			def testRules(self, verb=False):
+				
+				range_set = self.listGenerator(range(16))
+				rgb_set = self.listGenerator([False, True])
+				
+				for rules in range_set:
+					
+					output = {'True': 0, 'False': 0}
+					
+					for r, g, b in rgb_set:
+						
+						rule_values = {
+							 0: ('&', (r and g)),
+							 1: ('&', (r and b)),
+							 2: ('&', (g and b)),
+							 3: ('&', (r or g)),
+							 4: ('&', (r or b)),
+							 5: ('&', (g or b)),
+							 6: ('|', (r and g)),
+							 7: ('|', (r and b)),
+							 8: ('|', (g and b)),
+							 9: ('|', (r or g)),
+							10: ('|', (r or b)),
+							11: ('|', (g or b)),
+							12: ('&', ((r and g) or (r and b))),
+							13: ('&', ((r and g) or (g and b))),
+							14: ('|', ((r and g) or (r and b))),
+							15: ('|', ((r and g) or (g and b)))
+						}
+						
+						if verb:
+							print(f'RGB: {str(r):>5}, {str(g):>5}, {str(b):>5} - '
+								'Rule: [{rules[0]:^3}, {rules[1]:^3}, {rules[2]:^3}]', end='')
+						
+						num = rules[0]
+						value = rule_values[num][1]
+						
+						for num in rules[1:]:
+							oper = rule_values[num][0]
+							rule = rule_values[num][1]
+							if verb: print(num, value, oper, rule)
+							if   oper == '&': value &= rule
+							elif oper == '|': value |= rule
+							
+						output[str(value)] += 1
+						if verb: print(f' - Output: {value}')
+					
+					if output['True'] == 0 or output['False'] == 0:
+						print(f' Output: {output} - Rules: {rules}')
+			
+			def extractData(self, img, passwd=0, checksum_func=None, max_cb=4):
+				# max_c: Cantidad de bytes con el valor máximo de caracteres en la imagen. 1 = 2^8 -> 256 Bytes, 2 = 2^16 -> 64 KB, 3 = 2^24 -> 16 MB, 4 = 2^32 -> 4 GB
+				# checksum_func: Función Lambda que hará de checksum. Ejemplo: lambda r, g, b: (r and g) or (r and b) or (r and b)
+				
+				assert 0 < max_cb <= 4
+				
+				if not checksum_func == None:
+					assert checksum_func.__class__.__name__ == 'function'
+					checksum = self.checksumFixed
+					rule = checksum_func
+				else:
+					checksum = self.checksumNormal
+					PRNG = self.Splitmix64(passwd)
+				
+				output = []
+				limit = 0
+				byte = ''
+				
+				rgb_img = img.convert('RGB')
+				width, height = rgb_img.size
+				
+				for y in range(height):
+					
+					for x in range(width):
+						
+						r, g, b = rgb_img.getpixel((x, y))
+						
+						if checksum_func == None:
+							rule = PRNG.nextInt()
+						
+						byte += str(int(checksum(r, g, b, rule)))
+						
+						if limit == 0 and len(byte) == 8*max_cb:
+							
+							limit = self.bin2Dec(byte)
+							byte = ''
+							
+						elif not limit == 0 and len(byte) == 8:
+							
+							output.append(byte)
+							byte = ''
+							
+							if len(output) == limit:
+								return self.bin2Asc(output)
+				
+				return self.bin2Asc(output)
+			
+			def insertData(self, img, content, passwd=0, checksum_func=None, max_cb=4):
+				# max_c: Cantidad de bytes con el valor máximo de caracteres en la imagen. 1 = 2^8 -> 256 Bytes, 2 = 2^16 -> 64 KB, 3 = 2^24 -> 16 MB, 4 = 2^32 -> 4 GB
+				# checksum_func: Función Lambda que hará de checksum. Ejemplo: lambda r, g, b: (r and g) or (r and b) or (r and b)
+				
+				assert 0 < max_cb <= 4
+				
+				if not checksum_func == None:
+					assert checksum_func.__class__.__name__ == 'function'
+					checksum = self.checksumFixed
+					rule = checksum_func
+				else:
+					checksum = self.checksumNormal
+					PRNG = self.Splitmix64(passwd)
+				
+				binary_list = self.asc2Bin(content)
+				binary = ''.join(binary_list)
+				max_cn = self.dec2Bin(len(binary)//8).zfill(8*max_cb)	# Cantidad de caracteres que serán almacenados
+				
+				if self.bin2Dec(max_cn) > 2**(8*max_cb):					# Si el numero máximo de caracteres supera el limite permitido, se remplazará por el valor limite
+					max_cn = '1'*(8*max_cb)
+				
+				binary = max_cn + binary
+				
+				rgb_img = img.convert('RGB')
+				width, height = rgb_img.size
+				
+				hxw = height*width
+				lbin = len(binary)
+				
+				for j, y in enumerate(range(height)):
+					
+					for i, x in enumerate(range(width)):
+						
+						if width*j+i >= hxw - (hxw%8):
+							return rgb_img
+						
+						if width*j+i >= lbin:
+							return rgb_img
+						
+						r, g, b = rgb_img.getpixel((x, y))
+						
+						if checksum_func == None:
+							rule = PRNG.nextInt()
+						
+						bin_val = int(binary[width*j+i])
+						
+						if not int(checksum(r, g, b, rule)) == bin_val:
+							
+							if int(checksum(r+1, g, b, rule)) == bin_val:
+								r += 1 if r < 255 else -1
+							elif int(checksum(r, g+1, b, rule)) == bin_val:
+								g += 1 if g < 255 else -1
+							elif int(checksum(r, g, b+1, rule)) == bin_val:
+								b += 1 if b < 255 else -1
+							elif int(checksum(r+1, g+1, b, rule)) == bin_val:
+								r += 1 if r < 255 else -1
+								g += 1 if g < 255 else -1
+							elif int(checksum(r, g+1, b+1, rule)) == bin_val:
+								g += 1 if g < 255 else -1
+								b += 1 if b < 255 else -1
+							elif int(checksum(r+1, g, b+1, rule)) == bin_val:
+								r += 1 if r < 255 else -1
+								b += 1 if b < 255 else -1
+							else:
+								r += 1 if r < 255 else -1
+								g += 1 if g < 255 else -1
+								b += 1 if b < 255 else -1
+							
+							rgb_img.putpixel((x, y), (r, g, b))
+				
+				return rgb_img
+			
+			def insertContent(self, content, filename, out_fname='', passwd=0, func=None, max_cb=4, compress=True):
+				
+				img = PIL.Image.open(filename)
+				
+				if compress:
+					
+					if content.__class__ == str:
+						content = content.encode()
+					bz2_content = bz2.compress(content)
+					content = binascii.hexlify(bz2_content)
+				
+				if len(content) <= self.getMaxChars(img):
+					
+					new_img = self.insertData(img, content, passwd, func, max_cb)
+					
+					if out_fname: new_img.save(out_fname, 'png')
+					
+					return new_img
+					
+				else:
+					
+					print(f'\n Límite: {self.getMaxChars(img)}')
+					print(f' Bytes:  {len(content)}')
+					
+					print('\n El texto a insertar en la imagen '
+						  'supera el límite permitido en esta.')
+					print(' Prueba con alguna imagen de mayor resolución')
+			
+			def extractContent(self, filename, passwd=0, func=None, max_cb=4, decompress=True):
+				
+				img = PIL.Image.open(filename)
+				
+				data = self.extractData(img, passwd, func, max_cb)
+				
+				if decompress:
+					try:
+						bz2_content = binascii.unhexlify(data)
+						data = bz2.decompress(bz2_content)
+					except:
+						data = data.encode()
+				
+				return data
+		
 		class DoomsdayRule:		# Algoritmo de doomsday. Permite saber de cualquier fecha (pasado o futuro) en que día de la semana caerá. Permite crear un calendario de cualquier año con cuentas mentales simples de aritmetica. Esto se puede realizar mentalmente, es fantástico.
 			#
 			#  ██████╗  ██████╗  ██████╗ ███╗   ███╗███████╗██████╗ ██╗  ██╗██╗   ██╗
@@ -6349,15 +6830,25 @@ class Utils:
 				
 				# Convierte de Unix timestamp a Windows FileTime
 				# Documentación: https://support.microsoft.com/en-us/help/167296
-				self.toTimestamp = lambda epoch: int((epoch * 10000000) + 116444736000000000)
-				self.toFileTime  = lambda epoch: byref(wintypes.FILETIME(self.toTimestamp(epoch) & 0xFFFFFFFF, self.toTimestamp(epoch) >> 32))
-				self.timeToDate  = lambda time: datetime.fromtimestamp(time).strftime('%Y-%m-%d %H:%M:%S')
-				self.dateToTime  = lambda date: time.mktime(date.timetuple())
-				self.strToDate   = lambda date: datetime.strptime(date, '%Y-%m-%d %H:%M:%S')
-				self.toDatetime  = lambda year, month, day, hour=0, minute=0, second=0: datetime(
-					year = year, month  = month,  day    = day,
-					hour = hour, minute = minute, second = second
-				)
+				# ~ self.toTimestamp = lambda epoch: int((epoch * 10000000) + 116444736000000000)
+				# ~ self.toFileTime  = lambda epoch: byref(wintypes.FILETIME(self.toTimestamp(epoch) & 0xFFFFFFFF, self.toTimestamp(epoch) >> 32))
+				# ~ self.timeToDate  = lambda time: datetime.fromtimestamp(time).strftime('%Y-%m-%d %H:%M:%S')
+				# ~ self.dateToTime  = lambda date: time.mktime(date.timetuple())
+				# ~ self.strToDate   = lambda date: datetime.strptime(date, '%Y-%m-%d %H:%M:%S')
+				# ~ self.toDatetime  = lambda year, month, day, hour=0, minute=0, second=0: datetime(
+					# ~ year = year, month  = month,  day    = day,
+					# ~ hour = hour, minute = minute, second = second
+				# ~ )
+			
+			toTimestamp = lambda self, epoch: int((epoch * 10000000) + 116444736000000000)
+			toFileTime  = lambda self, epoch: byref(wintypes.FILETIME(self.toTimestamp(epoch) & 0xFFFFFFFF, self.toTimestamp(epoch) >> 32))
+			timeToDate  = lambda self, time: datetime.fromtimestamp(time).strftime('%Y-%m-%d %H:%M:%S')
+			dateToTime  = lambda self, date: time.mktime(date.timetuple())
+			strToDate   = lambda self, date: datetime.strptime(date, '%Y-%m-%d %H:%M:%S')
+			toDatetime  = lambda self, year, month, day, hour=0, minute=0, second=0: datetime(
+				year = year, month  = month,  day    = day,
+				hour = hour, minute = minute, second = second
+			)
 			
 			def getFileTimes(self, filename, raw=False):        
 				
@@ -6562,12 +7053,10 @@ class Utils:
 		
 		class JSONToTree:		# Muestra un JSON (o un Diccionario) en estructura de árbol (como en estructura de ficheros).
 			
-			def __init__(self, root_name='root'):
+			def __init__(self):
 				
 				self.classes   = ObjTyClassNames(self)
 				self.functions = ObjTyFunctionNames(self)
-				
-				self.root_name = root_name
 				
 				self.use = '''
 				\r Clase: JSONToTree
@@ -6647,7 +7136,8 @@ class Utils:
 										lvl_ = lvl+'    '
 										out += self._tree(val, lvl_, pretty)
 							else:
-								out += f'\n{lvl}└─── {repr(val)}'
+								# ~ out += f'\n{lvl}└─── {repr(val)}'
+								out += f'\n{lvl}└─── {val}'
 						else:
 							if val.__class__ != str:
 								if val.__class__ == int:
@@ -6658,19 +7148,29 @@ class Utils:
 										lvl_ = lvl+'│   '
 										out += self._tree(val, lvl_, pretty)
 							else:
-								out += f'\n{lvl}├─── {repr(val)}'
+								# ~ out += f'\n{lvl}├─── {repr(val)}'
+								out += f'\n{lvl}├─── {val}'
 				else:
 					if pretty:
-						if subtree.__class__ == str:
-							out += f': {repr(subtree)}'
-						else:
-							out += f': {subtree}'
+						# ~ if subtree.__class__ == str:
+							# ~ out += f': {repr(subtree)}'
+						# ~ else:
+							# ~ out += f': {subtree}'
+						out += f': {subtree}'
 					else:
 						out += f'\n{lvl}└─── {subtree}'
 				
 				return out
 			
-			def tree(self, json_data, pretty=True):
+			def tree(self, json_data, root_name='root', pretty=True):
+				
+				self.root_name = root_name
+				
+				try:
+					if json_data.__class__.__name__ == 'dict':
+						json_data = json.dumps(json_data)
+				except TypeError:
+					pass
 				
 				try:
 					json_data = json.loads(json_data)
@@ -6694,38 +7194,30 @@ class Utils:
 				self.classes   = ObjTyClassNames(self)
 				self.functions = ObjTyFunctionNames(self)
 			
-			def decimalToBinary(self, decimal, raw=False):
-				#------------------------
-				# Método Manual:
-				#out = ''
-				#res = decimal
-				#while res > 0:
-				#	bit  = res%2
-				#	out += str(bit)
-				#	res  = (res//2)
-				#if not out: out = '0'
-				#return out[::-1]
-				#------------------------
-				# Método Python:
-				binary = bin(decimal)
-				if raw: binary = str(binary)[2:]
-				return binary
+			binToChr = lambda self, bin_: chr(int(bin_, 2))
+			binToHex = lambda self, bin_: hex(int(bin_, 2))[2:]
+			binToDec = lambda self, bin_: int(bin_, 2)
+			binToOct = lambda self, bin_: oct(int(bin_, 2))[2:]
 			
-			def binaryToDecimal(self, binary):
-				#------------------------
-				# Método Manual:
-				# ~ print(binary.__class__.__name__)
-				# ~ if binary.__class__.__name__:
-					
-				# ~ for bit in binary:
-					
-				#------------------------
-				# Método Python:
-				try:
-					decimal = int(binary, 2)
-				except:
-					decimal = int(str(binary), 2)
-				return decimal
+			chrToBin = lambda self, chr_: bin(ord(chr_))[2:].zfill(8)
+			chrToHex = lambda self, chr_: hex(ord(chr_))[2:]
+			chrToDec = lambda self, chr_: int(ord(chr_))
+			chrToOct = lambda self, chr_: oct(int(ord(chr_)))[2:]
+			
+			hexToBin = lambda self, hex_: bin(int(hex_, 16))[2:].zfill(8)
+			hexToChr = lambda self, hex_: chr(int(hex_, 16))
+			hexToDec = lambda self, hex_: int(hex_, 16)
+			hexToOct = lambda self, hex_: oct(int(hex_, 16))[2:]
+			
+			decToBin = lambda self, dec_: bin(dec_)[2:].zfill(8)
+			decToChr = lambda self, dec_: chr(dec_)
+			decToHex = lambda self, dec_: hex(dec_)[2:]
+			decToOct = lambda self, dec_: oct(dec_)[2:]
+			
+			octToBin = lambda self, oct_: bin(int(oct_, 8))[2:].zfill(8)
+			octToChr = lambda self, oct_: chr(int(oct_, 8))
+			octToHex = lambda self, oct_: hex(int(oct_, 8))[2:]
+			octToDec = lambda self, oct_: int(oct_, 8)
 		
 		class Splitmix64:		# Pseudo-Random Number Generator: https://rosettacode.org/wiki/Pseudo-random_numbers/Splitmix64
 			
@@ -6802,12 +7294,88 @@ class Utils:
 				\r \\
 				'''
 			
+			def asc2Bin(self, text):
+				if not text.__class__ == bytes:
+					text = [ord(x) for x in text]
+				bins = [bin(x)[2:].zfill(8 if len(bin(x)[2:]) <= 8 else 16) for x in text]
+				return bins
+			
+			def bin2Asc(self, binary):
+				
+				if binary.__class__ == int:
+					binary = str(binary)
+				
+				if binary.__class__ == str:
+					
+					bin_lis = []
+					byte = ''
+					
+					for i, b in enumerate(binary):
+						if i % 8 == 0 and not i == 0:
+							bin_lis.append(byte)
+							byte = b
+						else:
+							byte += b
+					
+					if len(byte): bin_lis.append(byte)
+					
+					binary = bin_lis
+				
+				nums = []
+				
+				for b in binary:
+					
+					b = int(b)
+					
+					if b == 0:
+						nums.append(0)
+						continue
+					
+					i = 0
+					c = 0
+					k = int(math.log10(b))+1
+					
+					for j in range(k):
+						i = ((b%10)*(2**j))   
+						b = b//10
+						c = c+i
+					
+					nums.append(c)
+				
+				asc = ''.join([chr(n) for n in nums])
+				
+				return asc
+			
+			def bin2Dec(self, binary):
+				try:
+					decimal = int(binary, 2)
+				except:
+					decimal = int(str(binary), 2)
+				return decimal
+			
+			def dec2Bin(self, decimal, raw=False):
+				binary = bin(decimal)
+				if not raw:
+					binary = str(binary)[2:]
+					lbin = (len(binary)//8) + (1 if len(binary)%8 > 0 else 0)
+					binary = binary.zfill(lbin*8)
+				return binary
+			
+			@property
+			def seed_text(self):
+				binary = self.dec2Bin(self.seedv)
+				ascii_ = self.bin2Asc(binary)
+				return ascii_
+			
 			@property
 			def seed(self):
 				return self.seedv
 			
 			@seed.setter
 			def seed(self, num):
+				if num.__class__ == str:
+					num = ''.join(self.asc2Bin(num))
+					num = self.bin2Dec(num)
 				self.seedv = num
 				self.state = num & self.MASK64
 			
@@ -7087,7 +7655,7 @@ class Utils:
 			class HashNotAvailableError(Exception):
 				def __init__(self, error_msg): self.error_msg = error_msg
 				def __str__(self): return repr(self.error_msg)
-				
+			
 			def __init__(self, hash_, text, type_):
 				
 				self.classes   = ObjTyClassNames(self)
@@ -7354,28 +7922,39 @@ class Utils:
 			
 			return out
 		
+		# Generador de todas las combinaciones posibles entre objetos:
+		def listGenerator(self, objects: list, max_len=3, set_=[], out=None):
+			if out == None: out = []
+			for obj in objects:
+				add = set_ + [obj]
+				if len(add) == max_len:
+					out.append(add)
+					continue
+				self.listGenerator(objects, max_len, add, out)
+			return out
+		
 		# Pygame -------------------------------------------------------
-		def moveWindow(self, win_x, win_y, win_w, win_h):
-			from ctypes import windll
-			hwnd = pygame.display.get_wm_info()['window']
-			windll.user32.MoveWindow(hwnd, win_x, win_y, win_w, win_h, False)
+		# ~ def moveWindow(self, win_x, win_y, win_w, win_h):
+			# ~ from ctypes import windll
+			# ~ hwnd = pygame.display.get_wm_info()['window']
+			# ~ windll.user32.MoveWindow(hwnd, win_x, win_y, win_w, win_h, False)
 		
-		@property
-		def curWinRect(self):
-			from ctypes import POINTER, WINFUNCTYPE, windll
-			from ctypes.wintypes import BOOL, HWND, RECT
-			
-			hwnd = pygame.display.get_wm_info()['window']
-			prototype = WINFUNCTYPE(BOOL, HWND, POINTER(RECT))
-			paramflags = (1, 'hwnd'), (2, 'lprect')
-			GetWindowRect = prototype(('GetWindowRect', windll.user32), paramflags)
-			rect = GetWindowRect(hwnd)
-			return [rect.left, rect.top, rect.right, rect.bottom]
+		# ~ @property
+		# ~ def curWinRect(self):
+			# ~ from ctypes import POINTER, WINFUNCTYPE, windll
+			# ~ from ctypes.wintypes import BOOL, HWND, RECT
+			# ~ print(pygame.display.get_wm_info())
+			# ~ hwnd = pygame.display.get_wm_info()['window']
+			# ~ prototype = WINFUNCTYPE(BOOL, HWND, POINTER(RECT))
+			# ~ paramflags = (1, 'hwnd'), (2, 'lprect')
+			# ~ GetWindowRect = prototype(('GetWindowRect', windll.user32), paramflags)
+			# ~ rect = GetWindowRect(hwnd)
+			# ~ return [rect.left, rect.top, rect.right, rect.bottom]
 		
-		@property
-		def curWinSize(self):
-			info = pygame.display.Info()
-			return [info.current_w, info.current_h]
+		# ~ @property
+		# ~ def curWinSize(self):
+			# ~ info = pygame.display.Info()
+			# ~ return [info.current_w, info.current_h]
 		
 		# Bluetooth ----------------------------------------------------
 		# Reference: Baseband (Complete) - https://btprodspecificationrefs.blob.core.windows.net/assigned-numbers/Assigned%20Number%20Types/Baseband.pdf
@@ -7763,7 +8342,15 @@ STRUCT = '''\
    
 ■■■ Class Utils ({})
     ║
-    ║ - Main Classes:
+    ║ - Functions: ───────────────────────────
+    ╠══ function getBanner
+    ╠══ function getClassAndFuncs
+    ║
+    ║ - Properties: ──────────────────────────
+    ╠══ property tree
+    ╠══ property raw_tree
+    ║
+    ║ - Main Classes: ────────────────────────
     ╠══ Class Actions
     ║   ║
     ║   ║ - Error Classes: ───────────────────
@@ -8058,6 +8645,26 @@ STRUCT = '''\
         ║    ├── function doble
         ║    └── function rammstein
         ║
+        ╠══ Class ContentOnImage
+        ║    │
+        ║    │ - Functions: ──────────────────
+        ║    ├── function asc2Bin
+        ║    ├── function bin2Asc
+        ║    ├── function bin2Dec
+        ║    ├── function dec2Bin
+        ║    ├── function dec2Hex
+        ║    ├── function hex2Dec
+        ║    ├── function getMaxChars
+        ║    ├── function getMaxCharsVal
+        ║    ├── function checksumFixed
+        ║    ├── function checksumNormal
+        ║    ├── function listGenerator
+        ║    ├── function testRules
+        ║    ├── function extractData
+        ║    ├── function insertData
+        ║    ├── function insertContent
+        ║    └── function extractContent
+        ║
         ╠══ Class DoomsdayRule
         ║    ║
         ║    ║ - Error Classes: ──────────────
@@ -8112,12 +8719,35 @@ STRUCT = '''\
         ╠══ Class NumberSystems
         ║    │
         ║    │ - Functions: ──────────────────
-        ║    ├── function decimalToBinary
-        ║    └── function binaryToDecimal
+        ║    ├── function binToChr (Lambda)
+        ║    ├── function binToHex (Lambda)
+        ║    ├── function binToDec (Lambda)
+        ║    ├── function binToOct (Lambda)
+        ║    ├── function chrToBin (Lambda)
+        ║    ├── function chrToHex (Lambda)
+        ║    ├── function chrToDec (Lambda)
+        ║    ├── function chrToOct (Lambda)
+        ║    ├── function hexToBin (Lambda)
+        ║    ├── function hexToChr (Lambda)
+        ║    ├── function hexToDec (Lambda)
+        ║    ├── function hexToOct (Lambda)
+        ║    ├── function decToBin (Lambda)
+        ║    ├── function decToChr (Lambda)
+        ║    ├── function decToHex (Lambda)
+        ║    ├── function decToOct (Lambda)
+        ║    ├── function octToBin (Lambda)
+        ║    ├── function octToChr (Lambda)
+        ║    ├── function octToHex (Lambda)
+        ║    └── function octToDec (Lambda)
         ║
         ╠══ Class Splitmix64
         ║    │
         ║    │ - Functions: ──────────────────
+        ║    ├── function asc2Bin
+        ║    ├── function bin2Asc
+        ║    ├── function bin2Dec
+        ║    ├── function dec2Bin
+        ║    ├── property seed_text        (get)
         ║    ├── property seed             (get, set)
         ║    ├── function reset
         ║    ├── function nextInt
@@ -8164,6 +8794,7 @@ STRUCT = '''\
         ├── function nVRr
         ├── function nPR
         ├── function wordGenerator
+        ├── function listGenerator
         │ #Pygame:
         ├── function moveWindow
         ├── function curWinRect
@@ -8184,9 +8815,9 @@ STRUCT = '''\
  
  All Classes Have Properties Called 'use', 'classes', and 'functions'.
  
- *Classes:    79
- *Functions:  185
- *Properties: 40
+ *Classes:    80
+ *Functions:  226
+ *Properties: 43
  
 '''.format(__version__)
 
@@ -8221,20 +8852,204 @@ if __name__ == '__main__':
 	# ~ utilities = utils.Utilities
 	
 	#-------------------------------------------------------------------
+	# Mostrar Árbol de Clases y Funciones en 'Utils':
+	
+	# ~ print(utils.tree)
+	
+	# Manualmente:
+	
+	# ~ data = utils.getClassAndFuncs(utils)
+	# ~ name = utils.__class__.__name__
+	# ~ json2tree = utils.Utilities.JSONToTree
+	# ~ tree = json2tree.tree(data, name)
+	# ~ # print(tree)
+	
+	# ~ print(utils.tree == tree)
+	
+	# Otros Usos, Ejemplo:
+	
+	# ~ vol = utils.Actions.Volume
+	# ~ data = utils.getClassAndFuncs(vol)
+	# ~ name = vol.__class__.__name__
+	# ~ json2tree = utils.Utilities.JSONToTree
+	# ~ tree = json2tree.tree(data, name)
+	# ~ # print(tree)
+	
+	# Output:
+	# ■■■ Volume
+	#    ├─── Error Classes
+	#    │   ├─── ChannelDoesNotExists
+	#    │   ├─── MuteControlIsNotSupported
+	#    │   └─── VolumeControlIsNotSupported
+	#    ├─── Classes
+	#    │   └─── VolumeHandler
+	#    └─── Functions
+	#        ├─── balanceVolChannels
+	#        ├─── getChannelCount
+	#        ├─── getChannelVol
+	#        ├─── getChannelVoldB
+	#        ├─── setChannelVol
+	#        ├─── setChannelVoldB
+	#        ├─── toggleMute
+	#        ├─── volumeStepDown
+	#        └─── volumeStepUp
+	
+	#-------------------------------------------------------------------
+	# Number Systems Converter
+	
+	# ~ NSC = utils.Utilities.NumberSystems
+	
+	# ~ c_b = NSC.chrToBin('a')
+	# ~ c_d = NSC.chrToDec('a')
+	# ~ c_h = NSC.chrToHex('a')
+	# ~ c_o = NSC.chrToOct('a')
+	
+	# ~ b_c = NSC.binToChr(c_b)
+	# ~ b_h = NSC.binToHex(c_b)
+	# ~ b_d = NSC.binToDec(c_b)
+	# ~ b_o = NSC.binToOct(c_b)
+	
+	# ~ d_b = NSC.decToBin(c_d)
+	# ~ d_c = NSC.decToChr(c_d)
+	# ~ d_h = NSC.decToHex(c_d)
+	# ~ d_o = NSC.decToOct(c_d)
+	
+	# ~ h_b = NSC.hexToBin(c_h)
+	# ~ h_c = NSC.hexToChr(c_h)
+	# ~ h_d = NSC.hexToDec(c_h)
+	# ~ h_o = NSC.hexToOct(c_h)
+	
+	# ~ o_b = NSC.octToBin(c_o)
+	# ~ o_c = NSC.octToChr(c_o)
+	# ~ o_d = NSC.octToDec(c_o)
+	# ~ o_h = NSC.octToHex(c_o)
+	
+	# ~ print(f'Chr to Bin: {b_c:>8} -> {c_b}')
+	# ~ print(f'Dec to Bin: {b_d:>8} -> {d_b}')
+	# ~ print(f'Hex to Bin: {b_h:>8} -> {h_b}')
+	# ~ print(f'Oct to Bin: {b_o:>8} -> {o_b}')
+	
+	# ~ print(f'Bin to Chr: {c_b:>8} -> {b_c}')
+	# ~ print(f'Hex to Chr: {c_h:>8} -> {h_c}')
+	# ~ print(f'Dec to Chr: {c_d:>8} -> {d_c}')
+	# ~ print(f'Oct to Chr: {c_o:>8} -> {o_c}')
+	
+	# ~ print(f'Bin to Dec: {d_b:>8} -> {b_d}')
+	# ~ print(f'Chr to Dec: {d_c:>8} -> {c_d}')
+	# ~ print(f'Hex to Dec: {d_h:>8} -> {h_d}')
+	# ~ print(f'Oct to Dec: {d_o:>8} -> {o_d}')
+	
+	# ~ print(f'Bin to Hex: {h_b:>8} -> {b_h}')
+	# ~ print(f'Chr to Hex: {h_c:>8} -> {c_h}')
+	# ~ print(f'Dec to Hex: {h_d:>8} -> {d_h}')
+	# ~ print(f'Oct to Hex: {h_o:>8} -> {o_h}')
+	
+	# ~ print(f'Bin to Oct: {o_b:>8} -> {b_o}')
+	# ~ print(f'Chr to Oct: {o_c:>8} -> {c_o}')
+	# ~ print(f'Dec to Oct: {o_d:>8} -> {d_o}')
+	# ~ print(f'Hex to Oct: {o_h:>8} -> {h_o}')
+	
+	# Output:
+	# Chr to Bin:        a -> 01100001
+	# Dec to Bin:       97 -> 01100001
+	# Hex to Bin:       61 -> 01100001
+	# Oct to Bin:      141 -> 01100001
+	# Bin to Chr: 01100001 -> a
+	# Hex to Chr:       61 -> a
+	# Dec to Chr:       97 -> a
+	# Oct to Chr:      141 -> a
+	# Bin to Dec: 01100001 -> 97
+	# Chr to Dec:        a -> 97
+	# Hex to Dec:       61 -> 97
+	# Oct to Dec:      141 -> 97
+	# Bin to Hex: 01100001 -> 61
+	# Chr to Hex:        a -> 61
+	# Dec to Hex:       97 -> 61
+	# Oct to Hex:      141 -> 61
+	# Bin to Oct: 01100001 -> 141
+	# Chr to Oct:        a -> 141
+	# Dec to Oct:       97 -> 141
+	# Hex to Oct:       61 -> 141
+	
+	#-------------------------------------------------------------------
+	# ContentOnImage: Algoritmo de Esteganografía para ocultamiento de información en los pixeles de una imagen.
+	
+	# ~ COI = utils.Utilities.ContentOnImage
+	
+	# Agregar Contenido con contraseña:
+	# ~ con_fname = utils.Actions.Explorer.getFileName()				# Archivo de contenido
+	# ~ img_fname = utils.Actions.Explorer.getFileName()				# Imagen donde se agregará el contenido
+	# ~ if con_fname and img_fname:
+		# ~ fname = utils.Actions.Explorer.getFileNameSave()			# Nombre de imagen de salida
+		# ~ if fname:
+			# ~ content = open(con_fname, 'rb').read()
+			# ~ COI.insertContent(content, img_fname, fname, 'passwd')
+	
+	# Extraer Contenido con contraseña:
+	# ~ con_fname = utils.Actions.Explorer.getFileName()				# Imagen de donde se extraerá el contenido
+	# ~ img_fname = utils.Actions.Explorer.getFileNameSave()			# Archivo donde se agregará el contenido de salida
+	# ~ if con_fname and img_fname:
+		# ~ data = COI.extractContent(con_fname, 'passwd')
+		# ~ with open(img_fname, 'wb') as f: f.write(data)
+	
+	# Agregar Contenido con una regla en especifico:
+	# ~ con_fname = utils.Actions.Explorer.getFileName()				# Archivo de contenido
+	# ~ img_fname = utils.Actions.Explorer.getFileName()				# Imagen donde se agregará el contenido
+	# ~ if con_fname and img_fname:
+		# ~ fname = utils.Actions.Explorer.getFileNameSave()			# Nombre de imagen de salida
+		# ~ if fname:
+			# ~ rule = lambda r, g, b: (r and g) or (r and b) or (g and b)
+			# ~ content = open(con_fname, 'rb').read()
+			# ~ COI.insertContent(content, img_fname, fname, func=rule)
+	
+	# Extraer Contenido con una regla en especifico:
+	# ~ con_fname = utils.Actions.Explorer.getFileName()				# Imagen de donde se extraerá el contenido
+	# ~ img_fname = utils.Actions.Explorer.getFileNameSave()			# Archivo donde se agregará el contenido de salida
+	# ~ if con_fname and img_fname:
+		# ~ rule = lambda r, g, b: (r and g) or (r and b) or (g and b)
+		# ~ data = COI.extractContent(con_fname, func=rule)
+		# ~ with open(img_fname, 'wb') as f: f.write(data)
+	
+	#-------------------------------------------------------------------
+	# listGenerator
+	
+	# ~ set_ = [True, False]
+	# ~ list_gen = utils.Utilities.listGenerator(set_, 3)
+	# ~ print('\n', list_gen)
+	
+	# ~ set_ = [0, 1]
+	# ~ list_gen = utils.Utilities.listGenerator(set_, 3)
+	# ~ print('\n', list_gen)
+	
+	# ~ set_ = range(2,5)
+	# ~ list_gen = utils.Utilities.listGenerator(set_, 2)
+	# ~ print('\n', list_gen)
+	
+	# ~ set_ = 'AB'
+	# ~ list_gen = utils.Utilities.listGenerator(set_, 3)
+	# ~ print('\n', list_gen)
+	
+	# Output:
+	# [[True, True, True], [True, True, False], [True, False, True], [True, False, False], [False, True, True], [False, True, False], [False, False, True], [False, False, False]]
+	# [[0, 0, 0], [0, 0, 1], [0, 1, 0], [0, 1, 1], [1, 0, 0], [1, 0, 1], [1, 1, 0], [1, 1, 1]]
+	# [[2, 2], [2, 3], [2, 4], [3, 2], [3, 3], [3, 4], [4, 2], [4, 3], [4, 4]]
+	# [['A', 'A', 'A'], ['A', 'A', 'B'], ['A', 'B', 'A'], ['A', 'B', 'B'], ['B', 'A', 'A'], ['B', 'A', 'B'], ['B', 'B', 'A'], ['B', 'B', 'B']]
+	
+	#-------------------------------------------------------------------
 	# Clase ObjTyList Mejorada:
 	
 	# Ejemplos del uso de Map, Filter y Reduce:
-	print('\n ObjTyList (Map, Filter y Reduce):\n')
+	# ~ print('\n ObjTyList (Map, Filter y Reduce):\n')
 	
-	objList  = ObjTyList(['1','2','3','4','5'])
-	mapped   = objList.map(lambda elem: int(elem))
-	filtered = mapped.filter(lambda elem: elem >= 3)
-	reduced  = filtered.reduce(lambda acc, elem: acc + elem)
+	# ~ objList  = ObjTyList(['1','2','3','4','5'])
+	# ~ mapped   = objList.map(lambda elem: int(elem))
+	# ~ filtered = mapped.filter(lambda elem: elem >= 3)
+	# ~ reduced  = filtered.reduce(lambda acc, elem: acc + elem)
 	
-	print(' Original:', objList)
-	print(' Mapped:  ', mapped)
-	print(' Filtered:', filtered)
-	print(' Reduced: ', reduced)
+	# ~ print(' Original:', objList)
+	# ~ print(' Mapped:  ', mapped)
+	# ~ print(' Filtered:', filtered)
+	# ~ print(' Reduced: ', reduced)
 	
 	# Output:
 	# ObjTyList (Map, Filter y Reduce):
@@ -8245,16 +9060,16 @@ if __name__ == '__main__':
 	
 	#----------------------------------------------
 	# En Cadena:
-	print('\n ObjTyList (Map, Filter y Reduce en cadena):\n')
+	# ~ print('\n ObjTyList (Map, Filter y Reduce en cadena):\n')
 	
-	objList = ObjTyList(['1','2','3','4','5'])
-	res = objList \
-		.map(lambda item: int(item)) \
-		.filter(lambda item: item >= 3) \
-		.reduce(lambda acc, item: acc + item)
+	# ~ objList = ObjTyList(['1','2','3','4','5'])
+	# ~ res = objList \
+		# ~ .map(lambda item: int(item)) \
+		# ~ .filter(lambda item: item >= 3) \
+		# ~ .reduce(lambda acc, item: acc + item)
 	
-	print(' Original:', objList)
-	print(' Reduced: ', res)
+	# ~ print(' Original:', objList)
+	# ~ print(' Reduced: ', res)
 	
 	# Output:
 	# ObjTyList (Map, Filter y Reduce en cadena):
@@ -8263,26 +9078,26 @@ if __name__ == '__main__':
 	
 	#----------------------------------------------
 	# Utilizando forEach:
-	objList = ObjTyList(['1','2','3','4','5'])
+	# ~ objList = ObjTyList(['1','2','3','4','5'])
 	
-	def tempFunc(item, index, arr):
+	# ~ def tempFunc(item, index, arr):
 		
-		if len(arr) > index+1:
-			next_item = arr[index+1]
-		else:
-			next_item = None
+		# ~ if len(arr) > index+1:
+			# ~ next_item = arr[index+1]
+		# ~ else:
+			# ~ next_item = None
 		
-		out =  f' Item {index} => {repr(item)} + \'!\'  --> '
-		out += f' Next item: {repr(next_item)}'
+		# ~ out =  f' Item {index} => {repr(item)} + \'!\'  --> '
+		# ~ out += f' Next item: {repr(next_item)}'
 		
-		arr[index] += '!'
+		# ~ arr[index] += '!'
 		
-		print(out)
+		# ~ print(out)
 	
-	print('\n ObjTyList (forEach):\n')
-	print(' Original:', objList, '\n')
-	objList.forEach(tempFunc)
-	print(f'\n Modificado: {objList}')
+	# ~ print('\n ObjTyList (forEach):\n')
+	# ~ print(' Original:', objList, '\n')
+	# ~ objList.forEach(tempFunc)
+	# ~ print(f'\n Modificado: {objList}')
 	
 	# Output:
 	# ObjTyList (forEach):
@@ -8295,22 +9110,22 @@ if __name__ == '__main__':
 	
 	#----------------------------------------------
 	# Factorial de un numero 'n' utilizando 'reduce':
-	factorial = lambda n: ObjTyList(range(1, n+1)).reduce(lambda acc, item: acc * item)
+	# ~ factorial = lambda n: ObjTyList(range(1, n+1)).reduce(lambda acc, item: acc * item)
 	
-	n = 5
-	print(f'\n Fatorial de {repr(str(n))}: {factorial(n)}')
+	# ~ n = 5
+	# ~ print(f'\n Fatorial de {repr(str(n))}: {factorial(n)}')
 	
 	# Output: 
 	# Fatorial de '5': 120
 	
 	#----------------------------------------------
 	# Factoriales de una lista de numeros utilizando 'map' y 'reduce':
-	factorial = lambda n: ObjTyList(range(1, n+1)).reduce(lambda acc, item: acc * item)
+	# ~ factorial = lambda n: ObjTyList(range(1, n+1)).reduce(lambda acc, item: acc * item)
 	
-	values = [5, 7, 3, 4, 8]
-	mapped = ObjTyList(values).map(lambda value: factorial(value))
+	# ~ values = [5, 7, 3, 4, 8]
+	# ~ mapped = ObjTyList(values).map(lambda value: factorial(value))
 	
-	print(f'\n Fatorial de {repr(str(values))}: {mapped}')
+	# ~ print(f'\n Fatorial de {repr(str(values))}: {mapped}')
 	
 	# Output:
 	# Fatorial de '[5, 7, 3, 4, 8]': [120, 5040, 6, 24, 40320]
