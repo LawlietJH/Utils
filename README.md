@@ -18,7 +18,15 @@
 ![Icon](ubz2file.ico "Icono de archivos ubz2")
 
 ```php
-■■■ Class Utils (v1.1.1)
+■■■ Class Utils (v1.1.3)
+    ║
+    ║ - Functions: ───────────────────────────
+    ╠══ function getBanner                            (+New)
+    ╠══ function getClassAndFuncs                     (+New)
+    ║
+    ║ - Properties: ──────────────────────────
+    ╠══ property tree                                 (+New)
+    ╠══ property raw_tree                             (+New)
     ║
     ║ - Main Classes:
     ╠══ Class Actions
@@ -315,6 +323,26 @@
         ║    ├── function doble
         ║    └── function rammstein
         ║
+        ╠══ Class ContentOnImage                      (+New)
+        ║    │
+        ║    │ - Functions: ──────────────────
+        ║    ├── function asc2Bin
+        ║    ├── function bin2Asc
+        ║    ├── function bin2Dec
+        ║    ├── function dec2Bin
+        ║    ├── function dec2Hex
+        ║    ├── function hex2Dec
+        ║    ├── function getMaxChars
+        ║    ├── function getMaxCharsVal
+        ║    ├── function checksumFixed
+        ║    ├── function checksumNormal
+        ║    ├── function listGenerator
+        ║    ├── function testRules
+        ║    ├── function extractData
+        ║    ├── function insertData
+        ║    ├── function insertContent
+        ║    └── function extractContent
+        ║
         ╠══ Class DoomsdayRule
         ║    ║
         ║    ║ - Error Classes: ──────────────
@@ -332,7 +360,7 @@
         ║    ├── function getMonthValue
         ║    └── function calculateWeekday
         ║
-        ╠══ Class FileTimeChanger                     (+New)
+        ╠══ Class FileTimeChanger
         ║    │
         ║    │ - Functions: ──────────────────
         ║    ├── function toTimestamp (Lambda)
@@ -369,12 +397,35 @@
         ╠══ Class NumberSystems
         ║    │
         ║    │ - Functions: ──────────────────
-        ║    ├── function decimalToBinary
-        ║    └── function binaryToDecimal
+        ║    ├── function binToChr (Lambda)           (+New)
+        ║    ├── function binToHex (Lambda)           (+New)
+        ║    ├── function binToDec (Lambda)           (+New)
+        ║    ├── function binToOct (Lambda)           (+New)
+        ║    ├── function chrToBin (Lambda)           (+New)
+        ║    ├── function chrToHex (Lambda)           (+New)
+        ║    ├── function chrToDec (Lambda)           (+New)
+        ║    ├── function chrToOct (Lambda)           (+New)
+        ║    ├── function hexToBin (Lambda)           (+New)
+        ║    ├── function hexToChr (Lambda)           (+New)
+        ║    ├── function hexToDec (Lambda)           (+New)
+        ║    ├── function hexToOct (Lambda)           (+New)
+        ║    ├── function decToBin (Lambda)           (+New)
+        ║    ├── function decToChr (Lambda)           (+New)
+        ║    ├── function decToHex (Lambda)           (+New)
+        ║    ├── function decToOct (Lambda)           (+New)
+        ║    ├── function octToBin (Lambda)           (+New)
+        ║    ├── function octToChr (Lambda)           (+New)
+        ║    ├── function octToHex (Lambda)           (+New)
+        ║    └── function octToDec (Lambda)           (+New)
         ║
         ╠══ Class Splitmix64
         ║    │
         ║    │ - Functions: ──────────────────
+        ║    ├── property asc2Bin                     (+New)
+        ║    ├── property bin2Asc                     (+New)
+        ║    ├── property bin2Dec                     (+New)
+        ║    ├── property dec2Bin                     (+New)
+        ║    ├── property seed_text        (get)      (+New)
         ║    ├── property seed             (get, set)
         ║    ├── function reset
         ║    ├── function nextInt
@@ -401,25 +452,27 @@
         │    └── function f_hash
         │
         │ - Functions: ───────────────────────
-        ├── function getNumWords (Lambda)             (+New)
-        ├── function getNumChars (Lambda)             (+New)
-        ├── function getFileSize (Lambda)             (+New)
+        ├── function getNumWords (Lambda)
+        ├── function getNumChars (Lambda)
+        ├── function getFileSize (Lambda)
         │ #Math:
         ├── function cos
         ├── function sin
         ├── function diagonal
         ├── function euclideanDistance
         ├── function fibonacci
-        ├── function factorial                        (+New)
+        ├── function factorial
         ├── function getAngle
+        ├── function isPrime                          (+New)
         │ #Combinatoria:
-        ├── function nCr                              (+New)
-        ├── function nVr                              (+New)
-        ├── function nP                               (+New)
-        ├── function nCRr                             (+New)
-        ├── function nVRr                             (+New)
-        ├── function nPR                              (+New)
-        ├── function wordGenerator                    (+New)
+        ├── function nCr
+        ├── function nVr
+        ├── function nP
+        ├── function nCRr
+        ├── function nVRr
+        ├── function nPR
+        ├── function wordGenerator
+        ├── function listGenerator
         │ #Pygame:
         ├── function moveWindow
         ├── function curWinRect
@@ -440,8 +493,8 @@
  
  All Classes Have Properties Called 'use', 'classes', and 'functions'.
  
- *Classes:    79
- *Functions:  184
- *Properties: 40
+ *Classes:    80
+ *Functions:  222
+ *Properties: 47
  
 ```
