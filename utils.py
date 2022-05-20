@@ -1,18 +1,19 @@
 
 # Tested in: Python 3.8.8 - Windows
 # By: LawlietJH
-# Utils v1.1.3
+# Utils v1.1.4
+# Biblioteca de Clases
 
 # Banner:
 # ███    █▄      ███      ▄█   ▄█          ▄████████
 # ███    ███ ▀█████████▄ ███  ███         ███    ███    █▄▄ █▄█ ▀   █   ▄▀█ █ █ █ █   █ █▀▀ ▀█▀   █ █ █
 # ███    ███    ▀███▀▀██ ███▌ ███         ███    █▀     █▄█  █  ▄   █▄▄ █▀█ ▀▄▀▄▀ █▄▄ █ ██▄  █  █▄█ █▀█
 # ███    ███     ███   ▀ ███▌ ███         ███
-# ███    ███     ███     ███▌ ███       ▀███████████    ██    ██  ██     ██    ██████
-# ███    ███     ███     ███  ███                ███    ██    ██ ███    ███         ██
-# ███    ███     ███     ███  ███▌    ▄    ▄█    ███    ██    ██  ██     ██     █████
+# ███    ███     ███     ███▌ ███       ▀███████████    ██    ██  ██     ██    ██   ██
+# ███    ███     ███     ███  ███                ███    ██    ██ ███    ███    ██   ██
+# ███    ███     ███     ███  ███▌    ▄    ▄█    ███    ██    ██  ██     ██    ███████
 # ████████▀     ▄████▀   █▀   █████▄▄██  ▄████████▀      ██  ██   ██     ██         ██
-#                             ▀                           ████    ██ ██  ██ ██ ██████
+#                             ▀                           ████    ██ ██  ██ ██      ██
 
 from typing import List, Callable, TypeVar		# Anotaciones de Tipos
 from datetime import datetime, timedelta
@@ -55,7 +56,7 @@ except:
 # Manipulacion de DLLs de Windows ======================================
 import ctypes
 import comtypes						# python -m pip install comtypes
-from ctypes import wintypes, windll, byref
+from ctypes import wintypes, windll, byref			# wintypes.LPDWORD = POINTER(DWORD)
 #=======================================================================
 
 # pip install pywin32 ==================================================
@@ -78,12 +79,27 @@ import win32ui			as WU
 #=======================================================================
 __author__  = 'LawlietJH'	# Desarrollador
 __title__   = 'Utils'		# Nombre
-__version__ = 'v1.1.3'		# Version
+__version__ = 'v1.1.4'		# Version
 #=======================================================================
 #=======================================================================
 # Constants ============================================================
 
 WC.MB_CANCELTRYCONTINUE = 6
+
+VER_NT_WORKSTATION = 1
+VER_SUITE_ENTERPRISE     = 0x0002
+VER_SUITE_DATACENTER     = 0x0080
+VER_SUITE_PERSONAL       = 0x0200
+VER_SUITE_BLADE          = 0x0400
+VER_SUITE_STORAGE_SERVER = 0x2000
+VER_SUITE_COMPUTE_SERVER = 0x4000
+VER_SUITE_WH_SERVER      = 0x8000
+PROCESSOR_ARCHITECTURE_IA64  = 6
+PROCESSOR_ARCHITECTURE_AMD64 = 9
+SM_TABLETPC    = 86
+SM_MEDIACENTER = 87
+SM_STARTER     = 88
+SM_SERVERR2    = 89
 
 TITM = TypeVar('Item')
 TRET = TypeVar('Return')
@@ -330,6 +346,102 @@ class ObjTyFunctionNames: #Use # Obtiene todos los nombres de las funciones en l
 			'qty': self.qty
 		}
 
+class SuperInheritance:    # Permite hacer herencia de forma manual. Realiza Herencias desde clases de niveles superiores en una Biblioteca de Clases.
+	
+	def remIniTabs(desc):
+		out = []
+		qty = 32
+		for line in desc.split('\n'):
+			if line == '':
+				continue
+			if line.startswith('\t') \
+			and not line.endswith('\t'):
+				count = 0
+				for l in line:
+					if l == '\t':
+						count += 1
+					else:
+						break
+				if qty > count:
+					qty = count
+			elif line[0].isalpha():
+				qty = 0
+				break
+		for line in desc.split('\n'):
+			if line.startswith('\t'):
+				l_out = []
+				for i, l in enumerate(line.split('\t')):
+					if i < qty and l == '':
+						continue
+					l_out.append(l)
+				line = '\t'.join(l_out)
+			out.append(line)
+		out = '\n'.join(out)
+		return out
+	
+	use = remIniTabs('''
+			Ejemplo de Uso: Herencia desde una clase de un nivel superior en una Biblioteca de Clases.
+		
+		class A:    # Nivel 1
+		
+		def __init__(self):
+			
+			self.C = self.C(self.B, self.E)
+		
+		class B:    # Nivel 2
+			
+			def __init__(self, val1=True):
+				
+				# ...
+		
+		class C:    # Nivel 2
+			
+			def __init__(self, class_B, class_E):
+				
+				# Hereda de la Clase B y tiene el paso de parametros opcional.
+				self.D = SuperInheritance(self.D, class_B)               # Hereda todo de B a D (Ahora D = [D, B])
+				
+				# Volver a heredar para aplicar Multiherencia y pasamos un parametro obligatorio:
+				self.D = SuperInheritance(self.D, class_E, 'value_1')    # Hereda todo de E a D (Ahora D = [D, B, E])
+			
+			class D:    # Nivel 3
+				
+				# ...
+		
+		class E:    # Nivel 2
+			
+			def __init__(self, val1, val2=False):
+				
+				# ...
+		
+	''')
+	
+	def __new__(self, Base, Inheritance, *args, **kwargs):
+		
+		base_mro = Base.__mro__
+		inhr_mro = Inheritance.__mro__
+		
+		base_name = Base.__qualname__
+		bases = [item for item in base_mro if item not in inhr_mro
+		         and not item.__qualname__ == self.__qualname__]
+		
+		try:
+			if Base.__qty_: bases.pop(0)
+		except:
+			pass
+		
+		bases = tuple(bases) + inhr_mro
+		base_dict = Base.__dict__.copy()
+		
+		Base = type(base_name, bases, base_dict)
+		
+		try: Base.__qty_ += 1
+		except: Base.__qty_ = 1
+		
+		Inheritance.__init__(Base, *args, **kwargs)
+		
+		return Base
+
 #=======================================================================
 #=======================================================================
 #=======================================================================
@@ -512,6 +624,16 @@ class Utils:
 				WCB.EmptyClipboard()
 				WCB.SetClipboardText(b'', WCB.CF_TEXT)
 				WCB.CloseClipboard()
+			
+			# print(Clipboard.files)
+			@property
+			def files(self):											# Pegar: Devuelve las rutas de archivos copiados.
+				WCB.OpenClipboard()
+				file_paths = None
+				if WCB.IsClipboardFormatAvailable(WC.CF_HDROP):
+					file_paths = WCB.GetClipboardData(WC.CF_HDROP)
+				WCB.CloseClipboard()
+				return file_paths
 		
 		#---------------------------------------------------------------
 		
@@ -629,9 +751,11 @@ class Utils:
 				# Giant dictonary to hold key name and VK value
 				# http://www.kbdedit.com/manual/low_level_vk_list.html
 				# https://gist.github.com/chriskiehl/2906125
+				# https://docs.microsoft.com/en-us/windows/win32/inputdev/virtual-key-codes
 				self.VK = {
 					'left button': 0x01,
 					'right button': 0x02,
+					'cancel': 0x03,
 					'middle button': 0x04,
 					'x button 1': 0x05,
 					'x button 2': 0x06,
@@ -871,6 +995,12 @@ class Utils:
 			def getAsyncKeyState(self, vk=''):
 				return WA.GetAsyncKeyState(self.VK[vk.lower()])
 			
+			def isActive(self, vk=''):
+				return False if self.getKeyState(vk) == 0 else True
+			
+			def isPressed(self, vk=''):
+				return self.getKeyState(vk) < 0
+			
 			def press(self, *args, sleep=.05):
 				'''
 				one press, one release.
@@ -970,7 +1100,7 @@ class Utils:
 				self.MOUSEEVENTF_MIDDLEUP   = 0x0040
 				self.MOUSEEVENTF_WHEEL      = 0x0800
 				self.MOUSEEVENTF_HWHEEL     = 0x01000
-				# ~ self.MOUSEEVENTF_MOVE       = 0x0001
+				self.MOUSEEVENTF_MOVE       = 0x0001
 				# ~ self.MOUSEEVENTF_XDOWN      = 0x0080
 				# ~ self.MOUSEEVENTF_XUP        = 0x0100
 				# ~ self.MOUSEEVENTF_ABSOLUTE   = 0x8000
@@ -986,7 +1116,42 @@ class Utils:
 			def position(self, position):								# Posiciona el cursor en (X, Y)
 				WA.SetCursorPos(position)
 			
-			def leftClick(self, qty=1, sleep=0.01):									# Da un clic izquierdo en la posición actual del cursor
+			def confineCursor(rect=(0,0,0,0)):							# Limita el cursor a un área rectangular en la pantalla: (xpos, ypos, height, width).
+				'''rect = ( left, top, right, down )'''
+				if rect.__class__ in [tuple, list]:
+					return WA.ClipCursor(rect)
+				else:
+					return WA.ClipCursor((0,0,0,0))
+			
+			def confineCursorCoords(self):								# Obtiene las coordenadas de la pantalla del área rectangular a la que está confinado el cursor.
+				'''rect = ( left, top, right, down )'''
+				rect = ctypes.wintypes.RECT()
+				ctypes.windll.user32.GetClipCursor(ctypes.byref(rect))
+				return (rect.left, rect.top, rect.right, rect.bottom)
+			
+			def cursorInfo(self):										# Contiene información global del cursor. Parecido a: win32gui.GetCursorInfo()
+				class CURSORINFO(ctypes.Structure):
+					_fields_ = [('cbSize', ctypes.c_uint),							# El tamaño de la estructura, en bytes.
+								('flags', ctypes.c_uint),							# CursorFlags: 0 = Hide, 1 = Show
+								('hCursor', ctypes.c_void_p),						# Un identificador para el cursor.
+								('ptScreenPos', ctypes.wintypes.POINT)]				# ScreenPos: ptScreenPos.x, ptScreenPos.y
+				info = CURSORINFO()
+				info.cbSize = ctypes.sizeof(info)
+				ctypes.windll.user32.GetCursorInfo(ctypes.byref(info))
+				return {
+					'showCursor': info.flags,
+					'hCursor': info.hCursor,
+					'cursorPos': (info.ptScreenPos.x, info.ptScreenPos.y)
+				}
+			
+			def freezeCursor(self, freeze=True):						# Congela el Cursor
+				if freeze:
+					px, py = WA.GetCursorPos()
+					return WA.ClipCursor((px, py, px+1, py+1))
+				else:
+					return WA.ClipCursor((0,0,0,0))
+			
+			def leftClick(self, qty=1, sleep=0.01):						# Da un clic izquierdo en la posición actual del cursor
 				for x in range(qty):
 					ctypes.windll.user32.mouse_event(self.MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0)
 					time.sleep(sleep)
@@ -998,7 +1163,7 @@ class Utils:
 			def leftClickUp(self):										# Deja de presionar el clic izquierdo
 				ctypes.windll.user32.mouse_event(self.MOUSEEVENTF_LEFTUP, 0, 0, 0, 0)
 			
-			def rightClick(self, qty=1, sleep=0.01):								# Da un clic derecho en la posición actual del cursor
+			def rightClick(self, qty=1, sleep=0.01):					# Da un clic derecho en la posición actual del cursor
 				for x in range(qty):
 					ctypes.windll.user32.mouse_event(self.MOUSEEVENTF_RIGHTDOWN, 0, 0, 0, 0)
 					time.sleep(sleep)
@@ -1021,6 +1186,10 @@ class Utils:
 			
 			def middleClickUp(self):									# Deja de presionar el clic central (rueda del mouse)
 				ctypes.windll.user32.mouse_event(self.MOUSEEVENTF_MIDDLEUP, 0, 0, 0, 0)
+			
+			def move(self, dx=0, dy=0, delay=0.01):						# Mueve el cursor en la dirección (x, y) indicada en pixeles, tomando como base la posición actual del cursor
+				WA.mouse_event(self.MOUSEEVENTF_MOVE, int(dx), int(dy), 0, 0) 
+				time.sleep(delay)
 			
 			def scrollUp(self, clicks=1, delay=0.1):					# Hace un Scroll hacia Arriba
 				assert clicks >= 1
@@ -1049,6 +1218,14 @@ class Utils:
 				for _ in range(clicks):
 					ctypes.windll.user32.mouse_event(self.MOUSEEVENTF_HWHEEL, 0, 0, -WC.WHEEL_DELTA, 0)
 					time.sleep(delay)
+			
+			def swapMouseButtons(swap=None):							# Invierte o restaura el significado de los botones izquierdo y derecho del mouse.
+				if swap in [True, False, 1, 0]:
+					value = ctypes.windll.user32.SwapMouseButton(swap)
+				else:
+					value = ctypes.windll.user32.SwapMouseButton()
+					ctypes.windll.user32.SwapMouseButton(not value)
+				return value
 		
 		#---------------------------------------------------------------
 		
@@ -2076,12 +2253,18 @@ class Utils:
 		def not_closeCMD(self):												# [X] Cierra la consola de comandos
 			WCS.FreeConsole()
 		
+		def disableMouseOnWindow(self, hwnd=WCS.GetConsoleWindow(), bDisable=True):			# Habilita/Deshabilita el mouse en una ventana.
+			return not bool(WG.EnableWindow(hwnd, not bDisable))							# Devuelve True Si la ventana esta deshabilitada y False si esta Habilitada
+		
 		def displaySwitch(self, tipo=0): #Use							# Cambia la pantalla Solo Primera, Pantalla Duplicada, Extendida o Solo Segunda.
 			if not 0 <= tipo <= 3: tipo = 0
 			tipos = ['/internal', '/clone', '/extend', '/external']
 			cmd = 'displayswitch.exe ' + tipos[tipo]
 			# ~ print(cmd)
 			self.run_command(cmd)
+		
+		def dragAcceptFiles(self, hWnd, bAccept):						# Indica si la ventana Aceptará o No el "Drag & Drop".
+			WG.DragAcceptFiles(hWnd, bAccept)
 		
 		def exitWindows(self, type_output):								# LogOff = Cierre Total de Sesión, Cierra Todas Las Aplicaciones.
 			
@@ -2114,6 +2297,11 @@ class Utils:
 							# ~ WG.EnumChildWindows(h[0], lambda hWnd, param: param.append((hWnd, WG.GetWindowText(hWnd), WG.GetClassName(hWnd))), hWndChildList2)
 							# ~ print(hWndChildList2)
 					return hwnd
+		
+		def getShortcutTargetPath(self, path):							# Obtiene la Ruta Objetivo de un Acceso Directo (.lnk)
+			wshell = Dispatch('WScript.Shell')							# <COMObject WScript.Shell>
+			shortcut = wshell.CreateShortcut(path)
+			return shortcut.TargetPath									# Target Path of the Shortcut
 		
 		def getNameActiveWindow(self):									# Obtiene el nombre de la ventana activa
 			return WG.GetWindowText(WG.GetForegroundWindow())
@@ -2173,6 +2361,27 @@ class Utils:
 			
 			return privlist
 		
+		def getPosWindowToScreen(self, hWnd, dx=0, dy=0):				# Obtiene la posición (x, y) de la ventana (hWnd) con respecto al punto dado (dx, dy) de la pantalla.
+			return WG.ClientToScreen(hWnd, (dx, dy))
+		
+		def getPosScreenToWindow(self, hWnd, dx=0, dy=0):				# Obtiene la posición (x, y) de la pantalla con respecto al punto dado (dx, dy) de la ventana (hWnd).
+			return WG.ScreenToClient(hWnd, (dx, dy))
+		
+		def getWindowPixelColor(hWnd, dx=0, dy=0, rgb_hex=False):		# Obtiene el color RGB de un pixel en un punto dado (dx, dy) de la ventana (hWnd).
+			hWndDC = WG.GetDC(hWnd)
+			try:
+				color = WG.GetPixel(hWndDC, dx, dy)
+			except:
+				return None
+			b = color & 255
+			g = (color >> 8) & 255
+			r = (color >> 16) & 255
+			if rgb_hex:
+				r = hex(r)[2:].zfill(2).upper()
+				g = hex(g)[2:].zfill(2).upper()
+				b = hex(b)[2:].zfill(2).upper()
+			return (r, g, b)
+		
 		def getWindowRect(self, hwnd):									# Obtiene las dimensiones y posicion de la ventana
 			rect = WG.GetWindowRect(hwnd)
 			x, y = rect[:2]
@@ -2180,10 +2389,10 @@ class Utils:
 			h = rect[3] - y
 			return (x, y, w, h)
 		
-		def hideConsole(self, xD=True):									# Oculta/Desoculta la consola de comandos
-			WG.ShowWindow(WCS.GetConsoleWindow(), not xD)
+		def hideConsole(self, hide=True):								# Oculta/Desoculta la consola de comandos
+			WG.ShowWindow(WCS.GetConsoleWindow(), not hide)
 		
-		def hideCursor(self, visible=False):							# Oculta/Desoculta el cursor en pantalla.
+		def hideCursor(self, hide=True):								# Oculta/Desoculta el cursor en pantalla.
 			
 			linux_hide_cursor = '\033[?25l'
 			linux_show_cursor = '\033[?25h'
@@ -2191,7 +2400,7 @@ class Utils:
 			if os.name == 'nt':
 				import msvcrt
 				import ctypes
-
+				
 				class _CursorInfo(ctypes.Structure):
 					_fields_ = [("size", ctypes.c_int),
 								("visible", ctypes.c_byte)]
@@ -2206,7 +2415,7 @@ class Utils:
 				elif os.name == 'posix':
 					sys.stdout.write(linux_hide_cursor)
 					sys.stdout.flush()
-
+			
 			def show_cursor():
 				if os.name == 'nt':
 					ci = _CursorInfo()
@@ -2218,8 +2427,7 @@ class Utils:
 					sys.stdout.write(linux_show_cursor)
 					sys.stdout.flush()
 			
-				
-			if visible: hide_cursor()
+			if hide: hide_cursor()
 			else: show_cursor()
 		
 		def hideWindow(self, hide=True, hwnd=WG.GetForegroundWindow()):	# Oculta/Desoculta la consola de comandos
@@ -2343,7 +2551,7 @@ class Utils:
 			else:
 				WG.SetWindowPos(hwnd, WC.HWND_NOTOPMOST, *self.getWindowRect(hwnd), 0)
 		
-		def setTopMostWindow(self, topMost=True, hwnd=WG.GetForegroundWindow()):	# Coloca al frente la ventana seleccionada y la fija. Se puede pasar el hwnd para seleccionar una ventana especifica.
+		def setTopMostWindow(self, hwnd=WG.GetForegroundWindow(), topMost=True):	# Coloca al frente la ventana seleccionada y la fija. Se puede pasar el hwnd para seleccionar una ventana especifica.
 			if topMost:
 				WG.SetWindowPos(hwnd, WC.HWND_TOPMOST, *self.getWindowRect(hwnd), 0)
 			else:
@@ -2547,9 +2755,9 @@ class Utils:
 				self.HIDE = 1
 				
 				# Valores para esta ruta:
-				self.controlPanel       = 'NoControlPanel'
-				self.viewContextMenu    = 'NoViewContextMenu'
-				self.clock              = 'HideClock'
+				# ~ self.controlPanel       = 'NoControlPanel'
+				# ~ self.viewContextMenu    = 'NoViewContextMenu'
+				# ~ self.clock              = 'HideClock'
 				self.SCAHealthVal       = 'HideSCAHealth'
 				self.SCANetworkVal      = 'HideSCANetwork'
 				self.SCAPowerVal        = 'HideSCAPower'
@@ -2565,15 +2773,15 @@ class Utils:
 				self.trayItemsDisplay   = 'NoTrayItemsDisplay'
 				self.classicShell       = 'ClassicShell'
 				#self.activeDesktopChanges = 'NoActiveDesktopChanges'
-				self.propertiesRecycleBin = 'NoPropertiesRecycleBin'
-				self.close              = 'NoClose'
+				# ~ self.propertiesRecycleBin = 'NoPropertiesRecycleBin'
+				# ~ self.close              = 'NoClose'
 				# Modificadas:
-				self.windowMinimizingShortcuts = 'NoWindowMinimizingShortcuts'
+				# ~ self.windowMinimizingShortcuts = 'NoWindowMinimizingShortcuts'
 				
 				# Clases Internas:
-				self.ControlPanel       = self.ControlPanel(self)
-				self.ContextMenu        = self.ContextMenu(self)
-				self.Clock              = self.Clock(self)
+				self.ControlPanel       = self.ControlPanel(self, 'NoControlPanel')
+				self.ContextMenu        = self.ContextMenu(self, 'NoViewContextMenu')
+				self.Clock              = self.Clock(self, 'HideClock')
 				self.SCAHealth          = self.SCAHealth(self)
 				self.SCANetwork         = self.SCANetwork(self)
 				self.SCAPower           = self.SCAPower(self)
@@ -2589,10 +2797,10 @@ class Utils:
 				self.TrayItemsDisplay   = self.TrayItemsDisplay(self)
 				self.ClassicShell       = self.ClassicShell(self)
 				#self.ActiveDesktopChanges = self.ActiveDesktopChanges(self)
-				self.PropertiesRecycleBin = self.PropertiesRecycleBin(self)
-				self.Close              = self.Close(self)
+				self.PropertiesRecycleBin = self.PropertiesRecycleBin(self, 'NoPropertiesRecycleBin')
+				self.Close              = self.Close(self, 'NoClose')
 				# Modificadas:
-				self.WindowMinimizingShortcuts = self.WindowMinimizingShortcuts(self)
+				self.WindowMinimizingShortcuts = self.WindowMinimizingShortcuts(self, 'NoWindowMinimizingShortcuts')
 				
 				self.enumValues = [
 					'ControlPanel',
@@ -2663,6 +2871,12 @@ class Utils:
 				except:
 					return False, None
 			
+			def _get(self, VALUE, BOOL):																# Intenta abrir el key, extraer su valor y devolverlo.
+				data = self._keyExists(VALUE)[1]
+				if BOOL and data is not None:
+					data = bool(data)
+				return (VALUE, data)
+			
 			def _show(self, VALUE):
 				key_exists, isHidden = self._keyExists(VALUE)										# Intenta abrir el key y extraer su valor.
 				if not key_exists:																	# Si no existe el key, lo crea y lo habilita.
@@ -2694,7 +2908,7 @@ class Utils:
 			
 			class Close:
 			
-				def __init__(self, parent):
+				def __init__(self, parent, value):
 					
 					self.classes   = ObjTyClassNames(self)
 					self.functions = ObjTyFunctionNames(self)
@@ -2704,24 +2918,27 @@ class Utils:
 					'''
 					
 					self.parent = parent
+					self.value = value
 					self.enable = self.show
 					self.disable = self.hide
 				
+				get = lambda self, boolVal=False: self.parent._get(self.value, boolVal)
+				
 				# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer]
 				# "NoClose"=dword:00000000
-				def show(self): self.parent._show(self.parent.close)
+				def show(self): self.parent._show(self.value)
 				
 				# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer]
 				# "NoClose"=dword:00000001
-				def hide(self): self.parent._hide(self.parent.close)
+				def hide(self): self.parent._hide(self.value)
 				
 				# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer]
 				# "NoClose"=-
-				def cleanUp(self): self.parent._cleanUp(self.parent.close)
+				def cleanUp(self): self.parent._cleanUp(self.value)
 			
 			class PropertiesRecycleBin:
 			
-				def __init__(self, parent):
+				def __init__(self, parent, value):
 					
 					self.classes   = ObjTyClassNames(self)
 					self.functions = ObjTyFunctionNames(self)
@@ -2743,24 +2960,27 @@ class Utils:
 					'''
 					
 					self.parent = parent
+					self.value = value
 					self.enable = self.show
 					self.disable = self.hide
 				
+				get = lambda self, boolVal=False: self.parent._get(self.value, boolVal)
+				
 				# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer]
 				# "NoPropertiesRecycleBin"=dword:00000000
-				def show(self): self.parent._show(self.parent.propertiesRecycleBin)
+				def show(self): self.parent._show(self.value)
 				
 				# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer]
 				# "NoPropertiesRecycleBin"=dword:00000001
-				def hide(self): self.parent._hide(self.parent.propertiesRecycleBin)
+				def hide(self): self.parent._hide(self.value)
 				
 				# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer]
 				# "NoPropertiesRecycleBin"=-
-				def cleanUp(self): self.parent._cleanUp(self.parent.propertiesRecycleBin)
+				def cleanUp(self): self.parent._cleanUp(self.value)
 			
 			class WindowMinimizingShortcuts:
 			
-				def __init__(self, parent):
+				def __init__(self, parent, value):
 					
 					self.classes   = ObjTyClassNames(self)
 					self.functions = ObjTyFunctionNames(self)
@@ -2787,24 +3007,27 @@ class Utils:
 					
 					self.parent = parent
 					self.PATH = r'SOFTWARE\Policies\Microsoft\Windows\Explorer'
+					self.value = value
 					self.enable = self.show
 					self.disable = self.hide
 				
+				get = lambda self, boolVal=False: self.parent._get(self.value, boolVal)
+				
 				# [HKEY_CURRENT_USER\SOFTWARE\Policies\Microsoft\Windows\Explorer]
 				# "NoWindowMinimizingShortcuts"=dword:00000000
-				def show(self): self.parent._show(self.parent.windowMinimizingShortcuts)
+				def show(self): self.parent._show(self.value)
 				
 				# [HKEY_CURRENT_USER\SOFTWARE\Policies\Microsoft\Windows\Explorer]
 				# "NoWindowMinimizingShortcuts"=dword:00000001
-				def hide(self): self.parent._hide(self.parent.windowMinimizingShortcuts)
+				def hide(self): self.parent._hide(self.value)
 				
 				# [HKEY_CURRENT_USER\SOFTWARE\Policies\Microsoft\Windows\Explorer]
 				# "NoWindowMinimizingShortcuts"=-
-				def cleanUp(self): self.parent._cleanUp(self.parent.windowMinimizingShortcuts)
+				def cleanUp(self): self.parent._cleanUp(self.value)
 			
 			class ControlPanel:
 			
-				def __init__(self, parent):
+				def __init__(self, parent, value):
 					
 					self.classes   = ObjTyClassNames(self)
 					self.functions = ObjTyFunctionNames(self)
@@ -2841,24 +3064,27 @@ class Utils:
 					'''
 					
 					self.parent = parent
+					self.value = value
 					self.enable = self.show
 					self.disable = self.hide
 				
+				get = lambda self, boolVal=False: self.parent._get(self.value, boolVal)
+				
 				# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer]
 				# "NoControlPanel"=dword:00000000
-				def show(self): self.parent._show(self.parent.controlPanel)
+				def show(self): self.parent._show(self.value)
 				
 				# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer]
 				# "NoControlPanel"=dword:00000001
-				def hide(self): self.parent._hide(self.parent.controlPanel)
+				def hide(self): self.parent._hide(self.value)
 				
 				# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer]
 				# "NoControlPanel"=-
-				def cleanUp(self): self.parent._cleanUp(self.parent.controlPanel)
+				def cleanUp(self): self.parent._cleanUp(self.value)
 			
 			class ContextMenu:
 			
-				def __init__(self, parent):
+				def __init__(self, parent, value):
 					
 					self.classes   = ObjTyClassNames(self)
 					self.functions = ObjTyFunctionNames(self)
@@ -2869,6 +3095,7 @@ class Utils:
 					'''
 					
 					self.parent = parent
+					self.value = value
 					self.enable = self.show
 					self.disable = self.hide
 					
@@ -2890,44 +3117,57 @@ class Utils:
 					\r \\
 					'''
 				
+				get = lambda self, boolVal=False: self.parent._get(self.value, boolVal)
+				
 				# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer]
 				# "NoViewContextMenu"=dword:00000000
-				def show(self): self.parent._show(self.parent.viewContextMenu)
+				def show(self): self.parent._show(self.value)
 				
 				# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer]
 				# "NoViewContextMenu"=dword:00000001
-				def hide(self): self.parent._hide(self.parent.viewContextMenu)
+				def hide(self): self.parent._hide(self.value)
 				
 				# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer]
 				# "NoViewContextMenu"=-
-				def cleanUp(self): self.parent._cleanUp(self.parent.viewContextMenu)
+				def cleanUp(self): self.parent._cleanUp(self.value)
 			
 			class Clock:
 				
-				def __init__(self, parent):
+				def __init__(self, parent, value):
 					
 					self.classes   = ObjTyClassNames(self)
 					self.functions = ObjTyFunctionNames(self)
 					
 					self.description = '''
-					\r Oculta el reloj de la barra de tareas
+					\r Remove Clock from the system notification area. Oculta el reloj de la barra de tareas.
+					\r 
+					\r Prevents the clock in the system notification area from being displayed.
+					\r 
+					\r If you enable this setting, the clock will not be displayed in the system
+					\r notification area.
+					\r 
+					\r If you disable or do not configure this setting, the default behavior of the
+					\r clock appearing in the notification area will occur.
 					'''
 					
 					self.parent = parent
+					self.value = value
 					self.enable = self.show
 					self.disable = self.hide
 				
+				get = lambda self, boolVal=False: self.parent._get(self.value, boolVal)
+				
 				# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer]
 				# "HideClock"=dword:00000000
-				def show(self): self.parent._show(self.parent.clock)
+				def show(self): self.parent._show(self.value)
 				
 				# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer]
 				# "HideClock"=dword:00000001
-				def hide(self): self.parent._hide(self.parent.clock)
+				def hide(self): self.parent._hide(self.value)
 				
 				# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer]
 				# "HideClock"=-
-				def cleanUp(self): self.parent._cleanUp(self.parent.clock)
+				def cleanUp(self): self.parent._cleanUp(self.value)
 			
 			class SCAHealth:
 				
@@ -4391,6 +4631,8 @@ class Utils:
 				except:
 					return False, None
 			
+			get = lambda self: (self.VALUE, self._keyExists()[1])								# Intenta abrir el key, extraer su valor y devolverlo.
+			
 			# [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System]
 			# "DisableTaskMgr"=dword:00000000
 			def enable(self):
@@ -4880,6 +5122,8 @@ class Utils:
 			\r \\
 			'''
 		
+		#---------------------------------------------------------------
+		
 		def not_enumWindows(self):											# [X] Muestra los hwnd de todas los programas
 			class __WindowEnumerator (object):
 				'''
@@ -4941,6 +5185,8 @@ class Utils:
 			
 			return False
 		
+		#---------------------------------------------------------------
+		
 		def enumComputerSystemInfo(self):								# Muestra información detallada del sistema.
 			con = wmi.WMI()
 			# ~ print(f'Manufacturer: {computerSystem.Manufacturer}')
@@ -4999,38 +5245,290 @@ class Utils:
 			
 			return output
 		
-		@property
-		def isCapsLockActive(self):										# Devuelve True si el Bloq Mayús está activado o False si no.
-			return False if WA.GetKeyState(WC.VK_CAPITAL) == 0 else True
+		def getPIDs(self, hwnd=None, processName=None):					# Obtiene un ID de un proceso por hWnd (proceso) o por Nombre.
+			if processName:
+				pass
+			elif hwnd:
+				return WP.GetWindowThreadProcessId(hwnd)[::-1]
+			else:
+				return False
+			try:
+				pids = []
+				for proc in GetObject("winmgmts:").ExecQuery("SELECT * FROM Win32_Process WHERE Name = '" + str(processName.replace("'", "\\'")) + "'"):
+					pids.append(proc.ProcessID)
+				return pids
+			except:
+				return False
 		
-		@property
-		def isLinux(self):												# Función Que Comprueba si el SO es Linux, Devuelve TRUE/FALSE
-			osver = os.popen("ver").read()
-			if osver.find("Linux") > 0: return True
-			else: return False
+		def getProcessName(self, hwnd=None, pid=None):					# Obtiene un nombre de proceso por hWnd (proceso) o por ID de un proceso.
+			if not pid:
+				pid = WP.GetWindowThreadProcessId(hwnd)[1]
+			handle = WA.OpenProcess(WC.PROCESS_QUERY_INFORMATION | WC.PROCESS_VM_READ, False, pid)
+			processName = WP.GetModuleFileNameEx(handle, 0)
+			processName = processName.split('\\')[-1]
+			return processName 
 		
-		@property
-		def isMouseInstalled(self):										# Devuelve verdadero si hay controlador de mouse instalado.
-			val = WA.GetSystemMetrics(WC.SM_MOUSEPRESENT)	# SM_MOUSEPRESENT = 19
-			return val == 1
+		def getHwnds(self, pid=None, processName=None):					# Obtiene un hWnd (proceso) por ID o por Nombre.
+			if pid:
+				pass
+			elif processName:
+				pids = self.getPIDs(processName=processName)
+				if pids:
+					pid = pids[0]
+				else:
+					return False
+			else:
+				return False
+			def callback(hwnd, hwnds):
+				nonlocal processName
+				if WG.IsWindowVisible(hwnd):
+					_, result = WP.GetWindowThreadProcessId(hwnd)
+					if result == pid:
+						if not processName:
+							processName = self.getProcessName(pid=pid)
+						hwnds.append((hwnd, pid, processName))
+				return True
+			hwnds = []
+			WG.EnumWindows(callback, hwnds)
+			return hwnds
 		
-		@property
-		def isPythonV2(self):											# Devuelve verdadero si versión de python que corre es 2.X.
-			return sys.version[0] == '2'
-		
-		@property
-		def isPythonV3(self):											# Devuelve verdadero si versión de python que corre es 3.X.
-			return sys.version[0] == '3'
-		
-		@property
-		def isSlowMachine(self):										# Es 1 si la computadora tiene un procesador de gama baja (lento)
-			val = WA.GetSystemMetrics(WC.SM_SLOWMACHINE)				# SM_SLOWMACHINE = 73
-			return val == 1
-		
-		@property
-		def isUserAnAdmin(self):										# Devuelve True si el programa tiene permisos de administrador o False si no.
-			return shell.IsUserAnAdmin()
-		
+		def getWindowsVersionStr(self):									# Devuelve una cadena con la información de la version del systema, ejemplo: 'Microsoft Windows 10 Home, 64-bit (build 19043)'
+			
+			class OSVERSIONINFOEX(ctypes.Structure):
+				_fields_ = [
+					('dwOSVersionInfoSize', wintypes.DWORD),
+					('dwMajorVersion', wintypes.DWORD),
+					('dwMinorVersion', wintypes.DWORD),
+					('dwBuildNumber', wintypes.DWORD),
+					('dwPlatformId', wintypes.DWORD),
+					('szCSDVersion', wintypes.WCHAR * 128),
+					('wServicePackMajor', wintypes.WORD),
+					('wServicePackMinor', wintypes.WORD),
+					('wSuiteMask', wintypes.WORD),
+					('wProductType', wintypes.BYTE),
+					('wReserved', wintypes.BYTE),
+				]
+			
+			class SYSTEM_INFO(ctypes.Structure):
+				_fields_ = [
+					('wProcessorArchitecture', wintypes.WORD),
+					('wReserved', wintypes.WORD),
+					('dwPageSize', wintypes.DWORD),
+					('lpMinimumApplicationAddress', wintypes.LPVOID),
+					('lpMaximumApplicationAddress', wintypes.LPVOID),
+					('dwActiveProcessorMask', wintypes.LPDWORD),			# wintypes.LPDWORD = POINTER(DWORD)
+					('dwNumberOfProcessors', wintypes.DWORD),
+					('dwProcessorType', wintypes.DWORD),
+					('dwAllocationGranularity', wintypes.DWORD),
+					('wProcessorLevel', wintypes.WORD),
+					('wProcessorRevision', wintypes.WORD),
+				]
+			
+			# Ref: https://docs.microsoft.com/en-us/windows/win32/api/sysinfoapi/nf-sysinfoapi-getproductinfo#parameters
+			EDITIONS = {
+				0x06: '{} Business',
+				0x10: '{} Business N',
+				0x12: '{} HPC Edition',
+				0x40: '{} Hyper Core V',
+				0x65: '{} Home',
+				0x63: '{} Home China',
+				0x62: '{} Home N',
+				0x64: '{} Home Single Language',
+				0x50: '{} Datacenter (evaluation installation)',
+				0x91: '{} Standard, Semi-Annual Channel (core installation)',
+				0x92: '{} Standard, Semi-Annual Channel (core installation)',
+				0x08: '{} Datacenter (full installation)',
+				0x0C: '{} Datacenter (core installation)',
+				0x27: '{} Datacenter without Hyper-V (core installation)',
+				0x25: '{} Datacenter without Hyper-V (full installation)',
+				0x79: '{} Education',
+				0x7A: '{} Education N',
+				0x04: '{} Enterprise',
+				0x46: '{} Enterprise E',
+				0x1B: '{} Enterprise N',
+				0x54: '{} Enterprise N Evaluation',
+				0x7D: '{} Enterprise 2015 LTSB',
+				0x81: '{} Enterprise 2015 LTSB Evaluation',
+				0x7E: '{} Enterprise 2015 LTSB N',
+				0x82: '{} Enterprise 2015 LTSB N Evaluation',
+				0x0A: '{} Enterprise (full installation)',
+				0x0E: '{} Enterprise (core installation)',
+				0x29: '{} Enterprise without Hyper-V (core installation)',
+				0x0F: '{} Enterprise for Itanium-based Systems',
+				0x26: '{} Enterprise without Hyper-V (full installation)',
+				0x3C: 'Essential {} Solution Additional',
+				0x3E: 'Essential {} Solution Additional SVC',
+				0x3B: 'Essential {} Solution Management',
+				0x3D: 'Essential {} Solution Management SVC',
+				0x02: '{} Home Basic',
+				0x43: '{} Not supported',	# Home Basic E
+				0x05: '{} Home Basic N',
+				0x03: '{} Home Premium',
+				0x44: '{} Not supported',	# Home Premium E
+				0x1A: '{} Home Premium N',
+				0x22: 'Home {} 2011',
+				0x13: 'Storage {} 2008 R2 Essentials',
+				0x2A: 'Hyper-V {}',
+				0xBC: '{} IoT Enterprise',
+				0xBF: '{} IoT Enterprise LTSC',
+				0x7B: '{} IoT Core',
+				0x83: '{} IoT Core Commercial',
+				0x1E: 'Essential Business {} Management Server',
+				0x20: 'Essential Business {} Messaging Server',
+				0x1F: 'Essential Business {} Security Server',
+				0x68: '{} Mobile',
+				0x85: '{} Mobile Enterprise',
+				0x4D: 'MultiPoint {} Premium (full installation)',
+				0x4C: 'MultiPoint {} Standard (full installation)',
+				0xA1: '{} Pro for Workstations',
+				0xA2: '{} Pro for Workstations N',
+				0x30: '{} Pro',
+				0x45: '{} Not supported', # Professional E
+				0x31: '{} Pro N',
+				0x67: '{} Professional with Media Center',
+				0x32: '{} Windows Small Business Server 2011 Essentials',
+				0x36: '{} For SB Solutions EM',
+				0x33: '{} For SB Solutions',
+				0x37: '{} For SB Solutions EM',
+				0x18: '{} for Windows Essential Server Solutions',
+				0x23: '{} without Hyper-V for Windows Essential Server Solutions',
+				0x21: '{} Foundation',
+				0x09: 'Small Business {}',
+				0x19: 'Small Business {} Premium',
+				0x3F: 'Small Business {} Premium (core installation)',
+				0x38: 'MultiPoint {}',
+				0x4F: '{} Standard (evaluation installation)',
+				0x07: '{} Standard (full installation)',
+				0x0D: '{} Standard (core installation)',
+				0x28: '{} Standard without Hyper-V (core installation)',
+				0x24: '{} Standard without Hyper-V (full installation)',
+				0x34: '{} Solutions Premium',
+				0x35: '{} Solutions Premium (core installation)',
+				0x0B: '{} Starter',
+				0x42: '{} Not supported',	# Starter E
+				0x2F: '{} Starter N',
+				0x17: 'Storage {} Enterprise',
+				0x2E: 'Storage {} Enterprise (core installation)',
+				0x14: 'Storage {} Express',
+				0x2B: 'Storage {} Express (core installation)',
+				0x60: 'Storage {} Standard (evaluation installation)',
+				0x15: 'Storage {} Standard',
+				0x2C: 'Storage {} Standard (core installation)',
+				0x5F: 'Storage {} Workgroup (evaluation installation)',
+				0x16: 'Storage {} Workgroup',
+				0x2D: 'Storage {} Workgroup (core installation)',
+				0x01: '{} Ultimate',
+				0x47: '{} Not supported',	# Ultimate E
+				0x1C: '{} Ultimate N',
+				0x00: '{} An unknown product',
+				0x11: 'Web {} (full installation)',
+				0x1D: 'Web {} (core installation)',
+			}
+			
+			GetSystemMetrics = ctypes.windll.user32.GetSystemMetrics
+			system_info = SYSTEM_INFO()
+			osverinf = OSVERSIONINFOEX()
+			osverinf.dwOSVersionInfoSize = ctypes.sizeof(OSVERSIONINFOEX)
+			ctypes.windll.kernel32.GetVersionExW(ctypes.byref(osverinf))
+			try:
+				MyGetSystemInfo = ctypes.windll.kernel32.GetNativeSystemInfo
+			except AttributeError:
+				MyGetSystemInfo = ctypes.windll.kernel32.GetSystemInfo
+			MyGetSystemInfo(ctypes.byref(system_info))
+			name = ''
+			major_version = osverinf.dwMajorVersion
+			minor_version = osverinf.dwMinorVersion
+			
+			if major_version == 5:
+				suiteMask = osverinf.wSuiteMask
+				if minor_version == 0:
+					if osverinf.wProductType == VER_NT_WORKSTATION:
+						name = '2000 Professional'
+					else:
+						if suiteMask & VER_SUITE_DATACENTER:
+							name = '2000 Datacenter Server'
+						elif suiteMask & VER_SUITE_ENTERPRISE:
+							name = '2000 Advanced Server'
+						else:
+							name = '2000 Server'
+				elif minor_version == 1:
+					if GetSystemMetrics(SM_MEDIACENTER):
+						name = 'XP Media Center Edition'
+					elif GetSystemMetrics(SM_TABLETPC):
+						name = 'XP Tablet PC Edition'
+					elif GetSystemMetrics(SM_STARTER):
+						name = 'XP Starter Edition'
+					elif suiteMask & VER_SUITE_PERSONAL:
+						name = 'XP Home Edition'
+					else:
+						name = 'XP Professional'
+				elif minor_version == 2:
+					if GetSystemMetrics(SM_SERVERR2):
+						name = 'Server 2003 R2'
+					elif suiteMask == VER_SUITE_STORAGE_SERVER:
+						name = 'Storage Server 2003'
+					elif suiteMask == VER_SUITE_WH_SERVER:
+						name = 'Home Server'
+					elif osverinf.wProductType == VER_NT_WORKSTATION:
+						# Windows XP Professional x64 Edition
+						name = 'XP Professional'
+					else:
+						name = 'Server 2003'
+					if osverinf.wProductType != VER_NT_WORKSTATION:
+						if suiteMask & VER_SUITE_COMPUTE_SERVER:
+							name += ' Compute Cluster Edition'
+						elif suiteMask & VER_SUITE_DATACENTER:
+							name += ' Datacenter Edition'
+						elif suiteMask & VER_SUITE_ENTERPRISE:
+							name += ' Enterprise Edition'
+						elif suiteMask & VER_SUITE_BLADE:
+							name += ' Web Edition'
+						else:
+							name += ' Standard Edition'
+			elif major_version >= 6:
+				try:
+					os_type = {
+						( 6, 0, True ): 'Vista',
+						( 6, 0, False): 'Server 2008',
+						( 6, 1, True ): '7',
+						( 6, 1, False): 'Server 2008 R2',
+						( 6, 2, True ): '8',
+						( 6, 2, False): 'Server 2012',
+						( 6, 3, True ): '8.1',
+						( 6, 3, False): 'Server 2012 R2',
+						(10, 0, True ): '10',
+						(10, 0, False): 'Server 2016',
+					}.get((
+						major_version,
+						minor_version,
+						osverinf.wProductType == VER_NT_WORKSTATION,
+					))
+					if os_type == None:
+						os_type = 'Unknown'
+				except KeyError:
+					os_type = f'Unknown OS {major_version}.{minor_version}'
+				dwType = wintypes.DWORD()
+				ctypes.windll.kernel32.GetProductInfo(
+					major_version, minor_version, 0, 0, ctypes.byref(dwType)
+				)
+				try:
+					name = EDITIONS[dwType.value].format(os_type)
+				except KeyError:
+					name = f'{os_type} (Unknown Edition {dwType.value})'
+			
+			if osverinf.wServicePackMajor:
+				name += f' SP{osverinf.wServicePackMajor}'
+				if osverinf.wServicePackMinor:
+					name += f'.{osverinf.wServicePackMinor}'
+			
+			if system_info.wProcessorArchitecture == PROCESSOR_ARCHITECTURE_AMD64:
+				name += ', 64-bit'
+			elif system_info.wProcessorArchitecture == PROCESSOR_ARCHITECTURE_IA64:
+				name += ', Itanium'
+			else:
+				name += ', 32-bit'
+			name += f' (build {osverinf.dwBuildNumber})'
+			return 'Microsoft Windows ' + name
 		
 		def isUserPasswordValid(self, userName, passwd):				# Verifica si la contraseña dada es la correcta del usuario.
 			'''
@@ -5064,6 +5562,43 @@ class Utils:
 				return True
 			except:
 				return False
+		
+		def isWindowEnabled(self, hwnd=WCS.GetConsoleWindow()):			# Indica si la ventana esta habilitada. 
+			return bool(WG.IsWindowEnabled(hwnd))
+		
+		#---------------------------------------------------------------
+		
+		@property
+		def isCapsLockActive(self):										# Devuelve True si el Bloq Mayús está activado o False si no.
+			return False if WA.GetKeyState(WC.VK_CAPITAL) == 0 else True
+		
+		@property
+		def isLinux(self):												# Función Que Comprueba si el SO es Linux, Devuelve TRUE/FALSE
+			osver = os.popen("ver").read()
+			if osver.find("Linux") > 0: return True
+			else: return False
+		
+		@property
+		def isMouseInstalled(self):										# Devuelve verdadero si hay controlador de mouse instalado.
+			val = WA.GetSystemMetrics(WC.SM_MOUSEPRESENT)	# SM_MOUSEPRESENT = 19
+			return val == 1
+		
+		@property
+		def isPythonV2(self):											# Devuelve verdadero si versión de python que corre es 2.X.
+			return sys.version[0] == '2'
+		
+		@property
+		def isPythonV3(self):											# Devuelve verdadero si versión de python que corre es 3.X.
+			return sys.version[0] == '3'
+		
+		@property
+		def isSlowMachine(self):										# Es 1 si la computadora tiene un procesador de gama baja (lento)
+			val = WA.GetSystemMetrics(WC.SM_SLOWMACHINE)				# SM_SLOWMACHINE = 73
+			return val == 1
+		
+		@property
+		def isUserAnAdmin(self):										# Devuelve True si el programa tiene permisos de administrador o False si no.
+			return shell.IsUserAnAdmin()
 		
 		@property
 		def isWindows(self):											# Función Que Comprueba si el SO es Linux, Devuelve TRUE/FALSE
@@ -5194,8 +5729,7 @@ class Utils:
 		def collectAll(self):
 			
 			collected = {
-			}
-			collected = {
+				'getWindowsVersionStr':  self.getWindowsVersionStr(),
 				'isCapsLockActive':      self.isCapsLockActive,
 				'isLinux':               self.isLinux,
 				'isMouseInstalled':      self.isMouseInstalled,
@@ -5218,11 +5752,13 @@ class Utils:
 				'screenSize':            self.screenSize,
 				'systemDrive':           self.systemDrive,
 				'systemRoot':            self.systemRoot,
+				'systemUptime':          self.systemUptime(),
 				'userDefaultLanguage':   self.userDefaultLanguage,
 				'userDowntime':          self.userDowntime,
 				'userName':              self.userName,
 				'winDir':                self.winDir
 			}
+			
 			return collected
 	
 	class Utilities:	# Funciones de utilidad para cosas generales.
@@ -5234,6 +5770,7 @@ class Utils:
 			
 			self.load_uses()
 			
+			self.ArgParser = self.ArgParser()
 			self.AsciiFont = self.AsciiFont()
 			self.ContentOnImage = self.ContentOnImage(self.Splitmix64)
 			self.DoomsdayRule = self.DoomsdayRule()
@@ -5247,9 +5784,259 @@ class Utils:
 			# ~ self.getNumChars = lambda num_c, w_len: sum([(num_c**l)*l for l in range(1, w_len+1)])
 			# ~ self.getFileSize = lambda num_c, w_len: self.getNumChars(num_c, w_len) + self.getNumWords(num_c, w_len) * 2
 		
-		getNumWords = lambda self, num_c, w_len: sum([ num_c**l    for l in range(1, w_len+1)])
-		getNumChars = lambda self, num_c, w_len: sum([(num_c**l)*l for l in range(1, w_len+1)])
-		getFileSize = lambda self, num_c, w_len: self.getNumChars(num_c, w_len) + self.getNumWords(num_c, w_len) * 2
+		class ArgParser:		# Analizador de argumentos: Devuelve un diccionario con los valores de cada argumento dado.
+			
+			def __init__(self):
+				self.classes   = ObjTyClassNames(self)
+				self.functions = ObjTyFunctionNames(self)
+			
+			def pairsUnion(self, args):
+				
+				#-------------------------------------------------------------------
+				# Union of params with '=' or ':'
+				tmp = []
+				concat = ''
+				
+				for i, arg in enumerate(args):
+					
+					try:
+						if args[i+1] == '=':
+							concat += arg
+							continue
+						elif arg == '=':
+							concat += arg
+							continue
+						elif args[i-1] == '=':
+							concat += arg
+							tmp.append(concat)
+							concat = ''
+							continue
+					except: pass
+					
+					try:
+						if args[i+1] == ':':
+							concat += arg
+							continue
+						elif arg == ':':
+							concat += arg
+							continue
+						elif args[i-1] == ':':
+							concat += arg
+							tmp.append(concat)
+							concat = ''
+							continue
+					except: pass
+					
+					try:
+						if args[i+1].startswith('='):
+							concat += arg
+							continue
+						elif arg.startswith('='):
+							concat += arg
+							tmp.append(concat)
+							concat = ''
+							continue
+					except: pass
+					
+					try:
+						if args[i+1].startswith(':'):
+							concat += arg
+							continue
+						elif arg.startswith(':'):
+							concat += arg
+							tmp.append(concat)
+							concat = ''
+							continue
+					except: pass
+					
+					try:
+						if arg.endswith('='):
+							concat += arg
+							continue
+						elif args[i-1].endswith('='):
+							concat += arg
+							tmp.append(concat)
+							concat = ''
+							continue
+					except: pass
+					
+					try:
+						if arg.endswith(':'):
+							concat += arg
+							continue
+						elif args[i-1].endswith(':'):
+							concat += arg
+							tmp.append(concat)
+							concat = ''
+							continue
+					except: pass
+					
+					if concat:
+						tmp.append(concat)
+						concat = ''
+					else:
+						tmp.append(arg)
+				
+				# ~ print(args)
+				# ~ print(tmp)
+				
+				args = tmp
+				#-------------------------------------------------------------------
+				
+				return args
+			
+			def pairsVals(self, arg, args, pairs, output, wn):
+				
+				ignore = True
+				
+				for key, val in pairs.items():
+					
+					if val.__class__ in [list, tuple]:
+						if arg in val:
+							if wn:
+								output[key] = (arg, args.pop(0))
+							else:
+								output[arg] = args.pop(0)
+							ignore = False
+							break
+					elif val.__class__ == str:
+						if arg == val:
+							try:
+								if wn:
+									output[key] = (arg, args.pop(0))
+								else:
+									output[arg] = args.pop(0)
+							except:
+								break
+							ignore = False
+							break
+				
+				return ignore
+			
+			def singleVals(self, arg, single, output, wn):
+				
+				ignore = True
+				
+				for key, val in single.items():
+					
+					if val.__class__ in [list, tuple]:
+						if arg in val:
+							if wn:
+								output[key] = (arg, True)
+							else:
+								output[arg] = True
+							ignore = False
+							break
+					elif val.__class__ == str:
+						if arg == val:
+							if wn:
+								output[key] = (arg, True)
+							else:
+								output[arg] = True
+							ignore = False
+							break
+				
+				return ignore
+			
+			def unitedVals(self, arg, united, output, ignored, wn):
+				
+				tmp_arg = arg.split(':')
+				if len(tmp_arg) != 2:
+					tmp_arg = tmp_arg[0].split('=')
+					if len(tmp_arg) != 2:
+						ignored.append(arg)
+						return 'continue'
+				
+				ignore = True
+				
+				for key, val in united.items():
+					
+					if val.__class__ in [list, tuple]:
+						if tmp_arg[0] in val:
+							if wn:
+								output[key] = (tmp_arg[0], tmp_arg[1])
+							else:
+								output[tmp_arg[0]] = tmp_arg[1]
+							ignore = False
+							break
+					elif val.__class__ == str:
+						if tmp_arg[0] == val:
+							if wn:
+								output[key] = (tmp_arg[0], tmp_arg[1])
+							else:
+								output[tmp_arg[0]] = tmp_arg[1]
+							ignore = False
+							break
+				
+				return ignore
+			
+			def parser(self, values, args, wn=False):	# wn -> output with names
+				
+				ignored = []
+				output = {}
+				
+				pairs  = values.get('pairs')
+				single = values.get('single')
+				united = values.get('united')
+				
+				assert pairs or single or united, '''Example...\n
+					\r    values = {
+					\r        'pairs':  {  # 'arg value'               # Use:
+					\r            'Name 1': ['-e', '--example'],       # -e value, --example value
+					\r            'Name 2': '-o',                      # -o value
+					\r            'Wordlist': '-w'                     # -w value
+					\r        },
+					\r        'single': {  # 'arg'
+					\r            'Name 3': ['-n', '--name'],          # -n, --name
+					\r            'Name 4': '-a',                      # -a
+					\r            'Name 5': 'val'                      # val
+					\r        },
+					\r        'united': {  # 'arg = value' or 'arg: value'
+					\r            'Name 6': ['-vn', '--valuename'],    # -vn=value, --valname:value
+					\r            'Name 7': '-dn',                     # -dn= value
+					\r            'Name 8': ['-xn', '-xname', 'xn'],   # -xn: value, -xname = value, xn : value
+					\r            'Wordlist': '-w'                     # -w: value     (-w value alternative)
+					\r        }
+					\r    }
+				'''
+				
+				if args.__class__ == str:
+					args = args.split(' ')
+				if args.__class__ == tuple:
+					args = list(args)
+				if args.__class__ == list:
+					while '' in args:
+						args.remove('')
+				
+				assert args.__class__ == list, f'args = {args} is not valid.'
+				
+				args = self.pairsUnion(args)
+				
+				while args:
+					
+					arg = args.pop(0)
+					ignore = True
+					
+					if pairs: # Validate Pairs: -Arg Value
+						ignore = self.pairsVals(arg, args, pairs, output, wn)
+					
+					if ignore:
+						
+						if single: # Validate Single: -Arg
+							ignore = self.singleVals(arg, single, output, wn)
+						
+						if ignore:
+							
+							if united: # Validate United: -Arg = Value, -Arg: Value
+								ignore = self.unitedVals(arg, united, output, ignored, wn)
+							
+							if ignore == 'continue':
+								continue
+							
+							if ignore:
+								ignored.append(arg)
+				
+				return output, tuple(ignored)
 		
 		class AsciiFont:		# Clase que permite convertir un texto a un tipo de ASCII FONT
 			
@@ -7741,6 +8528,21 @@ class Utils:
 			\r \\
 			'''
 		
+		getNumWords = lambda self, num_c, w_len: sum([ num_c**l    for l in range(1, w_len+1)])
+		getNumChars = lambda self, num_c, w_len: sum([(num_c**l)*l for l in range(1, w_len+1)])
+		getFileSize = lambda self, num_c, w_len: self.getNumChars(num_c, w_len) + self.getNumWords(num_c, w_len) * 2
+		
+		# Temperature Conversions --------------------------------------
+		
+		tempCtoF = lambda self, C: (C * 1.8) + 32						# Para convertir de ºC a ºF
+		tempCtoK = lambda self, C:  C + 273.15							# Para convertir de ºC a  K
+		
+		tempFtoC = lambda self, F: (F-32) * 1.8							# Para convertir de ºF a ºC
+		tempFtoK = lambda self, F: (F-32) * 1.8 + 273.15				# Para convertir de ºF a  K
+		
+		tempKtoC = lambda self, K: round(K-273.15, 4)					# Para convertir de  K a ºC
+		tempKtoF = lambda self, K: round(K-273.15, 4) * 1.8 + 32		# Para convertir de  K a ºF
+		
 		# Math ---------------------------------------------------------
 		def cos(self, deg=45):											# Obtiene el Coseno de X grados
 			rad = math.radians(deg)
@@ -8312,6 +9114,52 @@ class Utils:
 			_GetLastError.restype = DWORD
 			return _GetLastError()
 		
+		def getPasswd(self, text=''):									# Obtiene una contraseña dada por terminal de forma oculta
+			from getpass import getpass
+			return getpass(text)
+		
+		def getUncrackablePasswords(self, passwd, qty=1, length=(20, 32),		# Script: Uncrackable v1.0 - Genera una o muchas contraseñas indecifrables a partir de una contraseña facil de recordar.
+			lower=True, upper=True, digits=True, punc=True,
+			charset='', only='', out_json=False):
+			
+			assert length.__class__ in [list, tuple, int], \
+			'Se esperaban 2 valores "(start, end)" para el '
+			f'rango de longitud de contraseña, no \'{length}\''
+			
+			if only.__class__ == str and not only == '':
+				pwd_chrs = only
+			else:
+				pwd_chrs  = charset
+				pwd_chrs += string.ascii_lowercase if lower  else ''
+				pwd_chrs += string.ascii_uppercase if upper  else ''
+				pwd_chrs += string.digits          if digits else ''
+				pwd_chrs += '!@#$%&*+-/=?^_`{|}~.' if punc   else ''
+			
+			pwd_chrs  = ''.join(sorted(list(set(pwd_chrs))))
+			pwd_chrs_l = len(pwd_chrs)
+			
+			SM64 = self.Splitmix64(passwd)
+			
+			out = { f'pwd-{n:02}':'' for n in range(1, qty+1) }
+			
+			for n in range(1, len(out)+1):
+				
+				pwd_num = f'pwd-{n:02}'
+				
+				if length.__class__ == int:
+					pwd_len = length
+				else:
+					pwd_len = SM64.nextIntInRange(*length)
+				
+				for x in range(pwd_len):
+					value = SM64.nextIntInRange(pwd_chrs_l)
+					out[pwd_num] += pwd_chrs[int(value)]
+			
+			if out_json:
+				out = json.dumps(out, indent=4)
+			
+			return out
+		
 		def writeHiddenText(self, text_to_print):						# Muestra el text_to_print en pantalla y pide capturar texto, el texto capturado no se mostraá pero será devuelto por la función.
 			''' passwd = utils.Utilities.writeHiddenText('Password: ')
 				print(f'La contraseña escrita fue: {passwd}') '''
@@ -8363,7 +9211,8 @@ STRUCT = '''\
     ║   ╠══ Class Clipboard
     ║   ║    │
     ║   ║    │ - Functions: ──────────────────
-    ║   ║    └── property text (get, set, delete)
+    ║   ║    ├── property text  (get, set, delete)
+    ║   ║    └── property files (get)                           (+New)
     ║   ║
     ║   ╠══ Class Explorer
     ║   ║    │
@@ -8378,6 +9227,8 @@ STRUCT = '''\
     ║   ║    ├── function getVK
     ║   ║    ├── function getKeyState
     ║   ║    ├── function getAsyncKeyState
+    ║   ║    ├── function isActive                              (+New)
+    ║   ║    ├── function isPressed                             (+New)
     ║   ║    ├── function press
     ║   ║    ├── function pressAndHold
     ║   ║    ├── function release
@@ -8389,6 +9240,10 @@ STRUCT = '''\
     ║   ║    │
     ║   ║    │ - Functions: ──────────────────
     ║   ║    ├── property position (get, set)
+    ║   ║    ├── function confineCursor                         (+New)
+    ║   ║    ├── function confineCursorCoords                   (+New)
+    ║   ║    ├── function cursorInfo                            (+New)
+    ║   ║    ├── function freezeCursor                          (+New)
     ║   ║    ├── function leftClick
     ║   ║    ├── function leftClickDown
     ║   ║    ├── function leftClickUp
@@ -8398,10 +9253,12 @@ STRUCT = '''\
     ║   ║    ├── function middleClick
     ║   ║    ├── function middleClickDown
     ║   ║    ├── function middleClickUp
+    ║   ║    ├── function move                                  (+New)
     ║   ║    ├── function scrollUp
     ║   ║    ├── function scrollDown
     ║   ║    ├── function scrollRight
-    ║   ║    └── function scrollLeft
+    ║   ║    ├── function scrollLeft
+    ║   ║    └── function swapMouseButtons                      (+New)
     ║   ║
     ║   ╠══ Class VBS
     ║   ║    │
@@ -8443,13 +9300,19 @@ STRUCT = '''\
     ║   ├── function beep
     ║   ├── function changePasswordCurrentUser
     ║   ├── function cleanRecyclerBin
+    ║   ├── function disableMouseOnWindow                       (+New)
     ║   ├── function displaySwitch
+    ║   ├── function dragAcceptFiles                            (+New)
     ║   ├── function exitWindows
     ║   ├── function getActiveWindow
+    ║   ├── function getShortcutTargetPath                      (+New)
     ║   ├── function getNameActiveWindow
     ║   ├── function getPathFromWinExplorer
     ║   ├── function getPrivileges
     ║   ├── function getProcessPrivileges
+    ║   ├── function getPosWindowToScreen                       (+New)
+    ║   ├── function getPosScreenToWindow                       (+New)
+    ║   ├── function getWindowPixelColor                        (+New)
     ║   ├── function getWindowRect
     ║   ├── function hideConsole
     ║   ├── function hideCursor
@@ -8593,6 +9456,13 @@ STRUCT = '''\
     ║   ├── function enumLocalDisk
     ║   ├── function enumLocalUsersAndGroups
     ║   ├── function enumProcess
+    ║   ├── function getHwnds                                   (+New)
+    ║   ├── function getPIDs                                    (+New)
+    ║   ├── function getProcessName                             (+New)
+    ║   ├── function getWindowsVersionStr                       (+New)
+    ║   ├── function isUserPasswordValid
+    ║   ├── function isWindowEnabled                            (+New)
+    ║   │ #
     ║   ├── property isCapsLockActive      (get)
     ║   ├── property isLinux               (get)
     ║   ├── property isMouseInstalled      (get)
@@ -8600,7 +9470,6 @@ STRUCT = '''\
     ║   ├── property isPythonV3            (get)
     ║   ├── property isSlowMachine         (get)
     ║   ├── property isUserAnAdmin         (get)
-    ║   ├── function isUserPasswordValid
     ║   ├── property isWindows             (get)
     ║   ├── property currentProcessId      (get)
     ║   ├── property cursorPos             (get)
@@ -8622,11 +9491,21 @@ STRUCT = '''\
     ║   ├── property userDowntime          (get)
     ║   ├── property userName              (get)
     ║   ├── property winDir                (get)
+    ║   │ #
     ║   └── property collectAll            (get)
     ║
     ╚═ Class Utilities
         ║
         ║ - Classes: ─────────────────────────
+        ╠══ Class ArgParser                                     (+New)
+        ║    │
+        ║    │ - Functions: ──────────────────
+        ║    ├── function pairsUnion
+        ║    ├── function pairsVals
+        ║    ├── function singleVals
+        ║    ├── function unitedVals
+        ║    └── function parser
+        ║
         ╠══ Class AsciiFont
         ║    ║
         ║    ║ - Error Classes: ──────────────
@@ -8777,6 +9656,13 @@ STRUCT = '''\
         ├── function getNumWords (Lambda)
         ├── function getNumChars (Lambda)
         ├── function getFileSize (Lambda)
+        │ #Temperature Conversions:
+        ├── function tempCtoF (Lambda)                          (+New)
+        ├── function tempCtoK (Lambda)                          (+New)
+        ├── function tempFtoC (Lambda)                          (+New)
+        ├── function tempFtoK (Lambda)                          (+New)
+        ├── function tempKtoC (Lambda)                          (+New)
+        ├── function tempKtoF (Lambda)                          (+New)
         │ #Math:
         ├── function cos
         ├── function sin
@@ -8810,14 +9696,22 @@ STRUCT = '''\
         ├── function hash
         ├── function getFiletime
         ├── function getLastError
+        ├── function getPasswd                                  (+New)
+        ├── function getUncrackablePasswords                    (+New)
         ├── function writeHiddenText
         └── function flushBuffer
+
+■■■ Class ObjTyList
+■■■ Class ObjTyInt
+■■■ Class ObjTyClassNames
+■■■ Class ObjTyFunctionNames
+■■■ Class SuperInheritance                                      (+New)
  
  All Classes Have Properties Called 'use', 'classes', and 'functions'.
  
- *Classes:    80
- *Functions:  226
- *Properties: 43
+ *Classes:    86
+ *Functions:  258
+ *Properties: 44
  
 '''.format(__version__)
 
@@ -8851,7 +9745,183 @@ if __name__ == '__main__':
 	# ~ actions = utils.Actions
 	# ~ utilities = utils.Utilities
 	
+#-----------------------------------------------------------------------  v1.1.4
+	
+	# Generador de contraseñas indecifrables a partir de una contraseña facil de recordar
+	# Es mas simple recordar una contraseña y con ello generar Contraseñas Fuertes.
+	# Con los mismos parametros, siempre generaremos las mismas palabras.
+	
+	# ~ uncrkPwd = utils.Utilities.getUncrackablePasswords
+	
+	# ~ passwd = uncrkPwd('contraseñaFacil123', out_json=True)
+	# ~ print(passwd)
+	# ~ pwd_dict = json.loads(passwd)
+	# ~ print('Pwd-01 len:', len(pwd_dict['pwd-01']))
+	# Output: Obtenemos 1 contraseña con la palabara "ContraseñaFacil123"
+	# {
+	#   "pwd-01": "{Mi&?h2~0ccWPWVj.g#.yn"
+	# }
+	# Pwd-01 len: 22
+	
+	# ~ passwd = uncrkPwd('contraseñaFacil123', 3, out_json=True)
+	# ~ print(passwd)
+	# Output: Obtenemos 3 palabras con longitudes entre 20 y 32 por defecto, todas a raiz de la misma contraseña.
+	# {
+	#   "pwd-01": "{Mi&?h2~0ccWPWVj.g#.yn",
+	#   "pwd-02": "=?a#BY}A6oyMG}}KKd4IJ?a*y2QD?",
+	#   "pwd-03": "&JYEn.jQ{im$GnnbbAHe4EBVL"
+	# }
+	
+	# ~ passwd = uncrkPwd('contraseñaFacil123', qty=3, length=24, out_json=True)
+	# ~ print(passwd)
+	# Output: Obtenemos 3 palabras con longitud 24, todas a raiz de la misma contraseña.
+	# {
+	#   "pwd-01": "={Mi&?h2~0ccWPWVj.g#.ynk",
+	#   "pwd-02": "=?a#BY}A6oyMG}}KKd4IJ?a*",
+	#   "pwd-03": "y2QD?N&JYEn.jQ{im$GnnbbA"
+	# }
+	# ~ passwd = uncrkPwd('contraseñaFacil123', punc=False, length=32, out_json=True)
+	# ~ print(passwd)
+	# Es posible quitar: lower=False, upper=False, digits=False
+	# y añadir caracteres extras con charset='¡¿¬' por ejemplo.
+	# Output: Obtenemos una contraseña de longitud 32 pero sin signos de puntuación:
+	# {
+	#   "pwd-01": "FxQj3Gj9z8eeYTYXk6h16wnkFGd1IZyH"
+	# }
+	# ~ passwd = uncrkPwd('contraseña facil 123', only='0123456789ABCDEF', length=32, out_json=True)
+	# ~ print(passwd)
+	# Output: Obtenemos una contraseña de longitud 32 pero solamente con los caracteres dados:
+	# {
+	#   "pwd-01": "419093CDE66CC9C936558216BB85B7C2"
+	# }
 	#-------------------------------------------------------------------
+	# Analizador de Argumentos o Cadenas:
+	
+	# ~ arg_parser = utils.Utilities.ArgParser
+	
+	# ~ values = {
+		# ~ 'pairs':  {                              # Use:
+			# ~ 'Name 1': ['-e', '--example'],       # -e value, --example value
+			# ~ 'Name 2': '-o',                      # -o value
+			# ~ 'Wordlist': '-w'                     # -w value
+		# ~ },
+		# ~ 'single': {
+			# ~ 'Name 3': ['-n', '--name'],          # -n, --name
+			# ~ 'Name 4': '-a',                      # -a
+			# ~ 'Name 5': 'val'                      # val
+		# ~ },
+		# ~ 'united': {
+			# ~ 'Name 6': ['-vn', '--valuename'],    # -vn=value, --valname:value
+			# ~ 'Name 7': '-dn',                     # -dn= value
+			# ~ 'Name 8': ['-xn', '-xname', 'xn'],   # -xn: value, -xname = value, xn : value
+			# ~ 'Wordlist': '-w'                     # -w = value     (-w value alternative)
+		# ~ }
+	# ~ }
+	
+	# ~ args = ' -e file.jpg  val -w: wordlist --other_value  -dn=word -xn:  word value_x  -a '
+	
+	# ~ out, ign = arg_parser.parser(values, args)
+	
+	# ~ print(out)		# Output: {'-e': 'file.jpg', 'val': True, '-w': 'wordlist', '-dn': 'word', '-xn': 'word', '-a': True}
+	# ~ print(ign)		# Ignoreds: ('--other_value', 'value_x')
+	
+	#-------------------------------------------------------------------
+	
+	# Get hWnds
+	# ~ hWnd_inf = utils.SystemInfo.getHwnds(pid=6512)
+	# ~ print(hWnd_inf)		# Example: [(132160, 6512, 'notepad.exe')]
+	
+	# ~ hWnd_inf = utils.SystemInfo.getHwnds(processName='notepad.exe')
+	# ~ print(hWnd_inf)		# Example: [(132160, 6512, 'notepad.exe')]
+	
+	# ~ hWnd = hWnd_inf[0][0]
+	# ~ print(hWnd)			# Example: 132160
+	
+	# Get Process Name
+	# ~ pName = utils.SystemInfo.getProcessName(hwnd=hWnd)
+	# ~ print(pName)		# Example: notepad.exe
+	
+	# ~ pName = utils.SystemInfo.getProcessName(pid=6512)
+	# ~ print(pName)		# Example: notepad.exe
+	
+	# Get Process IDs
+	# ~ pids = utils.SystemInfo.getPIDs(hWnd)
+	# ~ print(pids)			# Example: [6512, 6020]		= [processId, threadId]
+	
+	# ~ pids = utils.SystemInfo.getPIDs(processName='notepad.exe')
+	# ~ print(pids)			# Example: [6512]			= [processId]
+	
+	#-------------------------------------------------------------------
+	
+	# ~ win_ver = utils.SystemInfo.getWindowsVersionStr()
+	# ~ print(win_ver)
+	# Output, Example: Microsoft Windows 10 Home, 64-bit (build 19043)
+	
+	#-------------------------------------------------------------------
+	# Obtener rutas de archivos copiados
+	
+	# ~ cb = utils.Actions.Clipboard
+	# ~ print(cb.files)
+	
+	# Ejemplo de Salida:
+	# ('C:\\Users\\User\\Pictures\\img1.png', 'C:\\Users\\User\\Pictures\\img2.png')
+	
+	#-------------------------------------------------------------------
+	# Obteniendo la Ruta Objetivo de Un Acceso Directo:
+	
+	# ~ path = r'C:\Users\User\Desktop\File.lnk'
+	# ~ targetPath = utils.Actions.getShortcutTargetPath(path)
+	# ~ print(targetPath)
+	
+	# Ejemplo de Salida:
+	# C:\Program Files\Program\Bin\File.exe
+	
+	#-------------------------------------------------------------------
+	
+	# Deshabilita el uso del mouse en la consola de comandos
+	# ~ utils.Actions.disableMouseOnWindow(WCS.GetConsoleWindow())
+	# ~ time.sleep(5)
+	# Habilita el uso del mouse en la consola de comandos
+	# ~ utils.Actions.disableMouseOnWindow(WCS.GetConsoleWindow(), False)
+	
+	#-------------------------------------------------------------------
+	# Probando los "Get" en Edit Registry:
+	# ~ ER = utils.EditRegistry
+	# ... Test pendiente
+	#-------------------------------------------------------------------
+	
+	# ~ use = SuperInheritance.use
+	# ~ print(use)
+	
+	#-------------------------------------------------------------------
+	# Mostrar Árbol de Clases y Funciones en 'Utils':
+	# ~ utl = utils.Utilities
+	
+	# ~ C = 0
+	# ~ F = 32
+	# ~ K = 273.15
+	
+	# ~ print(f'\n ºC a ºF: {C} ºC = {utl.tempCtoF(C)} ºF')
+	# ~ print(  f' ºC a K:  {C} ºC = {utl.tempCtoK(C)} K')
+	
+	# ~ print(f'\n ºF a ºC: {F} ºF = {utl.tempFtoC(F)} ºC')
+	# ~ print(  f' ºF a K:  {F} ºF = {utl.tempFtoK(F)} K')
+	
+	# ~ print(f'\n K a ºC:  {K} K = {utl.tempKtoC(K)} ºC')
+	# ~ print(  f' K a ºF:  {K} K = {utl.tempKtoF(K)} ºF')
+	
+	# Output:
+	
+	# ºC a ºF: 0 ºC = 32.0 ºF
+	# ºC a K:  0 ºC = 273.15 K
+	#
+	# ºF a ºC: 32 ºF = 0.0 ºC
+	# ºF a K:  32 ºF = 273.15 K
+	#
+	# K a ºC:  273.15 K = 0.0 ºC
+	# K a ºF:  273.15 K = 32.0 ºF
+	
+#----------------------------------------------------------------------- v1.1.3
 	# Mostrar Árbol de Clases y Funciones en 'Utils':
 	
 	# ~ print(utils.tree)
