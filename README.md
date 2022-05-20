@@ -5,28 +5,28 @@
 ███    ███ ▀█████████▄ ███  ███         ███    ███    █▄▄ █▄█ ▀   █   ▄▀█ █ █ █ █   █ █▀▀ ▀█▀   █ █ █
 ███    ███    ▀███▀▀██ ███▌ ███         ███    █▀     █▄█  █  ▄   █▄▄ █▀█ ▀▄▀▄▀ █▄▄ █ ██▄  █  █▄█ █▀█
 ███    ███     ███   ▀ ███▌ ███         ███
-███    ███     ███     ███▌ ███       ▀███████████    ██    ██  ██     ██    ██████
-███    ███     ███     ███  ███                ███    ██    ██ ███    ███         ██
-███    ███     ███     ███  ███▌    ▄    ▄█    ███    ██    ██  ██     ██     █████
+███    ███     ███     ███▌ ███       ▀███████████    ██    ██  ██     ██    ██   ██
+███    ███     ███     ███  ███                ███    ██    ██ ███    ███    ██   ██
+███    ███     ███     ███  ███▌    ▄    ▄█    ███    ██    ██  ██     ██    ███████
 ████████▀     ▄████▀   █▀   █████▄▄██  ▄████████▀      ██  ██   ██     ██         ██
-                            ▀                           ████    ██ ██  ██ ██ ██████
+                            ▀                           ████    ██ ██  ██ ██      ██
 ```
 ## Tested in: Python 3.8.8
 ## By: LawlietJH
-## Utils v1.1.3
+## Utils v1.1.4
 
 ![Icon](ubz2file.ico "Icono de archivos ubz2")
 
 ```php
-■■■ Class Utils (v1.1.3)
+■■■ Class Utils (v1.1.4)
     ║
     ║ - Functions: ───────────────────────────
-    ╠══ function getBanner                            (+New)
-    ╠══ function getClassAndFuncs                     (+New)
+    ╠══ function getBanner
+    ╠══ function getClassAndFuncs
     ║
     ║ - Properties: ──────────────────────────
-    ╠══ property tree                                 (+New)
-    ╠══ property raw_tree                             (+New)
+    ╠══ property tree
+    ╠══ property raw_tree
     ║
     ║ - Main Classes: ────────────────────────
     ╠══ Class Actions
@@ -41,7 +41,8 @@
     ║   ╠══ Class Clipboard
     ║   ║    │
     ║   ║    │ - Functions: ──────────────────
-    ║   ║    └── property text (get, set, delete)
+    ║   ║    ├── property text  (get, set, delete)
+    ║   ║    └── property files (get)                           (+New)
     ║   ║
     ║   ╠══ Class Explorer
     ║   ║    │
@@ -56,6 +57,8 @@
     ║   ║    ├── function getVK
     ║   ║    ├── function getKeyState
     ║   ║    ├── function getAsyncKeyState
+    ║   ║    ├── function isActive                              (+New)
+    ║   ║    ├── function isPressed                             (+New)
     ║   ║    ├── function press
     ║   ║    ├── function pressAndHold
     ║   ║    ├── function release
@@ -67,6 +70,10 @@
     ║   ║    │
     ║   ║    │ - Functions: ──────────────────
     ║   ║    ├── property position (get, set)
+    ║   ║    ├── function confineCursor                         (+New)
+    ║   ║    ├── function confineCursorCoords                   (+New)
+    ║   ║    ├── function cursorInfo                            (+New)
+    ║   ║    ├── function freezeCursor                          (+New)
     ║   ║    ├── function leftClick
     ║   ║    ├── function leftClickDown
     ║   ║    ├── function leftClickUp
@@ -76,10 +83,12 @@
     ║   ║    ├── function middleClick
     ║   ║    ├── function middleClickDown
     ║   ║    ├── function middleClickUp
+    ║   ║    ├── function move                                  (+New)
     ║   ║    ├── function scrollUp
     ║   ║    ├── function scrollDown
     ║   ║    ├── function scrollRight
-    ║   ║    └── function scrollLeft
+    ║   ║    ├── function scrollLeft
+    ║   ║    └── function swapMouseButtons                      (+New)
     ║   ║
     ║   ╠══ Class VBS
     ║   ║    │
@@ -121,13 +130,19 @@
     ║   ├── function beep
     ║   ├── function changePasswordCurrentUser
     ║   ├── function cleanRecyclerBin
+    ║   ├── function disableMouseOnWindow                       (+New)
     ║   ├── function displaySwitch
+    ║   ├── function dragAcceptFiles                            (+New)
     ║   ├── function exitWindows
     ║   ├── function getActiveWindow
+    ║   ├── function getShortcutTargetPath                      (+New)
     ║   ├── function getNameActiveWindow
     ║   ├── function getPathFromWinExplorer
     ║   ├── function getPrivileges
     ║   ├── function getProcessPrivileges
+    ║   ├── function getPosWindowToScreen                       (+New)
+    ║   ├── function getPosScreenToWindow                       (+New)
+    ║   ├── function getWindowPixelColor                        (+New)
     ║   ├── function getWindowRect
     ║   ├── function hideConsole
     ║   ├── function hideCursor
@@ -271,6 +286,13 @@
     ║   ├── function enumLocalDisk
     ║   ├── function enumLocalUsersAndGroups
     ║   ├── function enumProcess
+    ║   ├── function getHwnds                                   (+New)
+    ║   ├── function getPIDs                                    (+New)
+    ║   ├── function getProcessName                             (+New)
+    ║   ├── function getWindowsVersionStr                       (+New)
+    ║   ├── function isUserPasswordValid
+    ║   ├── function isWindowEnabled                            (+New)
+    ║   │ #
     ║   ├── property isCapsLockActive      (get)
     ║   ├── property isLinux               (get)
     ║   ├── property isMouseInstalled      (get)
@@ -278,7 +300,6 @@
     ║   ├── property isPythonV3            (get)
     ║   ├── property isSlowMachine         (get)
     ║   ├── property isUserAnAdmin         (get)
-    ║   ├── function isUserPasswordValid
     ║   ├── property isWindows             (get)
     ║   ├── property currentProcessId      (get)
     ║   ├── property cursorPos             (get)
@@ -300,11 +321,21 @@
     ║   ├── property userDowntime          (get)
     ║   ├── property userName              (get)
     ║   ├── property winDir                (get)
+    ║   │ #
     ║   └── property collectAll            (get)
     ║
     ╚═ Class Utilities
         ║
         ║ - Classes: ─────────────────────────
+        ╠══ Class ArgParser                                     (+New)
+        ║    │
+        ║    │ - Functions: ──────────────────
+        ║    ├── function pairsUnion
+        ║    ├── function pairsVals
+        ║    ├── function singleVals
+        ║    ├── function unitedVals
+        ║    └── function parser
+        ║
         ╠══ Class AsciiFont
         ║    ║
         ║    ║ - Error Classes: ──────────────
@@ -323,7 +354,7 @@
         ║    ├── function doble
         ║    └── function rammstein
         ║
-        ╠══ Class ContentOnImage                      (+New)
+        ╠══ Class ContentOnImage
         ║    │
         ║    │ - Functions: ──────────────────
         ║    ├── function asc2Bin
@@ -397,35 +428,35 @@
         ╠══ Class NumberSystems
         ║    │
         ║    │ - Functions: ──────────────────
-        ║    ├── function binToChr (Lambda)           (+New)
-        ║    ├── function binToHex (Lambda)           (+New)
-        ║    ├── function binToDec (Lambda)           (+New)
-        ║    ├── function binToOct (Lambda)           (+New)
-        ║    ├── function chrToBin (Lambda)           (+New)
-        ║    ├── function chrToHex (Lambda)           (+New)
-        ║    ├── function chrToDec (Lambda)           (+New)
-        ║    ├── function chrToOct (Lambda)           (+New)
-        ║    ├── function hexToBin (Lambda)           (+New)
-        ║    ├── function hexToChr (Lambda)           (+New)
-        ║    ├── function hexToDec (Lambda)           (+New)
-        ║    ├── function hexToOct (Lambda)           (+New)
-        ║    ├── function decToBin (Lambda)           (+New)
-        ║    ├── function decToChr (Lambda)           (+New)
-        ║    ├── function decToHex (Lambda)           (+New)
-        ║    ├── function decToOct (Lambda)           (+New)
-        ║    ├── function octToBin (Lambda)           (+New)
-        ║    ├── function octToChr (Lambda)           (+New)
-        ║    ├── function octToHex (Lambda)           (+New)
-        ║    └── function octToDec (Lambda)           (+New)
+        ║    ├── function binToChr (Lambda)
+        ║    ├── function binToHex (Lambda)
+        ║    ├── function binToDec (Lambda)
+        ║    ├── function binToOct (Lambda)
+        ║    ├── function chrToBin (Lambda)
+        ║    ├── function chrToHex (Lambda)
+        ║    ├── function chrToDec (Lambda)
+        ║    ├── function chrToOct (Lambda)
+        ║    ├── function hexToBin (Lambda)
+        ║    ├── function hexToChr (Lambda)
+        ║    ├── function hexToDec (Lambda)
+        ║    ├── function hexToOct (Lambda)
+        ║    ├── function decToBin (Lambda)
+        ║    ├── function decToChr (Lambda)
+        ║    ├── function decToHex (Lambda)
+        ║    ├── function decToOct (Lambda)
+        ║    ├── function octToBin (Lambda)
+        ║    ├── function octToChr (Lambda)
+        ║    ├── function octToHex (Lambda)
+        ║    └── function octToDec (Lambda)
         ║
         ╠══ Class Splitmix64
         ║    │
         ║    │ - Functions: ──────────────────
-        ║    ├── property asc2Bin                     (+New)
-        ║    ├── property bin2Asc                     (+New)
-        ║    ├── property bin2Dec                     (+New)
-        ║    ├── property dec2Bin                     (+New)
-        ║    ├── property seed_text        (get)      (+New)
+        ║    ├── function asc2Bin
+        ║    ├── function bin2Asc
+        ║    ├── function bin2Dec
+        ║    ├── function dec2Bin
+        ║    ├── property seed_text        (get)
         ║    ├── property seed             (get, set)
         ║    ├── function reset
         ║    ├── function nextInt
@@ -455,6 +486,13 @@
         ├── function getNumWords (Lambda)
         ├── function getNumChars (Lambda)
         ├── function getFileSize (Lambda)
+        │ #Temperature Conversions:
+        ├── function tempCtoF (Lambda)                          (+New)
+        ├── function tempCtoK (Lambda)                          (+New)
+        ├── function tempFtoC (Lambda)                          (+New)
+        ├── function tempFtoK (Lambda)                          (+New)
+        ├── function tempKtoC (Lambda)                          (+New)
+        ├── function tempKtoF (Lambda)                          (+New)
         │ #Math:
         ├── function cos
         ├── function sin
@@ -463,7 +501,7 @@
         ├── function fibonacci
         ├── function factorial
         ├── function getAngle
-        ├── function isPrime                          (+New)
+        ├── function isPrime
         │ #Combinatoria:
         ├── function nCr
         ├── function nVr
@@ -488,13 +526,21 @@
         ├── function hash
         ├── function getFiletime
         ├── function getLastError
+        ├── function getPasswd                                  (+New)
+        ├── function getUncrackablePasswords                    (+New)
         ├── function writeHiddenText
         └── function flushBuffer
+
+■■■ Class ObjTyList
+■■■ Class ObjTyInt
+■■■ Class ObjTyClassNames
+■■■ Class ObjTyFunctionNames
+■■■ Class SuperInheritance                                      (+New)
  
  All Classes Have Properties Called 'use', 'classes', and 'functions'.
  
- *Classes:    80
- *Functions:  222
- *Properties: 47
+ *Classes:    86
+ *Functions:  258
+ *Properties: 44
  
 ```
